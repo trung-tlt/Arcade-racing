@@ -1,7 +1,16 @@
 # VOLTLINE
 
 Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro, shoot to clear the
-line, finish first. Race the Harbor Loop against 5 AI rivals: 3 laps, pickups, rockets, wrecks and respawns.
+line, finish first. Pick one of 9 vehicles and one of 3 maps, then race 5 AI rivals: 3 laps, pickups, rockets, wrecks
+and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
+
+## Maps
+
+| Map | Setting | Notes |
+|---|---|---|
+| Cat Lai Port | Night | Container yard, port gate, truck queue, quay cranes, a Reefer-lane shortcut |
+| Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
+| Hanoi Highway (Xa Lo Ha Noi) | Dusk | The only map with elevation: bridge, underpass, metro viaduct, ambient traffic |
 
 Built with Vite + TypeScript (strict), three.js, Rapier (`DynamicRayCastVehicleController`), the Web Audio API and a
 plain HTML/CSS overlay for the HUD and menus.
@@ -20,6 +29,11 @@ plain HTML/CSS overlay for the HUD and menus.
 | Pause | Esc | Start |
 | Restart race | Enter | Back |
 
+Every menu works from the keyboard or gamepad (arrows, Enter, Esc, hotkey chips).
+
+**Mobile:** landscape only (portrait shows a rotate screen). Default is on-screen pads with auto-gas; tilt and
+swipe-wheel are in Settings. Phones default to the Low preset, a 1.5 DPR cap and no ambient traffic. Layout and sizes
+come from `data/touch.json`.
 ## Commands
 
 ```bash
@@ -41,24 +55,27 @@ Before finishing any change, `npm run build` and `npm run test` must pass and th
 
 - `?quick=1` skips the menus and starts a race with defaults.
 - `?mode=practice` skips the menus and starts solo with dummy targets (no AI).
-- `?car=kestrel_gt|rhino_x4|wisp_r` picks the car for quick starts.
+- `?car=<vehicle id>` picks the car for quick starts (e.g. `kestrel_gt`, `wisp_r`, `mantis_650r`).
+- `?track=cat_lai|cong_hoa|xa_lo_ha_noi` picks the map for quick starts.
 
-In dev builds `window.__voltline` exposes `debugState()` and test helpers used by the Playwright tests.
+In dev builds `window.__voltline` exposes `debugState()` and test helpers used by the Playwright tests (fast-forward,
+teleport, autopilot, collider and ray queries). They are not in production builds.
 
 ## Project layout
 
 ```
 src/
   main.ts            boot: load assets -> menus -> race
-  core/              Game, Loop (60 Hz fixed step), Events, Input, Assets, Settings, Data, Records
-  world/             Track (spline -> road, barriers, gates, ramp), Environment, Lighting
-  vehicle/           Car, CarPhysics, CarVisual, ChaseCamera, Nitro
+  core/              Game, Loop (60 Hz fixed step), Events, Input, TouchInput, Assets, Settings, Data, Records
+  world/             Track (spline -> road, barriers), TrackPath, Environment, Lighting, per-map dressing
+                     (CatLai*, CongHoa*, XaLo*), Windowed/InstancedModel (draw-call budget)
+  vehicle/           Car, CarPhysics, CarVisual, ChaseCamera, Nitro, Turret
   combat/            Pulse MG, rockets, damage, pickups, CombatSystem
   ai/                RacingLine, AIDriver, AIGunner
   race/              RaceManager, Laps, Positions, Standings, Respawn
   fx/                Particles, Tracers, PostFX
-  audio/             AudioBus, EngineSound, Sfx
-  ui/                HUD, menus, results, minimap, name tags, styles
+  audio/             AudioBus (UI / music / game buses, underpass reverb), EngineSound, Sfx
+  ui/                HUD, screens, results, minimap, name tags, touch HUD and rotate screen, styles
 public/assets/       models/ textures/ sfx/ (the art and sound pack; code never edits these)
 data/                tuning and design data (below)
 tests/               Vitest unit tests (*.test.ts) and Playwright tests (*.spec.ts)
@@ -76,13 +93,17 @@ Every gameplay number lives in data, not in TypeScript.
 - `race.json` - countdown, track sampling, grid and AI race rules.
 - `audio.json` - volumes, loop regions, one-shots, thresholds.
 - `lighting.json` - hemisphere, moonlight and exposure.
-- `tracks/harbor.json` - Harbor Loop spline, checkpoints, grid, pickups, ramp, tunnel, dressing hints.
+- `ui_sounds.json` - menu event -> sound map.
+- `touch.json` - touch control layout, sizes and mobile defaults.
+- `tracks/cat_lai.json`, `tracks/cong_hoa.json`, `tracks/xa_lo_ha_noi.json` - spline, road layout, checkpoints, grid,
+  pickups and dressing for each map.
 
 ## Performance budget
 
 60 fps at 1080p on Apple M1 / Intel Iris Xe, under 150 draw calls, under 400k triangles on screen, first load under
 5 s. Repeated props use `InstancedMesh`, particles/tracers/rockets are pooled, at most 4 dynamic lights.
-Quality presets (Low / Medium / High) are in Settings.
+Quality presets (Low / Medium / High) are in Settings. Far dressing is distance-culled and windowed to stay inside the
+draw-call budget; Hanoi Highway near the start grid is the heaviest spot.
 
 ## Deployment
 
