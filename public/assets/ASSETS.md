@@ -1,0 +1,157 @@
+# VOLTLINE — MVP asset pack
+
+Everything in this folder is original and procedurally generated for this project. Drop it into the
+game repo as `public/assets/` (models, textures, sfx) and `data/` (json). Claude Code should write
+code only; it should not need to create or edit any art.
+
+## Conventions (all models)
+- Format: glTF 2.0 binary (`.glb`), validated with Khronos glTF-Validator (0 errors, 0 warnings).
+- Units: meters. Axes: **+Y up, +Z forward**, +X = the model's left. Origin on the ground plane.
+- Shading: flat low-poly, PBR `MeshStandardMaterial`. Glow comes from **emissive** materials
+  (exported with `KHR_materials_emissive_strength`) — use `UnrealBloomPass` (threshold ~0.6).
+- Stable material names: `Paint`, `Paint_Dark`, `Paint_Secondary`, `Paint_Accent`, `Glass`, `Trim`,
+  `Metal`, `Vent`, `Tire`, `Caliper`, `Light_Head`, `Light_Tail`, `Light_Siren_Red`, `Light_Siren_Blue`,
+  `Muzzle`, `Underglow`, `Rider_Suit`, `Rider_Helmet`, `Rider_Visor`, `Neon_*`.
+- Materials are shared inside a file. **Clone materials per instance** before tinting / damage effects.
+
+## Vehicles — `models/cars/*.glb` (9 vehicles)
+| file | type | tris | notes |
+|---|---|---|---|
+| kestrel_gt.glb | car | ~2.9k | balanced starter, orange |
+| rhino_x4.glb | car | ~3.9k | heavy brawler, cyan, bull bar, treaded tires |
+| wisp_r.glb | car | ~3.0k | light hypercar, lime, rear wing, bigger rear wheels |
+| warden_px.glb | car | ~2.9k | police interceptor (fictional Harbor Patrol), push bar, light bar — alternate `Light_Siren_Red` / `Light_Siren_Blue` at ~2 Hz |
+| bastion_m8.glb | car | ~4.0k | military armored 4x4, olive + sand camo, slat armor, heavy twin cannon |
+| sable_rs.glb | car | ~3.0k | rally hatch, purple/white, bumper spotlights, roof wing |
+| hauler_ht.glb | car | ~3.8k | pickup with shielded bed turret (360° yaw) |
+| truongson_av8.glb | apc8x8 | ~7.2k | original 8x8 armored personnel carrier, olive, autocannon turret (360°), antenna. 8 wheels `wheel_1L…wheel_4R`; axles 1–2 steer |
+| mantis_650r.glb | bike | ~1.9k | original 650-class sport bike with rider. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns |
+
+**Sponsor decals (Emesoft, supplied by the project owner):** kestrel_gt has the white stacked logo on both doors and the ink mark on the hood; mantis_650r has the red mark on the front fairing and the white stacked logo on the engine panel, both sides. They live in a separate `decals` mesh (materials `Decal_Emesoft_*`, alpha-tested PNG textures, polygon offset) so they can be hidden or swapped in code. Source textures: `textures/decal_emesoft_{stacked_white,mark_color,mark_ink}.png`; source SVGs in `brand/`.
+
+Node hierarchy (all vehicles):
+```
+Car_<id>
+├─ chassis          static body (multi-material mesh)
+├─ wheel_*          origin at hub; spin around local X; steering wheels (see cars.json "steer") also yaw around Y
+├─ rider            (bike only) separate mesh so it can lean/tuck or be hidden in first person
+├─ gun_mount        empty → yaw within ±turretYawDeg (cars.json)
+│  └─ gun           turret/barrels mesh
+│     └─ muzzle     empty at barrel tip → fire origin (+Z)
+├─ exhaust_L, exhaust_R   empties → nitro flame sprites, pointing −Z
+```
+`data/cars.json` has, per vehicle: `vehicleType` (car | apc8x8 | bike), stats, role, collider,
+every wheel (position, radius, width, steer), gun mount, `turretYawDeg`, and `maxLeanDeg` for the bike.
+
+### Physics notes for special vehicles
+- **apc8x8:** one Rapier raycast vehicle with 8 wheels; drive all 8, steer the wheels flagged `steer`
+  (rear steer axle at ~60% angle). Heavy mass, low centre of gravity, high ram damage.
+- **bike:** don't simulate a real two-wheeler. Use a raycast vehicle with **4 virtual wheels**
+  (front pair at the front hub, rear pair at the rear hub, ±0.25 m apart) and render only the two real
+  wheels. Visual lean = clamp(steer × speedFactor) up to `maxLeanDeg` around the forward axis; lean the
+  whole visual root, not the physics body. Rider is part of the hit box (collider in cars.json).
+
+## Weapons & pickups
+- `models/weapons/hornet_rocket.glb` — 0.8 m, flies along +Z, `trail` empty at the tail.
+- `models/pickups/pickup_{rocket,repair,nitro}.glb` — 1.2 m holo cube, origin at cube center.
+  Place at y ≈ 1.2, bob the root, spin child `icon` around Y. `holo_fill` is a transparent glow box.
+
+## Track props — `models/props/*.glb`
+| file | size (m) | use |
+|---|---|---|
+| container_red / container_blue | 2.44 × 2.59 × 6.06 | stacks in Container chicane; InstancedMesh |
+| barrier_jersey | 0.6 × 0.85 × 3.0 | tile along both road edges every 3 m |
+| streetlight | 8.2 tall, arm toward +X | every 30 m; `light_point` empty for an optional real light (≤ 4 real lights) |
+| building_a / b / c | 20×42×20, 30×24×26, 14×64×14 | city blocks; windows glow via emissive map |
+| crane_gantry | ~18 × 42 × 60 | dock cranes along the water |
+| jump_ramp | 18 × 10 × 2.5, rises toward +Z | Bridge jump |
+| checkpoint_gate | 24 m span | one per checkpoint (8) |
+| start_gantry | 24 m span | `lamp_1`…`lamp_5` start at emissiveIntensity 0 — light them for the countdown |
+| tunnel_segment | 26 × 10 × 10, open ends | repeat every 10 m through Neon tunnel |
+
+Budget: 6 vehicles on the grid ≈ 20–30k tris. Instance repeated props to stay under 150 draw calls.
+
+## Map 1 props — `models/props_catlai/*.glb` (Cát Lái Port, night — replaces Harbor Loop)
+| file | notes |
+|---|---|
+| sts_quay_crane.glb | 68 m ship-to-shore crane; rails along Z, legs at x ±15 (the quay lane runs between them), boom to +X over the water; `trolley`, `spreader` empties to animate |
+| rtg_crane.glb | rubber-tyred gantry, 23.5 m span over 6 container rows + the yard lane; `trolley` empty |
+| container_block_a/b/c.glb | 6 rows × 5 bays of 40 ft boxes, 1–5 high, one mesh each — instance them to build the yard; solid walls |
+| container_ship.glb | generic 150 m feeder ship (invented livery), bow +Z, lit bridge, nav lights |
+| port_gate.glb | 6-lane terminal gate, booths, barrier arms, lane lights, place-name sign (no operator logo) |
+| flood_mast.glb | 35 m high mast with LED ring (`light_point`) |
+| reach_stacker.glb | container handler crossing the Reefer-lane shortcut |
+| river_ferry.glb | generic 42 m river car ferry with ramps |
+| cable_stayed_bridge.glb | skyline backdrop, 300 m deck, lit stays |
+| quay_edge.glb | 20 m quay lip with bollards, fenders, yellow edge |
+Older Harbor props (`models/props/*`: containers, crane_gantry, barrier, streetlight, buildings, ramp, gates, tunnel) stay as shared props for all maps.
+
+## Map 2 props — `models/props_conghoa/*.glb` (Cong Hoa Boulevard, daytime)
+| file | notes |
+|---|---|
+| shophouse_a…d.glb | narrow tube houses, 4–6 m wide, 3–6 floors; **front faces +Z**, depth 14 m behind the origin; signboards use the embedded `day_shop_signs` atlas. Rotate ±90° to face the road and pack them edge to edge |
+| power_pole.glb | 10 m concrete pole + transformer; `cable_0..3` empties — draw sagging cables (TubeGeometry on a quadratic curve) between consecutive poles |
+| street_tree_a/b.glb | low-poly canopies for the median and sidewalks |
+| median_segment.glb | 10 m raised median with striped curb and hedges, tiles along Z |
+| pedestrian_overpass.glb | 34 m span across X, deck at 5.5 m; centre it on the median |
+| flyover_pier.glb | pier + cap for the roundabout flyover (deck generated from `flyover.points`) |
+| airliner.glb | generic twin-jet (invented livery), +Z forward; fly it along the approach path in cong_hoa.json |
+| scooter_red/white.glb | parked on sidewalks and as ambient traffic (tint `Scooter_Body` for variety) |
+| traffic_light.glb | `lamp_red`, `lamp_amber`, `lamp_green` meshes, toggle emissiveIntensity |
+| office_tower.glb, bus_stop.glb, airport_fence.glb | dressing for sections C and A |
+| car_sedan_white/silver.glb, car_hatch_red/blue.glb, car_taxi.glb | generic ambient cars (no brands), +Z forward, single `body` mesh; size ≈ 1.8 × 1.5 × 4.4 m (hatch 3.9 m). Tint `Civ_Paint` for more colours; `Light_Tail` brightens when they brake |
+| city_bus.glb | generic 11 m city bus, green livery, emissive `Route_Sign`; doors on the right (−X) side for bus stops |
+
+Ambient traffic in `cong_hoa.json` → `ambientTraffic.models` lists scooters, cars and buses separately, and `vehicleSizesM` gives box colliders. Wheels are baked into the body (no spin) — they move slowly enough that it doesn't show.
+
+## Map 3 props — `models/props_xalo/*.glb` (Hanoi Highway / Xa lộ Hà Nội, dusk)
+| file | notes |
+|---|---|
+| metro_viaduct_span.glb | 30 m span + pier at z = 0, deck top y = 10, two tracks at x ±1.5; tile along the metro path |
+| metro_station.glb | 40 m elevated station straddling the viaduct; `skywalk_anchor_east/west` empties |
+| metro_car_cab.glb, metro_car_mid.glb | generic 20 m metro cars (invented white/orange livery); chain cab-mid-mid-cab (last cab rotated 180°) |
+| skywalk.glb | 24 m covered pedestrian bridge (deck 6 m) with stair at +X |
+| sign_gantry_outbound/inbound.glb | 34 m overhead gantry, green direction signs (place names only) |
+| billboard_emesoft / voltline / apartments / ev.glb | 12 × 5 m billboards on 13 m poles, ad faces −Z (toward traffic driving +Z); Emesoft uses the owner's logo |
+| river_bridge_segment.glb + river_bridge_pier.glb | 40 m × 32 m deck (both directions), deck top at y = 0 → raise to the spline elevation |
+| underpass_open/covered.glb | 20 m retaining-wall trough (covered = cross-street deck with tunnel lamps) |
+| apartment_tower_a/b.glb | 96 m / 72 m towers, windows lit via the window atlas |
+| factory_shed.glb | 60 × 40 m sawtooth-roof factory |
+| highway_lamp.glb | 12 m double-arm sodium lamp (`light_L/R` empties) |
+| container_truck_blue/red.glb | generic 16.5 m container trucks for ambient traffic |
+
+## Textures — `textures/*.png`
+road_lanes (road ribbon, u across 18 m, v along) · window_atlas · checker · fx_muzzle_flash · fx_tracer ·
+fx_spark · fx_smoke · fx_explosion_4x4 (16-frame flipbook) · fx_nitro_flame · fx_glow · fx_skidmark.
+Map 2: day_road_3lane (one carriageway, u across 11 m, v tiles every ~12 m; flip 180° for the other direction) ·
+day_shop_signs (8-row atlas) · day_sky_gradient (scene.background).
+Map 1: catlai_apron (port concrete with yellow lanes) · catlai_gate_sign.
+Map 3: xalo_road_4lane (main carriageway, 15 m) · dusk_sky_gradient · xalo_direction_signs (4 rows) · xalo_billboards (4 rows: Emesoft, VOLTLINE, apartments, EV).
+
+## Sound — `sfx/*.wav` (44.1 kHz mono, normalized)
+engine_loop and skid_loop are seamless loops (engine playbackRate ≈ 0.6 + rpm × 1.4; use 1.4× pitch for
+the bike, 0.7× for the APC). One-shots: mg_shot, overheat, hit_metal, rocket_launch, explosion, nitro,
+pickup, checkpoint, countdown_beep, countdown_go, ui_click. No music included.
+
+## Menu sounds & music (all original, synthesized)
+- `sfx/ui/*.wav` — 13 UI sounds: ui_move, ui_select, ui_back, ui_error, ui_toggle_on/off, ui_slider_tick, ui_whoosh,
+  ui_car_switch, ui_car_confirm (engine rev + stab), ui_track_switch, ui_start_race (riser + hit), ui_title_sting.
+- `music/menu_loop.ogg` (+ .wav) — seamless 17.1 s synthwave loop, 112 BPM, A minor, for all menus.
+- `data/ui_sounds.json` — event → file, volume, pitch jitter, per-vehicle pitch, which screen/key plays what, music rules.
+- Hear them all on the design canvas artboard 23 (Sound board); screens 09–19 play them in Play mode.
+
+## Data — `data/`
+- `cars.json` — 9 vehicles (see above).
+- `weapons.json` — Pulse MG, Hornet rocket, pickups, damage states, wreck/respawn rules.
+- `tracks/xa_lo_ha_noi.json` — Map 3, dusk, 4.3 km, **with elevation in the spline** (bridge crest +11 m, underpass −6.5 m,
+  U-turn hump +5 m). Includes metro viaduct path, stations, trains, gantries, billboards, bridge/underpass ranges,
+  ambient traffic (trucks, cars, buses, scooters) and the dusk lighting setup.
+- `tracks/cong_hoa.json` — Map 2, daytime, 3.1 km: outbound → U-turn → inbound → counter-clockwise roundabout under a
+  flyover. Includes lane layout, checkpoints, pickups, overpasses, traffic lights, ambient traffic, dressing rules and
+  the full daylight setup (sun, hemi, fog, bloom). Coordinates: X = east, Z = −north.
+- `tracks/cat_lai.json` — Map 1, night, 2.8 km: truck road with a parked truck queue → terminal gate chicane →
+  container-yard lanes (RTGs) → 1 km quay apron under 6 quay cranes beside two ships → ferry road. Reefer-lane
+  shortcut with a jump. Includes crane/ship/block/gate/truck-queue/ferry placement and night lighting.
+
+## UI reference
+All screens are on the VOLTLINE design canvas: HUD (05), screens 09–19, vehicles 03, 07, 20, 21, Map 2 on 22, Map 3 on 24.

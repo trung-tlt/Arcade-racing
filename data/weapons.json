@@ -1,0 +1,79 @@
+{
+  "pulse_mg": {
+    "slot": "primary",
+    "type": "hitscan",
+    "fireRatePerSec": 10,
+    "damage": 4,
+    "rangeM": 120,
+    "autoAimConeDeg": 8,
+    "heatPerShot": 0.03333333333333333,
+    "overheatLockoutSec": 1.5,
+    "coolPerSec": 0.5,
+    "nitroGainOnHit": 0.02,
+    "sfx": "sfx/mg_shot.wav",
+    "fx": {
+      "muzzle": "textures/fx_muzzle_flash.png",
+      "tracer": "textures/fx_tracer.png",
+      "impact": "textures/fx_spark.png"
+    },
+    "heatAfterLockout": 0.4
+  },
+  "hornet_rocket": {
+    "slot": "secondary",
+    "type": "projectile",
+    "model": "models/weapons/hornet_rocket.glb",
+    "ammoPerPickup": 2,
+    "speedMps": 90,
+    "turnRateDegPerSec": 40,
+    "damage": 40,
+    "splashRadiusM": 6,
+    "lifetimeSec": 4,
+    "sfx": {
+      "launch": "sfx/rocket_launch.wav",
+      "impact": "sfx/explosion.wav"
+    }
+  },
+  "pickups": {
+    "rocket": {
+      "model": "models/pickups/pickup_rocket.glb",
+      "respawnSec": 10,
+      "grants": {
+        "rockets": 2
+      }
+    },
+    "repair": {
+      "model": "models/pickups/pickup_repair.glb",
+      "respawnSec": 10,
+      "grants": {
+        "hp": 30
+      }
+    },
+    "nitro": {
+      "model": "models/pickups/pickup_nitro.glb",
+      "respawnSec": 10,
+      "grants": {
+        "nitroBars": 1
+      }
+    }
+  },
+  "damageStates": [
+    {
+      "above": 0.6,
+      "fx": null
+    },
+    {
+      "above": 0.3,
+      "fx": "smoke"
+    },
+    {
+      "above": 0,
+      "fx": "sparks_fire"
+    }
+  ],
+  "wreck": {
+    "respawnDelaySec": 2,
+    "invulnerableSec": 2,
+    "takedownScore": 250,
+    "takedownNitroBars": 1
+  }
+}

@@ -1,0 +1,267 @@
+/* Pause + results overlays. Palette: night #0e1116, panel #161b23, asphalt #2a3240, orange #ff6a1a, neon #2ec5ff. */
+.ov {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  padding: 24px;
+  color: #e8ecf2;
+  font-family: Inter, system-ui, sans-serif;
+}
+.ov[hidden] {
+  display: none;
+}
+.ov button {
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.ov button:focus-visible {
+  outline: 3px solid #2ec5ff;
+  outline-offset: 3px;
+}
+
+/* ---- Pause ---- */
+.ov-pause {
+  background: rgba(14, 17, 22, 0.72);
+  padding-bottom: 64px;
+}
+.pause-panel {
+  width: 440px;
+  max-width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 32px;
+  background: #161b23;
+  border: 1px solid #2a3240;
+  border-radius: 14px;
+}
+.pause-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+.pause-head h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 40px;
+  letter-spacing: 1px;
+}
+.pause-summary {
+  font-size: 13px;
+  color: #9aa4b5;
+  text-align: right;
+}
+.pause-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ov-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 14px 20px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid #2a3240;
+  border-radius: 8px;
+}
+.ov-btn:hover {
+  border-color: #4a5260;
+  background: #1d2430;
+}
+.ov-btn.primary {
+  padding: 16px 20px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  color: #0e1116;
+  background: #ff6a1a;
+  border-color: #ff6a1a;
+}
+.ov-btn.primary:hover {
+  background: #ff7d38;
+}
+.ov-btn.danger {
+  color: #ff8fa9;
+  border-color: #ff3d6e;
+}
+.ov-btn.danger:hover {
+  background: rgba(255, 61, 110, 0.12);
+}
+.pause-foot {
+  margin: 0;
+  font-size: 12px;
+  color: #9aa4b5;
+}
+
+/* ---- Results ---- */
+.ov-results {
+  background: #0e1116;
+  align-items: stretch;
+  overflow-y: auto;
+  padding-bottom: 64px;
+}
+.res {
+  width: 100%;
+  max-width: 1184px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.res-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.res-sub {
+  font-size: 12px;
+  letter-spacing: 4px;
+  font-weight: 600;
+  color: #9aa4b5;
+  text-transform: uppercase;
+}
+.res-title {
+  margin: 2px 0 0;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 44px;
+  line-height: 1.1;
+}
+.res-title span {
+  color: #ff6a1a;
+}
+.res-chips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.res-chip {
+  padding: 12px 18px;
+  background: #161b23;
+  border-radius: 10px;
+}
+.res-chip b {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 24px;
+  color: #2ec5ff;
+}
+.res-chip.new b {
+  color: #c6ff3d;
+}
+.res-chip span {
+  font-size: 12px;
+  color: #9aa4b5;
+}
+.res-table-wrap {
+  background: #161b23;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+.res-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.res-table th {
+  padding: 14px 12px;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #9aa4b5;
+}
+.res-table th:first-child,
+.res-table td:first-child {
+  padding-left: 20px;
+}
+.res-table th:last-child,
+.res-table td:last-child {
+  padding-right: 20px;
+  text-align: right;
+}
+.res-table td {
+  padding: 12px;
+  border-top: 1px solid #2a3240;
+}
+.res-table .pos {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+}
+.res-table .driver {
+  font-weight: 700;
+}
+.res-table .car {
+  color: #c9d1dd;
+}
+.res-table .mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.res-table tr.me td {
+  background: #2a1a10;
+  color: #ffb37a;
+}
+.res-table tr.racing td {
+  color: #b4bdcb;
+}
+.res-table tr.racing .total {
+  animation: res-pulse 1.2s ease-in-out infinite;
+}
+.res-table tr.dnf td {
+  color: #9aa4b5;
+}
+@keyframes res-pulse {
+  50% {
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .res-table tr.racing .total {
+    animation: none;
+  }
+}
+.res-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: auto;
+}
+.res-note {
+  font-size: 13px;
+  color: #9aa4b5;
+}
+.res-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.res-actions .ov-btn {
+  width: auto;
+  text-align: center;
+}
+@media (max-height: 640px) {
+  .res-title {
+    font-size: 34px;
+  }
+  .res {
+    gap: 14px;
+  }
+}

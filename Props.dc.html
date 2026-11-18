@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>3D props, pickups, FX and sound</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;600&amp;display=swap">
+<style>
+body{margin:0}
+a{color:#2EC5FF}a:hover{color:#8FE0FF}
+</style>
+</helmet>
+<div style="width: 1600px; height: 1500px; box-sizing: border-box; padding: 56px 72px; background: #0E1116; color: #E8ECF2; font-family: Inter, system-ui, sans-serif; display: flex; flex-direction: column; gap: 24px">
+  <div style="display: flex; flex-direction: column; gap: 8px">
+    <div style="font-size: 14px; letter-spacing: 3px; color: #9AA4B5; font-weight: 600">08 · 3D PROPS, PICKUPS, FX &amp; SOUND</div>
+    <h2 style="margin: 0; font-family: 'Space Grotesk', sans-serif; font-size: 48px; letter-spacing: -1px">Everything Harbor Loop needs</h2>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px">
+    <sc-for list="{{props}}" as="p" hint-placeholder-count="16">
+      <div style="background: #161B23; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column">
+        <img src="{{p.src}}" alt="{{p.name}} render" style="width: 100%; aspect-ratio: 1 / 1; display: block">
+        <div style="padding: 8px 12px 12px; display: flex; flex-direction: column; gap: 2px">
+          <div style="font-weight: 600; font-size: 14px">{{p.name}}</div>
+          <div style="font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #9AA4B5">{{p.meta}}</div>
+        </div>
+      </div>
+    </sc-for>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; flex-grow: 1">
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; letter-spacing: 2px; color: #9AA4B5">TEXTURES &amp; FX SPRITES (11 PNG)</div>
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px">
+        <div style="background: #161B23; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px"><img src="/_blob/6880ad9739d461b87e357a967fcf13a9" alt="Road lanes texture" style="width: 100%; aspect-ratio: 1 / 1; display: block; border-radius: 6px"><div style="font-size: 12px; color: #C9D1DD">road_lanes</div></div>
+        <div style="background: #161B23; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px"><img src="/_blob/4849e2502ffd70e07a226622cf0bbc38" alt="Explosion flipbook 4 by 4" style="width: 100%; aspect-ratio: 1 / 1; display: block; border-radius: 6px; background: #07090C"><div style="font-size: 12px; color: #C9D1DD">fx_explosion_4x4</div></div>
+        <div style="background: #161B23; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px"><img src="/_blob/70316e690dcc7412c677f8a0f0bf7bbc" alt="Muzzle flash sprite" style="width: 100%; aspect-ratio: 1 / 1; display: block; border-radius: 6px; background: #07090C"><div style="font-size: 12px; color: #C9D1DD">fx_muzzle_flash</div></div>
+        <div style="background: #161B23; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 6px"><div style="width: 100%; aspect-ratio: 1 / 1; border-radius: 6px; background: #07090C; display: flex; justify-content: center; align-items: center"><img src="/_blob/d6ec81ddacb6d574bc2b9e94119b806e" alt="Nitro flame sprite" style="height: 92%; display: block"></div><div style="font-size: 12px; color: #C9D1DD">fx_nitro_flame</div></div>
+      </div>
+      <div style="font-size: 13px; line-height: 1.6; color: #9AA4B5">Also: window_atlas, checker, fx_tracer, fx_spark, fx_smoke, fx_glow, fx_skidmark.</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <div style="font-family: 'Space Grotesk', sans-serif; font-size: 13px; letter-spacing: 2px; color: #9AA4B5">SOUND (13 WAV) &amp; DATA (3 JSON)</div>
+      <div style="background: #161B23; border-radius: 10px; padding: 16px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; color: #C9D1DD">engine_loop · skid_loop (seamless)<br>mg_shot · overheat · hit_metal<br>rocket_launch · explosion · nitro<br>pickup · checkpoint · ui_click<br>countdown_beep · countdown_go</div>
+      <div style="background: #161B23; border-radius: 10px; padding: 16px 18px; font-family: 'JetBrains Mono', monospace; font-size: 12.5px; line-height: 1.75; color: #C9D1DD">data/cars.json — stats, colliders, wheels<br>data/weapons.json — MG, rocket, pickups<br>data/tracks/harbor.json — 64-pt spline,<br>  grid, 8 checkpoints, 18 pickups, ramp, tunnel</div>
+      <div style="font-size: 13px; line-height: 1.6; color: #9AA4B5">Total pack ≈ 2.6 MB zipped · 19 GLB validated (0 errors) · full usage guide in ASSETS.md.</div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":1500}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const b = id => '/_blob/' + id;
+    return {
+      props: [
+        { name: 'Container (red)', meta: '2.4×2.6×6.1 m · 828 tris', src: b('7330b7e459ab1454d5b74ee1c700a815') },
+        { name: 'Container (blue)', meta: '2.4×2.6×6.1 m · 828 tris', src: b('9b48b081f899168997e1c32a1543b0c9') },
+        { name: 'Jersey barrier', meta: '3 m tile · 112 tris', src: b('2eb61656f6e1c617897be0efc6e43429') },
+        { name: 'Streetlight', meta: '8.2 m · 92 tris', src: b('f365c3adcfe83835088a73793df3e2ed') },
+        { name: 'Building A', meta: '20×42×20 m · 144 tris', src: b('aefa61a7588b10faca55592e4021e7f6') },
+        { name: 'Building B', meta: '30×24×26 m · 144 tris', src: b('4bde980132292a733017b9a6096dd405') },
+        { name: 'Building C', meta: '14×64×14 m · 108 tris', src: b('42b4de6162319db0636a65881e3713ac') },
+        { name: 'Dock crane', meta: '~42 m tall · 396 tris', src: b('8c0f990745adad99c5f8fc6e05807e82') },
+        { name: 'Jump ramp', meta: '18×10×2.5 m · 144 tris', src: b('b8fbb07ab16763670e1a334a645c5216') },
+        { name: 'Checkpoint gate', meta: '24 m span · 108 tris', src: b('f2f2b9f953aa0502d3b6196068d1a03e') },
+        { name: 'Start gantry', meta: '5 countdown lamps · 412 tris', src: b('59c266dba9d288877c5360322bbbad73') },
+        { name: 'Tunnel segment', meta: '10 m tile · 152 tris', src: b('4c24306882f59b25e3ffabead5b76b97') },
+        { name: 'Hornet rocket', meta: '0.8 m · 188 tris', src: b('50f8dc71abd511154ca73a2de302a3ff') },
+        { name: 'Pickup · rockets', meta: '1.2 m holo · 344 tris', src: b('956f42f42e2538f7089f181e225846bb') },
+        { name: 'Pickup · repair', meta: '1.2 m holo · 180 tris', src: b('ed4589009fcc86ec2fedd1625a1810cb') },
+        { name: 'Pickup · nitro', meta: '1.2 m holo · 324 tris', src: b('55f9621b0d9e6a3fc64d9cfb95b9de29') },
+      ],
+    };
+  }
+}
+</script>
+</body>
+</html>

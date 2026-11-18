@@ -1,0 +1,88 @@
+/* Keyboard-first menus: keycaps, bottom key bar and the cyan selection ring (shared by every screen). */
+.kc {
+  display: inline-block;
+  min-width: 16px;
+  text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  font-weight: 700;
+  font-style: normal;
+  line-height: 1;
+  padding: 5px 7px 4px;
+  border-radius: 5px;
+  border: 1px solid #4a5260;
+  border-bottom-width: 3px;
+  background: #0e1116;
+  color: #e8ecf2;
+  white-space: nowrap;
+  letter-spacing: 0;
+}
+.kc-dark {
+  background: #0e1116;
+  border-color: #0e1116;
+  color: #ffb37a;
+}
+.kc-row {
+  display: inline-flex;
+  gap: 4px;
+  flex: none;
+}
+.lbl2 {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+.lbl2 small {
+  font-family: Inter, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  opacity: 0.8;
+}
+.mn-keybar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 20px;
+  background: rgba(14, 17, 22, 0.92);
+  border-top: 1px solid #2a3240;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 13px;
+  color: #9aa4b5;
+}
+.mn-keybar .kb-keys {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 20px;
+}
+.mn-keybar .kb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.mn-keybar .kb-item > span:last-child {
+  margin-left: 2px;
+}
+.mn-keybar .kb-pad {
+  font-size: 12px;
+}
+/* Whatever is selected always has a visible ring. */
+.mn button:focus-visible,
+.mn a:focus-visible,
+.mn [data-nav]:focus-visible,
+.mn [data-row]:focus-visible,
+.ov button:focus-visible,
+.settings-screen [data-row]:focus-visible,
+.settings-screen button:focus-visible {
+  outline: 3px solid #2ec5ff;
+  outline-offset: 3px;
+}

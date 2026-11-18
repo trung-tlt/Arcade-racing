@@ -1,0 +1,52 @@
+{
+  "muzzleOffset": [0, 0.15, 1.6],
+  "aimTargetHeightM": 0.7,
+  "pickupRadiusM": 2.6,
+  "pickupHeightM": 1.2,
+  "pickupBobM": 0.15,
+  "pickupBobHz": 0.6,
+  "pickupSpinRadPerSec": 1.8,
+  "rocket": {
+    "poolSize": 8,
+    "homingConeDeg": 25,
+    "homingRangeM": 160,
+    "trailIntervalSec": 0.04,
+    "armSec": 0.3,
+    "proximityM": 2.2
+  },
+  "damageFx": {
+    "smokeIntervalSec": 0.12,
+    "fireIntervalSec": 0.05
+  },
+  "blinkHz": 10,
+  "shake": {
+    "hit": 0.15,
+    "wreck": 0.8,
+    "explosion": 0.5,
+    "launch": 0.1
+  },
+  "dummyTint": "#FF3D6E",
+  "dummies": [
+    {
+      "t": 0.02,
+      "lane": 0
+    },
+    {
+      "t": 0.035,
+      "lane": 2
+    },
+    {
+      "t": 0.05,
+      "lane": 1
+    }
+  ],
+  "enemyTint": "#FF3D6E",
+  "sirenHz": 2,
+  "sirenOnIntensity": 4,
+  "sirenOffIntensity": 0.3,
+  "turret": {
+    "fullTurretDeg": 180,
+    "yawRateRadPerSec": 9,
+    "holdSec": 0.5
+  }
+}

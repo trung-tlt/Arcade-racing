@@ -1,0 +1,42 @@
+# AWS Amplify Hosting build + headers for VOLTLINE (a static Vite app: the output is dist/).
+# Connect the GitHub repo in the Amplify console and Amplify builds this on every push; no server or rewrites needed.
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        # Vite 7 needs Node >= 20.19.
+        - nvm install 22
+        - nvm use 22
+        - node --version
+        - npm ci
+    build:
+      commands:
+        - npm run build
+  artifacts:
+    baseDirectory: dist
+    files:
+      - '**/*'
+  cache:
+    paths:
+      - node_modules/**/*
+customHeaders:
+  # Security headers for every file (same policy as staticwebapp.config.json / public/_headers).
+  - pattern: '**/*'
+    headers:
+      - key: 'X-Content-Type-Options'
+        value: 'nosniff'
+      - key: 'Referrer-Policy'
+        value: 'strict-origin-when-cross-origin'
+      - key: 'Content-Security-Policy'
+        value: "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+  # Models, sounds, music and textures are served from /assets with fixed names: cache for a year (brief: immutable).
+  - pattern: '/assets/**'
+    headers:
+      - key: 'Cache-Control'
+        value: 'public, max-age=31536000, immutable'
+  # The entry page must always be revalidated so a new deploy is picked up.
+  - pattern: '/index.html'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-cache'

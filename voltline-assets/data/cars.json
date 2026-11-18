@@ -1,0 +1,215 @@
+[
+  {
+    "id": "kestrel_gt",
+    "name": "Kestrel GT",
+    "file": "models/cars/kestrel_gt.glb",
+    "paint": "#FF6A1A",
+    "collider": {
+      "halfExtents": [
+        0.95,
+        0.559,
+        2.279
+      ],
+      "center": [
+        0,
+        0.679,
+        0
+      ]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.83,
+        "y": 0.29,
+        "z": 1.304,
+        "radius": 0.29,
+        "width": 0.26,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.83,
+        "y": 0.29,
+        "z": 1.304,
+        "radius": 0.29,
+        "width": 0.26,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.82,
+        "y": 0.29,
+        "z": -1.357,
+        "radius": 0.29,
+        "width": 0.28,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.82,
+        "y": 0.29,
+        "z": -1.357,
+        "radius": 0.29,
+        "width": 0.28,
+        "steer": false
+      }
+    ],
+    "gunMount": [
+      0,
+      1.238,
+      -0.263
+    ],
+    "topSpeedKmh": 290,
+    "accel": 7,
+    "handling": 7,
+    "hp": 100,
+    "massKg": 1350,
+    "grip": 1,
+    "drift": 0.85,
+    "nitroBoost": 0.35,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 1
+  },
+  {
+    "id": "rhino_x4",
+    "name": "Rhino X4",
+    "file": "models/cars/rhino_x4.glb",
+    "paint": "#2EC5FF",
+    "collider": {
+      "halfExtents": [
+        1,
+        0.627,
+        2.402
+      ],
+      "center": [
+        0,
+        0.747,
+        0.061
+      ]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.84,
+        "y": 0.34,
+        "z": 1.293,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.84,
+        "y": 0.34,
+        "z": 1.293,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.84,
+        "y": 0.34,
+        "z": -1.375,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.84,
+        "y": 0.34,
+        "z": -1.375,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": false
+      }
+    ],
+    "gunMount": [
+      0,
+      1.375,
+      -0.231
+    ],
+    "topSpeedKmh": 260,
+    "accel": 5,
+    "handling": 5,
+    "hp": 150,
+    "massKg": 2100,
+    "grip": 1.1,
+    "drift": 0.6,
+    "nitroBoost": 0.3,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 2
+  },
+  {
+    "id": "wisp_r",
+    "name": "Wisp R",
+    "file": "models/cars/wisp_r.glb",
+    "paint": "#C6FF3D",
+    "collider": {
+      "halfExtents": [
+        0.975,
+        0.568,
+        2.328
+      ],
+      "center": [
+        0,
+        0.688,
+        0
+      ]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.86,
+        "y": 0.262,
+        "z": 1.23,
+        "radius": 0.262,
+        "width": 0.25,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.86,
+        "y": 0.262,
+        "z": 1.23,
+        "radius": 0.262,
+        "width": 0.25,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.83,
+        "y": 0.288,
+        "z": -1.413,
+        "radius": 0.288,
+        "width": 0.31,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.83,
+        "y": 0.288,
+        "z": -1.413,
+        "radius": 0.288,
+        "width": 0.31,
+        "steer": false
+      }
+    ],
+    "gunMount": [
+      0,
+      1.033,
+      -0.222
+    ],
+    "topSpeedKmh": 320,
+    "accel": 8,
+    "handling": 8,
+    "hp": 80,
+    "massKg": 1100,
+    "grip": 0.95,
+    "drift": 0.95,
+    "nitroBoost": 0.4,
+    "nitroBarSec": 2,
+    "ramDamageMul": 0.8
+  }
+]

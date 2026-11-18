@@ -1,0 +1,430 @@
+:root {
+  --night: #0e1116;
+  --asphalt: #2a3240;
+  --nitro: #ff6a1a;
+  --neon: #2ec5ff;
+  --enemy: #ff3d6e;
+  --pickup: #c6ff3d;
+}
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--night);
+  color: #fff;
+  font-family: Inter, system-ui, sans-serif;
+}
+#game {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+#hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+}
+#loading {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  background: var(--night);
+  transition: opacity 0.4s;
+}
+#loading.done {
+  opacity: 0;
+  pointer-events: none;
+}
+#loading-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 48px;
+  letter-spacing: 0.3em;
+  color: var(--neon);
+}
+#loading-bar {
+  width: min(360px, 70vw);
+  height: 6px;
+  background: var(--asphalt);
+  border-radius: 3px;
+  overflow: hidden;
+}
+#loading-fill {
+  width: 0;
+  height: 100%;
+  background: var(--nitro);
+  transition: width 0.1s;
+}
+
+.hud-speed {
+  position: absolute;
+  right: 32px;
+  bottom: 28px;
+  text-align: right;
+  font-family: 'Space Grotesk', sans-serif;
+  color: #e8ecf2;
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(14, 17, 22, 0.78);
+}
+.hud-speed-val {
+  font-size: 64px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.hud-speed-unit {
+  font-size: 14px;
+  letter-spacing: 0.2em;
+  color: var(--neon);
+}
+.hud-nitro {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.hud-bar {
+  width: 56px;
+  height: 10px;
+  background: rgba(42, 50, 64, 0.8);
+  border: 1px solid rgba(46, 197, 255, 0.4);
+  transform: skewX(-20deg);
+  overflow: hidden;
+}
+.hud-bar > i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--nitro);
+}
+.hud-nitro.active .hud-bar > i {
+  background: var(--neon);
+  box-shadow: 0 0 8px var(--neon);
+}
+.hud-drift {
+  position: absolute;
+  right: 32px;
+  bottom: 150px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: var(--nitro);
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.hud-drift.on {
+  opacity: 1;
+}
+.hud-hint {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  bottom: 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.55);
+}
+.hud-hint b {
+  color: var(--neon);
+  font-weight: 600;
+}
+
+.race-top {
+  position: fixed;
+  left: 32px;
+  top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-shadow: 0 2px 8px rgba(14, 17, 22, 0.8);
+}
+.race-label {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: #9aa4b5;
+}
+.race-lap {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 48px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nitro);
+}
+.race-lap small {
+  font-size: 22px;
+  color: #e8ecf2;
+}
+.race-time,
+.race-best {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 18px;
+  color: #e8ecf2;
+}
+.race-best {
+  font-size: 13px;
+  color: #9aa4b5;
+}
+.race-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 18%;
+  text-align: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 168px;
+  font-weight: 700;
+  line-height: 1;
+  color: #e8ecf2;
+  text-shadow: 0 4px 24px rgba(14, 17, 22, 0.9);
+}
+.race-banner.go {
+  color: var(--pickup);
+}
+.race-banner-hint {
+  display: block;
+  margin-top: 8px;
+  font-family: Inter, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: 3px;
+}
+.race-result {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(14, 17, 22, 0.7);
+}
+.race-result-card {
+  min-width: 360px;
+  padding: 28px 32px;
+  border-radius: 14px;
+  background: #161b23;
+  border: 1px solid var(--asphalt);
+}
+.race-result-card h2 {
+  margin: 0 0 4px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 40px;
+  color: var(--nitro);
+}
+.race-result-card table {
+  width: 100%;
+  margin: 16px 0;
+  border-collapse: collapse;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+.race-result-card td {
+  padding: 6px 0;
+  border-top: 1px solid var(--asphalt);
+}
+.race-result-card td:last-child {
+  text-align: right;
+}
+.race-result-card tr.best td {
+  color: var(--pickup);
+}
+.race-result-card p {
+  margin: 0;
+  font-size: 13px;
+  color: #9aa4b5;
+}
+
+.cb-panel {
+  position: fixed;
+  left: 24px;
+  bottom: 24px;
+  width: 290px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border-radius: 10px;
+  background: rgba(14, 17, 22, 0.78);
+}
+.cb-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+}
+.cb-bar {
+  height: 10px;
+  background: var(--asphalt);
+  border-radius: 5px;
+}
+.cb-bar.thin {
+  height: 6px;
+  border-radius: 3px;
+}
+.cb-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+.cb-rockets {
+  display: flex;
+  gap: 6px;
+  margin-right: auto;
+}
+.cb-rk {
+  width: 14px;
+  height: 24px;
+  border-radius: 3px;
+  background: var(--asphalt);
+}
+.cb-rk.on {
+  background: var(--pickup);
+}
+.cb-key {
+  color: #c9d1dd;
+}
+.cb-top {
+  position: fixed;
+  left: 50%;
+  top: 24px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+.cb-banner {
+  padding: 7px 18px;
+  border-radius: 6px;
+  background: var(--nitro);
+  color: var(--night);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: 1px;
+}
+.cb-feed {
+  font-size: 12px;
+  text-align: center;
+  text-shadow: 0 1px 6px rgba(14, 17, 22, 0.9);
+}
+.cb-wreck {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 22%;
+  text-align: center;
+  color: #e8ecf2;
+  text-shadow: 0 2px 14px rgba(14, 17, 22, 0.9);
+}
+.cb-wreck-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 96px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 4px;
+  color: var(--enemy);
+}
+
+.minimap {
+  position: fixed;
+  right: 22px;
+  top: 18px;
+  width: 178px;
+  height: 178px;
+  box-sizing: border-box;
+  border: 2px solid var(--asphalt);
+  border-radius: 50%;
+  background: rgba(14, 17, 22, 0.85);
+  overflow: hidden;
+  pointer-events: none;
+}
+.minimap canvas {
+  display: block;
+  width: 174px;
+  height: 174px;
+}
+
+.nt-layer {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.nt-tag {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  will-change: transform;
+}
+.nt-name {
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: rgba(14, 17, 22, 0.7);
+  color: #ffd3df;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.nt-bar {
+  width: 70px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--asphalt);
+}
+.nt-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--enemy);
+}
+
+.race-pos {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 52px;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--nitro);
+}
+.race-pos small {
+  font-size: 22px;
+  color: #e8ecf2;
+}
+
+/* Dev-only lil-gui: keep it below the minimap. */
+.lil-gui.autoPlace {
+  top: 214px !important;
+}
+
+.cb-wreck-by {
+  margin: 6px 0;
+  font-size: 18px;
+}
+.cb-wreck-by b {
+  color: #ff8fa9;
+}
+
+.fps-counter {
+  position: fixed;
+  right: 22px;
+  top: 204px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 12px;
+  color: #9aa4b5;
+  text-shadow: 0 1px 4px rgba(14, 17, 22, 0.9);
+}

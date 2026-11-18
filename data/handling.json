@@ -1,0 +1,121 @@
+{
+  "world": {
+    "gravity": -15,
+    "groundFriction": 1
+  },
+  "body": {
+    "comY": 0.25,
+    "linearDamping": 0.02,
+    "angularDamping": 1.2,
+    "downforcePerSpeedSq": 0.9,
+    "chassisClearanceBoostM": 0.04,
+    "impactClampMinMps": 4,
+    "maxUpAfterImpactMps": 5,
+    "maxSpinAfterImpactRadS": 9
+  },
+  "suspension": {
+    "restLength": 0.3,
+    "maxTravel": 0.35,
+    "stiffness": 32,
+    "compression": 3.6,
+    "relaxation": 4.4,
+    "maxForce": 200000
+  },
+  "engine": {
+    "baseAccelMps2": 3,
+    "accelPerRating": 0.9,
+    "topSpeedRolloffPower": 3,
+    "reverseMaxMps": 14,
+    "reverseAccelMul": 0.6,
+    "brakeDecelMps2": 22,
+    "handbrakeEngineMul": 1.3,
+    "nitroForceMul": 2,
+    "coastDecelMps2": 2.5
+  },
+  "steering": {
+    "maxAtStandstillRad": 0.6,
+    "minAtHighSpeedRad": 0.03,
+    "falloffSpeedMps": 12,
+    "ratePerSec": 2.5,
+    "returnRatePerSec": 4,
+    "handlingRefRating": 7
+  },
+  "grip": {
+    "frictionSlip": 11,
+    "sideFrictionStiffness": 1,
+    "driftRearGripDrop": 0.8,
+    "driftFrontGripBoost": 1.15,
+    "driftMinSpeedMps": 14,
+    "driftMinSlipDeg": 6,
+    "gripBlendPerSec": 8,
+    "driftYawRateRad": 0.7,
+    "driftMaxSlipDeg": 40,
+    "driftYawGain": 8,
+    "driftYawMaxAccel": 12
+  },
+  "nitro": {
+    "maxBars": 3,
+    "driftBarsPerSec": 0.28,
+    "minBarsToFire": 0.05
+  },
+  "camera": {
+    "distance": 7.5,
+    "height": 3.1,
+    "lookAheadM": 6,
+    "lookHeight": 1.2,
+    "positionLagPerSec": 7,
+    "yawLagPerSec": 4.5,
+    "fovBase": 70,
+    "fovNitro": 85,
+    "fovLerpPerSec": 3.5
+  },
+  "reset": {
+    "dropHeightM": 1.2
+  },
+  "types": {
+    "car": {
+      "comY": 0.25,
+      "angularDamping": 1.2,
+      "downforceMul": 1,
+      "engineForceMul": 1,
+      "steerMaxMul": 1,
+      "frictionMul": 1,
+      "rollInertiaMul": 1
+    },
+    "apc8x8": {
+      "comY": 0.35,
+      "angularDamping": 2.0,
+      "downforceMul": 1,
+      "engineForceMul": 1,
+      "steerMaxMul": 1,
+      "frictionMul": 1,
+      "rollInertiaMul": 1
+    },
+    "bike": {
+      "comY": 0.1,
+      "angularDamping": 2.0,
+      "downforceMul": 0.1,
+      "engineForceMul": 1,
+      "steerMaxMul": 0.5,
+      "frictionMul": 0.12,
+      "rollInertiaMul": 3
+    }
+  },
+  "apc8x8": {
+    "axle2SteerScale": 0.6
+  },
+  "bike": {
+    "wheelHalfSpacingM": 0.25,
+    "leanFullSpeedMps": 25,
+    "leanRatePerSec": 6,
+    "rollBalanceGain": 200,
+    "rollBalanceDamp": 24,
+    "rollBalanceMaxAccel": 120
+  },
+  "rollAssist": {
+    "startDeg": 25,
+    "gain": 300,
+    "damp": 30,
+    "maxAccel": 200
+  }
+}

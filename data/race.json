@@ -1,0 +1,38 @@
+{
+  "countdown": {
+    "steps": 3,
+    "stepSec": 1,
+    "goHoldSec": 1.2,
+    "lampsLit": [
+      2,
+      3,
+      4,
+      5
+    ],
+    "lampOnIntensity": 4,
+    "stopColor": "#FF3D6E",
+    "goColor": "#C6FF3D"
+  },
+  "track": {
+    "sampleSpacingM": 2,
+    "roadY": 0.03,
+    "barrierSpacingM": 3,
+    "barrierOffsetM": 0.3,
+    "wallColliderHeightM": 1.6,
+    "wallColliderThicknessM": 1.6,
+    "projectWindowSamples": 40,
+    "roadTextureRepeatM": 18,
+    "gridSlotCount": 6,
+    "rampLeadInM": 1.6,
+    "minTurnRadiusM": 8
+  },
+  "ai": {
+    "rubberBandScaleLaps": 0.04,
+    "playerGridSlot": 5,
+    "practiceGridSlot": 1,
+    "finishedCoastBrake": 0.6,
+    "dnfAfterPlayerFinishSec": 10,
+    "holdFireSec": 5,
+    "laneReferenceWidthM": 18
+  }
+}

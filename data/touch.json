@@ -1,0 +1,44 @@
+{
+  "layout": {
+    "marginXPx": 44,
+    "marginYPx": 14,
+    "padPx": 78,
+    "firePx": 92,
+    "rocketPx": 64,
+    "nitroPx": 64,
+    "brakePx": 64,
+    "driftPx": 64,
+    "gasPx": 64,
+    "pausePx": 48,
+    "gapPx": 10,
+    "minTargetPx": 48
+  },
+  "steer": {
+    "wheelRadiusPx": 70,
+    "wheelDeadzone": 0.08
+  },
+  "tilt": {
+    "deadzoneDeg": 3,
+    "maxDeg": 30,
+    "smoothing": 0.3,
+    "invert": false
+  },
+  "vibration": {
+    "hitMs": 35,
+    "nitroMs": 20,
+    "wreckMs": 120
+  },
+  "swipe": {
+    "minPx": 40
+  },
+  "defaults": {
+    "scheme": "buttons",
+    "autoGas": true,
+    "vibration": true,
+    "leftHanded": false
+  },
+  "performance": {
+    "dprCap": 1.5,
+    "minFps": 30
+  }
+}

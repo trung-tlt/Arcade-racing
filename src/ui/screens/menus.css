@@ -1,0 +1,819 @@
+/* Menu screens: loading, title, car select, race setup, controls. */
+.mn {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  box-sizing: border-box;
+  min-width: 1024px;
+  min-height: 600px;
+  overflow: auto;
+  background: #0e1116;
+  color: #e8ecf2;
+  font-family: Inter, system-ui, sans-serif;
+  --mn-panel: #161b23;
+  --mn-panel2: #1d2430;
+  --mn-line: #2a3240;
+  --mn-orange: #ff6a1a;
+  --mn-neon: #2ec5ff;
+  --mn-enemy: #ff3d6e;
+  --mn-pickup: #c6ff3d;
+  --mn-dim: #9aa4b5;
+  --mn-soft: #c9d1dd;
+}
+.mn[hidden] {
+  display: none;
+}
+.mn h1,
+.mn h2 {
+  margin: 0;
+  font-family: 'Space Grotesk', sans-serif;
+}
+.mn button,
+.mn a {
+  font-family: inherit;
+  color: inherit;
+}
+.mn button:focus-visible,
+.mn a:focus-visible,
+.mn [data-nav]:focus-visible {
+  outline: 3px solid var(--mn-neon);
+  outline-offset: 2px;
+}
+.mn-eyebrow {
+  font-size: 12px;
+  letter-spacing: 4px;
+  font-weight: 600;
+  color: var(--mn-dim);
+}
+.mn-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Shared buttons */
+.mn-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 24px;
+  border: 1px solid var(--mn-line);
+  border-radius: 8px;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.mn-btn:hover {
+  background: var(--mn-panel2);
+}
+.mn-btn.primary {
+  background: var(--mn-orange);
+  border-color: var(--mn-orange);
+  color: #0e1116;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+}
+.mn-btn.primary:hover {
+  background: #ff8444;
+}
+
+/* Page layout used by car select / setup / controls */
+.mn-page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  min-height: 100%;
+  padding: clamp(20px, 5vh, 36px) clamp(24px, 4vw, 48px) 64px;
+  box-sizing: border-box;
+}
+.mn-page h2 {
+  font-size: clamp(28px, 5vh, 36px);
+}
+.mn-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-top: auto;
+}
+
+/* ---------- Loading ---------- */
+.mn-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+}
+.mn-loading .roads {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.mn-loading .logo {
+  position: relative;
+  text-align: center;
+}
+.mn-loading .logo h1 {
+  font-size: clamp(72px, 16vw, 120px);
+  line-height: 1;
+  letter-spacing: -3px;
+  color: var(--mn-orange);
+}
+.mn-loading .logo .mn-eyebrow {
+  letter-spacing: 6px;
+  margin-bottom: 6px;
+}
+.mn-loading .bar {
+  position: relative;
+  width: min(520px, 80vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mn-loading .track {
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  background: var(--mn-line);
+}
+.mn-loading .fill {
+  width: 0;
+  height: 100%;
+  background: var(--mn-neon);
+  transition: width 0.1s;
+}
+.mn-loading .meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-loading .anykey {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 24px;
+  border: 1px solid var(--mn-line);
+  border-radius: 8px;
+  background: transparent;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 18px;
+  letter-spacing: 3px;
+  font-weight: 700;
+  cursor: pointer;
+  animation: mn-pulse 1.4s ease-in-out infinite;
+}
+.mn-loading .anykey[hidden] {
+  display: none;
+}
+.mn-loading .tip {
+  position: absolute;
+  left: 40px;
+  right: 40px;
+  bottom: 64px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+@keyframes mn-pulse {
+  50% {
+    border-color: var(--mn-neon);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mn-loading .anykey {
+    animation: none;
+  }
+}
+
+/* ---------- Title ---------- */
+.mn-title {
+  display: flex;
+}
+.mn-title .left {
+  flex: 0 0 clamp(360px, 36vw, 460px);
+  box-sizing: border-box;
+  padding: clamp(32px, 9vh, 64px) 56px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
+  position: relative;
+  z-index: 1;
+}
+.mn-title h1 {
+  font-size: clamp(56px, 7vw, 72px);
+  line-height: 1;
+  letter-spacing: -2px;
+  color: var(--mn-orange);
+}
+.mn-title nav {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mn-title .item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 22px;
+  border: 1px solid var(--mn-line);
+  border-radius: 8px;
+  background: transparent;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  cursor: pointer;
+  text-align: left;
+}
+.mn-title .item:hover {
+  background: var(--mn-panel2);
+}
+.mn-title .item.primary {
+  padding: 16px 22px;
+  background: var(--mn-orange);
+  border-color: var(--mn-orange);
+  color: #0e1116;
+  font-size: 24px;
+}
+.mn-title .item.primary small {
+  font-family: Inter, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+.mn-title .info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-title .info .mn-mono {
+  color: #e8ecf2;
+}
+.mn-title .credit {
+  font-size: 12px;
+}
+.mn-title .right {
+  flex: 1;
+  position: relative;
+  background: var(--mn-panel);
+  min-width: 0;
+}
+.mn-title .stage {
+  position: absolute;
+  inset: 0;
+}
+.mn-title .stripe {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 6px;
+  background: var(--mn-neon);
+  opacity: 0.6;
+}
+.mn-title .tonight {
+  position: absolute;
+  right: 40px;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  text-shadow: 0 2px 8px #0e1116;
+}
+.mn-title .tonight b {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+}
+.mn-title .tonight span {
+  font-size: 13px;
+  color: var(--mn-soft);
+}
+
+/* ---------- Car select ---------- */
+.mn-cars .body {
+  display: flex;
+  gap: 22px;
+  flex: 1;
+  min-height: 0;
+}
+.mn-cars .stage {
+  flex: 1;
+  min-width: 0;
+  min-height: 280px;
+  position: relative;
+  border-radius: 12px;
+  background: var(--mn-panel);
+  overflow: hidden;
+}
+.mn-cars .stage .accent {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 5px;
+  background: var(--car-text, var(--mn-orange)); /* light fallback for near-black paints */
+}
+.mn-cars .stage .host {
+  position: absolute;
+  inset: 0;
+}
+.mn-cars .info {
+  flex: 0 0 clamp(250px, 23vw, 290px);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.mn-cars .ident {
+  position: absolute;
+  left: 16px;
+  top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 1;
+  pointer-events: none;
+}
+.mn-cars .name {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--car-text, var(--mn-orange));
+  text-shadow: 0 2px 10px rgba(14, 17, 22, 0.9);
+}
+.mn-cars .role {
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 700;
+  color: #9aa4b5;
+  text-shadow: 0 1px 6px rgba(14, 17, 22, 0.9);
+}
+.mn-cars .blurb {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #b4bdcb;
+}
+.mn-cars .stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-size: 13px;
+}
+.mn-cars .stat {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 40px;
+  gap: 10px;
+  align-items: center;
+}
+.mn-cars .stat .lbl {
+  color: var(--mn-dim);
+}
+.mn-cars .stat .rail {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--mn-line);
+}
+.mn-cars .stat .rail i {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+  background: var(--car-text, var(--mn-orange));
+}
+.mn-cars .weapon {
+  padding: 14px;
+  border-radius: 10px;
+  background: var(--mn-panel);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--mn-soft);
+}
+.mn-cars .weapon .mn-eyebrow {
+  font-size: 11px;
+  letter-spacing: 2px;
+}
+
+/* ---------- Race setup ---------- */
+.mn-setup .body {
+  display: flex;
+  gap: 28px;
+  flex: 1;
+  min-height: 0;
+}
+.mn-setup .track-card {
+  flex: 0 0 clamp(380px, 40vw, 520px);
+  box-sizing: border-box;
+  padding: 22px;
+  border-radius: 12px;
+  background: var(--mn-panel);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mn-setup .track-card .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+.mn-setup .track-card .head b {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 26px;
+}
+.mn-setup .track-card .head span,
+.mn-setup .note {
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-setup .track-card svg {
+  width: 100%;
+  height: auto;
+  max-height: 46vh;
+}
+.mn-setup .facts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-setup .facts b {
+  display: block;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 22px;
+  color: var(--mn-neon);
+}
+.mn-setup .opts {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.mn-setup .group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.mn-setup .group > .mn-eyebrow {
+  letter-spacing: 3px;
+  font-size: 12px;
+}
+.mn-setup .pills {
+  display: flex;
+  gap: 10px;
+}
+.mn-setup .pill {
+  flex: 1;
+  max-width: 140px;
+  padding: 12px 20px;
+  border: 1px solid var(--mn-line);
+  border-radius: 8px;
+  background: var(--mn-panel2);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.mn-setup .pill[aria-pressed='true'] {
+  background: var(--mn-neon);
+  border-color: var(--mn-neon);
+  color: #0e1116;
+}
+.mn-setup .note {
+  color: #b4bdcb;
+  min-height: 2.6em;
+}
+.mn-setup .grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  font-size: 13px;
+}
+.mn-setup .slot {
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: var(--mn-panel);
+}
+.mn-setup .slot.you {
+  background: var(--mn-panel2);
+  border: 2px solid var(--mn-orange);
+}
+.mn-setup .slot span {
+  color: var(--mn-dim);
+}
+
+/* ---------- Controls ---------- */
+.mn-controls .hint {
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-controls .table {
+  flex: 1;
+  border-radius: 12px;
+  background: var(--mn-panel);
+  overflow: hidden;
+}
+.mn-controls table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+.mn-controls th {
+  padding: 14px 12px;
+  text-align: left;
+  font-size: 12px;
+  letter-spacing: 2px;
+  font-weight: 600;
+  color: var(--mn-dim);
+}
+.mn-controls th:first-child,
+.mn-controls td:first-child {
+  padding-left: 24px;
+  width: 34%;
+}
+.mn-controls td {
+  padding: 11px 12px;
+  border-top: 1px solid var(--mn-line);
+}
+.mn-controls td:first-child {
+  font-weight: 600;
+}
+.mn-controls .keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+.mn-controls .or {
+  font-size: 12px;
+  color: var(--mn-dim);
+}
+.mn-controls kbd {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  padding: 4px 10px;
+  border: 1px solid #4a5260;
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  background: var(--mn-panel2);
+}
+.mn-controls .pad {
+  display: inline-block;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 13px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--mn-neon);
+  background: var(--mn-panel2);
+  color: #8fe0ff;
+}
+
+/* ---------- Keyboard-first additions ---------- */
+.mn-title .item .lbl2 > span:first-child {
+  line-height: 1.1;
+}
+.mn-title .item {
+  gap: 14px;
+}
+.mn-cars .cs-hint {
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-cars .stage {
+  position: relative;
+}
+.mn-cars .stage .arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+}
+.mn-cars .stage .arrow.l {
+  left: 16px;
+}
+.mn-cars .stage .arrow.r {
+  right: 16px;
+}
+.mn-cars .stage .pos {
+  position: absolute;
+  right: 16px;
+  top: 16px;
+  font-size: 12px;
+  color: var(--mn-dim);
+  z-index: 1;
+}
+.mn-cars .cs-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: auto;
+}
+.mn-cars .cs-actions .mn-btn {
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mn-cars .cs-actions .primary {
+  font-size: 22px;
+  letter-spacing: 1px;
+  padding: 14px 20px;
+}
+.mn-btn.primary .lbl2 small {
+  font-size: 12px;
+}
+.mn-controls .ctl-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1fr;
+  gap: 18px;
+  flex: 1;
+  min-height: 0;
+}
+.mn-controls .ctl-side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.mn-controls .ctl-back {
+  margin-top: auto;
+  justify-content: space-between;
+  width: 100%;
+  box-sizing: border-box;
+}
+.mn-controls .keys {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+}
+.mn-controls .keys .or {
+  color: var(--mn-dim);
+  font-size: 12px;
+  margin: 0 4px;
+}
+@media (max-width: 1100px) {
+  .mn-controls .ctl-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.mn-setup .cs-hint {
+  font-size: 13px;
+  color: var(--mn-dim);
+}
+.mn-setup .row {
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 2px solid #1d2430;
+  background: transparent;
+}
+.mn-setup .row:focus,
+.mn-setup .row:focus-visible {
+  background: var(--mn-panel);
+  border-color: var(--mn-neon);
+}
+.mn-setup .rowhead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mn-setup .track-card .sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 12px;
+  color: var(--mn-dim);
+}
+.mn-setup .track-card .sections .sec b {
+  color: var(--mn-neon, #2ec5ff);
+  font-family: 'JetBrains Mono', monospace;
+  margin-right: 2px;
+}
+
+/* ---------- Car select: picture cards ---------- */
+.mn-cars .stage {
+  min-height: 250px;
+}
+.mn-cars .cards {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 8px;
+  padding-top: 6px; /* room for the lifted card */
+}
+.mn-cars .pick {
+  display: block;
+  padding: 0;
+  min-width: 0;
+  overflow: hidden;
+  border: 2px solid var(--mn-line);
+  border-radius: 8px;
+  background: var(--mn-panel);
+  color: #e8ecf2;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 0.14s ease-out,
+    background 0.14s,
+    border-color 0.14s;
+}
+.mn-cars .pick .pk-img {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: clamp(48px, 9vh, 66px);
+  background: #0e1116;
+}
+.mn-cars .pick .pk-img img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.mn-cars .pick .pk-img.ready img {
+  opacity: 1;
+}
+.mn-cars .pick .pk-img .kc {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+}
+.mn-cars .pick .pk-name {
+  display: block;
+  padding: 5px 6px 6px;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mn-cars .pick[aria-pressed='true'] {
+  background: var(--card-bg);
+  border-color: var(--card-bd);
+  color: var(--card-fg);
+  transform: translateY(-6px);
+}
+.mn-cars .pick:focus-visible {
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .mn-cars .pick {
+    transition: none;
+  }
+  .mn-cars .pick[aria-pressed='true'] {
+    transform: none;
+  }
+}
+
+/* Short screens (1024×600 and similar): keep the card row above the key bar. */
+@media (max-height: 700px) {
+  .mn-cars .mn-page {
+    gap: 12px;
+  }
+  .mn-cars .stage {
+    min-height: 170px;
+  }
+  .mn-cars .info {
+    gap: 8px;
+  }
+  .mn-cars .blurb {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .mn-cars .stats {
+    gap: 6px;
+  }
+  .mn-cars .weapon {
+    padding: 8px 12px;
+    line-height: 1.4;
+  }
+  .mn-cars .cs-actions {
+    gap: 6px;
+  }
+  .mn-cars .cs-actions .mn-btn {
+    padding: 8px 16px;
+  }
+  .mn-cars .cs-actions .primary {
+    font-size: 18px;
+    padding: 9px 16px;
+  }
+  .mn-cars .pick .pk-img {
+    height: 44px;
+  }
+  .mn-cars .pick .pk-name {
+    padding: 3px 6px 4px;
+  }
+}

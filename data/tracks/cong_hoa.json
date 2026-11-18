@@ -1,0 +1,896 @@
+{
+  "id": "cong_hoa",
+  "name": "Cong Hoa Boulevard",
+  "timeOfDay": "day",
+  "laps": 3,
+  "lapLengthM": 3126,
+  "inspiration": "Cong Hoa street, Tan Binh district, Ho Chi Minh City: a wide arterial boulevard by Tan Son Nhat airport, starting at the Lang Cha Ca roundabout and flyover. Layout is stylized for racing, not a survey.",
+  "coords": "World X = east, Z = -north (meters). Y up. Drive on the right.",
+  "roadLayout": {
+    "carriagewayWidthM": 11,
+    "lanesPerDirection": 3,
+    "medianWidthM": 3,
+    "sidewalkWidthM": 4,
+    "roadTexture": "textures/day_road_3lane.png",
+    "roundaboutRadiusM": 42,
+    "roundaboutWidthM": 13
+  },
+  "spline": {
+    "type": "catmullrom",
+    "closed": true,
+    "tension": 0.5,
+    "points": [
+      [
+        9,
+        0,
+        -62
+      ],
+      [
+        9,
+        0,
+        -94.56
+      ],
+      [
+        9,
+        0,
+        -127.12
+      ],
+      [
+        9,
+        0,
+        -159.68
+      ],
+      [
+        9,
+        0,
+        -192.24
+      ],
+      [
+        9,
+        0,
+        -224.8
+      ],
+      [
+        9,
+        0,
+        -257.36
+      ],
+      [
+        9,
+        0,
+        -289.92
+      ],
+      [
+        9,
+        0,
+        -322.48
+      ],
+      [
+        9,
+        0,
+        -355.05
+      ],
+      [
+        9,
+        0,
+        -387.61
+      ],
+      [
+        9,
+        0,
+        -420.17
+      ],
+      [
+        9,
+        0,
+        -452.73
+      ],
+      [
+        9,
+        0,
+        -485.29
+      ],
+      [
+        9,
+        0,
+        -517.85
+      ],
+      [
+        10.15,
+        0,
+        -550.38
+      ],
+      [
+        13.63,
+        0,
+        -582.75
+      ],
+      [
+        18.95,
+        0,
+        -614.87
+      ],
+      [
+        25.63,
+        0,
+        -646.74
+      ],
+      [
+        33.24,
+        0,
+        -678.39
+      ],
+      [
+        41.36,
+        0,
+        -709.93
+      ],
+      [
+        49.6,
+        0,
+        -741.42
+      ],
+      [
+        57.58,
+        0,
+        -772.99
+      ],
+      [
+        64.91,
+        0,
+        -804.72
+      ],
+      [
+        71.15,
+        0,
+        -836.67
+      ],
+      [
+        75.86,
+        0,
+        -868.89
+      ],
+      [
+        78.55,
+        0,
+        -901.33
+      ],
+      [
+        79,
+        0,
+        -933.88
+      ],
+      [
+        79,
+        0,
+        -966.44
+      ],
+      [
+        79,
+        0,
+        -999
+      ],
+      [
+        79,
+        0,
+        -1031.56
+      ],
+      [
+        79,
+        0,
+        -1064.12
+      ],
+      [
+        79,
+        0,
+        -1096.68
+      ],
+      [
+        79,
+        0,
+        -1129.24
+      ],
+      [
+        79,
+        0,
+        -1161.81
+      ],
+      [
+        79,
+        0,
+        -1194.37
+      ],
+      [
+        79,
+        0,
+        -1226.93
+      ],
+      [
+        79,
+        0,
+        -1259.49
+      ],
+      [
+        79,
+        0,
+        -1292.05
+      ],
+      [
+        79,
+        0,
+        -1324.61
+      ],
+      [
+        79,
+        0,
+        -1357.17
+      ],
+      [
+        79,
+        0,
+        -1389.73
+      ],
+      [
+        62.9,
+        0,
+        -1405.51
+      ],
+      [
+        61,
+        0,
+        -1373.36
+      ],
+      [
+        61,
+        0,
+        -1340.8
+      ],
+      [
+        61,
+        0,
+        -1308.24
+      ],
+      [
+        61,
+        0,
+        -1275.68
+      ],
+      [
+        61,
+        0,
+        -1243.12
+      ],
+      [
+        61,
+        0,
+        -1210.56
+      ],
+      [
+        61,
+        0,
+        -1178
+      ],
+      [
+        61,
+        0,
+        -1145.44
+      ],
+      [
+        61,
+        0,
+        -1112.88
+      ],
+      [
+        61,
+        0,
+        -1080.32
+      ],
+      [
+        61,
+        0,
+        -1047.76
+      ],
+      [
+        61,
+        0,
+        -1015.2
+      ],
+      [
+        61,
+        0,
+        -982.64
+      ],
+      [
+        61,
+        0,
+        -950.08
+      ],
+      [
+        60.99,
+        0,
+        -917.52
+      ],
+      [
+        59.48,
+        0,
+        -885
+      ],
+      [
+        55.71,
+        0,
+        -852.66
+      ],
+      [
+        50.17,
+        0,
+        -820.58
+      ],
+      [
+        43.33,
+        0,
+        -788.75
+      ],
+      [
+        35.63,
+        0,
+        -757.11
+      ],
+      [
+        27.47,
+        0,
+        -725.59
+      ],
+      [
+        19.24,
+        0,
+        -694.09
+      ],
+      [
+        11.32,
+        0,
+        -662.5
+      ],
+      [
+        4.13,
+        0,
+        -630.75
+      ],
+      [
+        -1.92,
+        0,
+        -598.76
+      ],
+      [
+        -6.38,
+        0,
+        -566.51
+      ],
+      [
+        -8.74,
+        0,
+        -534.04
+      ],
+      [
+        -9,
+        0,
+        -501.48
+      ],
+      [
+        -9,
+        0,
+        -468.92
+      ],
+      [
+        -9,
+        0,
+        -436.36
+      ],
+      [
+        -9,
+        0,
+        -403.8
+      ],
+      [
+        -9,
+        0,
+        -371.24
+      ],
+      [
+        -9,
+        0,
+        -338.68
+      ],
+      [
+        -9,
+        0,
+        -306.12
+      ],
+      [
+        -9,
+        0,
+        -273.56
+      ],
+      [
+        -9,
+        0,
+        -241
+      ],
+      [
+        -9,
+        0,
+        -208.44
+      ],
+      [
+        -9,
+        0,
+        -175.88
+      ],
+      [
+        -9,
+        0,
+        -143.32
+      ],
+      [
+        -9,
+        0,
+        -110.76
+      ],
+      [
+        -9,
+        0,
+        -78.2
+      ],
+      [
+        -9,
+        0,
+        -45.63
+      ],
+      [
+        -9,
+        0,
+        -13.07
+      ],
+      [
+        -9.33,
+        0,
+        19.08
+      ],
+      [
+        -35.27,
+        0,
+        37.34
+      ],
+      [
+        -41.08,
+        0,
+        68.53
+      ],
+      [
+        -23.35,
+        0,
+        94.86
+      ],
+      [
+        7.73,
+        0,
+        101.2
+      ],
+      [
+        34.41,
+        0,
+        84.02
+      ],
+      [
+        41.37,
+        0,
+        53.06
+      ],
+      [
+        24.66,
+        0,
+        26.1
+      ],
+      [
+        9,
+        0,
+        3.12
+      ],
+      [
+        9,
+        0,
+        -29.44
+      ]
+    ],
+    "note": "points[0] = start/finish on the outbound carriageway; travel = increasing index. Outbound north → U-turn at the far end → inbound south → counter-clockwise round the roundabout."
+  },
+  "startLine": {
+    "t": 0,
+    "grid": [
+      [
+        -3.7,
+        -8
+      ],
+      [
+        3.7,
+        -16
+      ],
+      [
+        -3.7,
+        -24
+      ],
+      [
+        3.7,
+        -32
+      ],
+      [
+        -3.7,
+        -40
+      ],
+      [
+        3.7,
+        -48
+      ]
+    ],
+    "gridNote": "[lateral offset m, metres behind the line]"
+  },
+  "checkpoints": [
+    {
+      "id": 1,
+      "t": 0.076
+    },
+    {
+      "id": 2,
+      "t": 0.205
+    },
+    {
+      "id": 3,
+      "t": 0.3343
+    },
+    {
+      "id": 4,
+      "t": 0.435
+    },
+    {
+      "id": 5,
+      "t": 0.5353
+    },
+    {
+      "id": 6,
+      "t": 0.6647
+    },
+    {
+      "id": 7,
+      "t": 0.7937
+    },
+    {
+      "id": 8,
+      "t": 0.914
+    }
+  ],
+  "pickups": [
+    {
+      "t": 0.124,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "nitro",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.3023,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "repair",
+          "lane": 1
+        },
+        {
+          "type": "rocket",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.4873,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "repair",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.6253,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        },
+        {
+          "type": "rocket",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.8097,
+      "items": [
+        {
+          "type": "repair",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "nitro",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.935,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        },
+        {
+          "type": "rocket",
+          "lane": 2
+        }
+      ]
+    }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "name": "Airport stretch",
+      "fromT": 0,
+      "toT": 0.1467,
+      "note": "Airport fence on the far (west) side, airliners on approach overhead every ~20 s"
+    },
+    {
+      "id": "B",
+      "name": "Shophouse bend",
+      "fromT": 0.1467,
+      "toT": 0.2767,
+      "note": "S-bend, both sides lined with narrow tube houses, signboards, power poles and cable tangles"
+    },
+    {
+      "id": "C",
+      "name": "Office row & U-turn",
+      "fromT": 0.2767,
+      "toT": 0.4713,
+      "note": "Glass office towers, then a tight U-turn around the median nose (slow to ~70 km/h)"
+    },
+    {
+      "id": "D",
+      "name": "Inbound straight",
+      "fromT": 0.4713,
+      "toT": 0.8767,
+      "note": "Longest flat-out run: 3 pedestrian overpasses, slipstream heaven"
+    },
+    {
+      "id": "E",
+      "name": "Roundabout under the flyover",
+      "fromT": 0.8767,
+      "toT": 1,
+      "note": "~330° counter-clockwise loop under the elevated flyover; flyover piers are solid obstacles"
+    }
+  ],
+  "flyover": {
+    "deckElevationM": 7,
+    "deckWidthM": 12,
+    "points": [
+      [
+        0,
+        7,
+        160
+      ],
+      [
+        0,
+        7,
+        60
+      ],
+      [
+        0,
+        7,
+        -40
+      ],
+      [
+        0,
+        0,
+        -120
+      ]
+    ],
+    "pierModel": "models/props_conghoa/flyover_pier.glb",
+    "pierSpacingM": 25,
+    "note": "North-south flyover crossing the roundabout centre (world Z = -north). Dressing only, not drivable in MVP."
+  },
+  "overpasses": [
+    {
+      "t": 0.0507,
+      "model": "models/props_conghoa/pedestrian_overpass.glb",
+      "note": "spans both carriageways, centre on the median"
+    },
+    {
+      "t": 0.6843,
+      "model": "models/props_conghoa/pedestrian_overpass.glb",
+      "note": "spans both carriageways, centre on the median"
+    },
+    {
+      "t": 0.5097,
+      "model": "models/props_conghoa/pedestrian_overpass.glb",
+      "note": "spans both carriageways, centre on the median"
+    }
+  ],
+  "trafficLights": [
+    {
+      "t": 0.1593,
+      "note": "cosmetic: always green for racers, cross-traffic scooters wait"
+    },
+    {
+      "t": 0.296,
+      "note": "cosmetic: always green for racers, cross-traffic scooters wait"
+    },
+    {
+      "t": 0.7103,
+      "note": "cosmetic: always green for racers, cross-traffic scooters wait"
+    },
+    {
+      "t": 0.5737,
+      "note": "cosmetic: always green for racers, cross-traffic scooters wait"
+    }
+  ],
+  "ambientTraffic": {
+    "scooters": 36,
+    "cars": 6,
+    "buses": 2,
+    "speedKmh": [
+      30,
+      50
+    ],
+    "lanes": "rightmost lane each way",
+    "models": {
+      "scooters": [
+        "models/props_conghoa/scooter_red.glb",
+        "models/props_conghoa/scooter_white.glb"
+      ],
+      "cars": [
+        "models/props_conghoa/car_sedan_white.glb",
+        "models/props_conghoa/car_sedan_silver.glb",
+        "models/props_conghoa/car_hatch_red.glb",
+        "models/props_conghoa/car_hatch_blue.glb",
+        "models/props_conghoa/car_taxi.glb"
+      ],
+      "buses": [
+        "models/props_conghoa/city_bus.glb"
+      ]
+    },
+    "vehicleSizesM": {
+      "scooter": [
+        0.7,
+        1.2,
+        1.85
+      ],
+      "car": [
+        1.8,
+        1.5,
+        4.4
+      ],
+      "bus": [
+        2.5,
+        3.1,
+        11
+      ]
+    },
+    "note": "Non-racing obstacles. Hitting one costs speed, never wrecks you. Disable on Low quality."
+  },
+  "dressing": {
+    "shophouseRowsWest": 257,
+    "shophouseRowsEast": 257,
+    "shophouses": {
+      "models": [
+        "models/props_conghoa/shophouse_a.glb",
+        "models/props_conghoa/shophouse_b.glb",
+        "models/props_conghoa/shophouse_c.glb",
+        "models/props_conghoa/shophouse_d.glb"
+      ],
+      "frontageOffsetM": 27,
+      "note": "continuous rows, front faces the road, random mix; skip where the airport fence is (west side, n 100–700) and where office towers stand (east side, n 950–1250)"
+    },
+    "airportFence": {
+      "side": "west",
+      "fromN": 100,
+      "toN": 700,
+      "offsetM": 26,
+      "model": "models/props_conghoa/airport_fence.glb"
+    },
+    "airliners": {
+      "model": "models/props_conghoa/airliner.glb",
+      "path": "straight line east→west across the airport stretch at 80–120 m altitude, descending",
+      "intervalSec": 20
+    },
+    "officeTowers": {
+      "side": "east",
+      "fromN": 950,
+      "toN": 1250,
+      "count": 3,
+      "model": "models/props_conghoa/office_tower.glb"
+    },
+    "median": {
+      "model": "models/props_conghoa/median_segment.glb",
+      "tileM": 10,
+      "treesEveryM": 20,
+      "treeModels": [
+        "models/props_conghoa/street_tree_a.glb",
+        "models/props_conghoa/street_tree_b.glb"
+      ]
+    },
+    "sidewalk": {
+      "powerPolesEveryM": 35,
+      "treesEveryM": 18,
+      "busStopsEveryM": 400,
+      "parkedScootersPerShop": [
+        0,
+        4
+      ]
+    },
+    "lighting": {
+      "sun": {
+        "dir": [
+          -0.4,
+          -0.8,
+          -0.45
+        ],
+        "color": "#FFF1D6",
+        "intensity": 3
+      },
+      "hemi": {
+        "sky": "#8EC9F0",
+        "ground": "#6B6A60",
+        "intensity": 1.2
+      },
+      "fog": {
+        "color": "#CFE3F0",
+        "density": 0.0022
+      },
+      "sky": "textures/day_sky_gradient.png",
+      "bloom": {
+        "strength": 0.25,
+        "threshold": 0.9
+      },
+      "toneMappingExposure": 1
+    }
+  }
+}

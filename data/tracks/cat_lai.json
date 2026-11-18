@@ -1,0 +1,1080 @@
+{
+  "id": "cat_lai",
+  "name": "Cat Lai Port",
+  "localName": "Cảng Cát Lái",
+  "timeOfDay": "night",
+  "laps": 3,
+  "lapLengthM": 2815,
+  "replaces": "harbor (Harbor Loop) — same slot as Map 1 / night track",
+  "inspiration": "Cat Lai port, Thu Duc, Ho Chi Minh City: Vietnam's busiest container terminal on the river, reached by the truck-packed Nguyen Thi Dinh road, with quay cranes, container yards, RTG cranes, a river car ferry and a cable-stayed bridge on the skyline. Stylized for racing, not a survey.",
+  "coords": "World X = east, Y = up, Z = -north (meters). Drive on the right.",
+  "roadLayout": {
+    "truckRoad": {
+      "widthM": 14,
+      "lanes": 4,
+      "texture": "textures/xalo_road_4lane.png"
+    },
+    "portLanes": {
+      "widthM": 14,
+      "texture": "textures/catlai_apron.png",
+      "note": "concrete apron with yellow lane lines"
+    },
+    "yardLanes": {
+      "widthM": 10,
+      "note": "between container blocks — walls on both sides"
+    }
+  },
+  "spline": {
+    "type": "catmullrom",
+    "closed": true,
+    "tension": 0.5,
+    "points": [
+      [
+        0,
+        0,
+        -20
+      ],
+      [
+        0,
+        0,
+        -45.13
+      ],
+      [
+        0,
+        0,
+        -70.27
+      ],
+      [
+        0,
+        0,
+        -95.4
+      ],
+      [
+        0,
+        0,
+        -120.54
+      ],
+      [
+        0,
+        0,
+        -145.67
+      ],
+      [
+        0,
+        0,
+        -170.81
+      ],
+      [
+        0,
+        0,
+        -195.94
+      ],
+      [
+        0,
+        0,
+        -221.08
+      ],
+      [
+        0,
+        0,
+        -246.21
+      ],
+      [
+        0,
+        0,
+        -271.34
+      ],
+      [
+        0,
+        0,
+        -296.48
+      ],
+      [
+        0,
+        0,
+        -321.61
+      ],
+      [
+        0,
+        0,
+        -346.75
+      ],
+      [
+        0,
+        0,
+        -371.88
+      ],
+      [
+        0,
+        0,
+        -397.02
+      ],
+      [
+        0,
+        0,
+        -422.15
+      ],
+      [
+        0,
+        0,
+        -447.28
+      ],
+      [
+        0,
+        0,
+        -472.42
+      ],
+      [
+        0,
+        0,
+        -497.55
+      ],
+      [
+        0,
+        0,
+        -522.69
+      ],
+      [
+        0,
+        0,
+        -547.82
+      ],
+      [
+        0,
+        0,
+        -572.96
+      ],
+      [
+        0,
+        0,
+        -598.09
+      ],
+      [
+        4.46,
+        0,
+        -622.65
+      ],
+      [
+        18.5,
+        0,
+        -643.27
+      ],
+      [
+        39.71,
+        0,
+        -656.39
+      ],
+      [
+        64.42,
+        0,
+        -660
+      ],
+      [
+        89.55,
+        0,
+        -660
+      ],
+      [
+        114.69,
+        0,
+        -660
+      ],
+      [
+        139.38,
+        0,
+        -664.13
+      ],
+      [
+        164.41,
+        0,
+        -665.9
+      ],
+      [
+        189.27,
+        0,
+        -662.45
+      ],
+      [
+        214.13,
+        0,
+        -660
+      ],
+      [
+        238.94,
+        0,
+        -662.12
+      ],
+      [
+        250,
+        0,
+        -683.01
+      ],
+      [
+        250,
+        0,
+        -708.15
+      ],
+      [
+        250,
+        0,
+        -733.28
+      ],
+      [
+        250,
+        0,
+        -758.42
+      ],
+      [
+        250,
+        0,
+        -783.55
+      ],
+      [
+        250,
+        0,
+        -808.69
+      ],
+      [
+        250,
+        0,
+        -833.82
+      ],
+      [
+        250,
+        0,
+        -858.96
+      ],
+      [
+        250.47,
+        0,
+        -884.05
+      ],
+      [
+        267.85,
+        0,
+        -899.83
+      ],
+      [
+        292.97,
+        0,
+        -900
+      ],
+      [
+        318.11,
+        0,
+        -900
+      ],
+      [
+        343.24,
+        0,
+        -900
+      ],
+      [
+        368.38,
+        0,
+        -900
+      ],
+      [
+        393.51,
+        0,
+        -899.77
+      ],
+      [
+        414.45,
+        0,
+        -887.28
+      ],
+      [
+        420,
+        0,
+        -863.31
+      ],
+      [
+        420,
+        0,
+        -838.17
+      ],
+      [
+        420,
+        0,
+        -813.04
+      ],
+      [
+        420,
+        0,
+        -787.91
+      ],
+      [
+        420,
+        0,
+        -762.77
+      ],
+      [
+        420,
+        0,
+        -737.64
+      ],
+      [
+        420,
+        0,
+        -712.5
+      ],
+      [
+        420,
+        0,
+        -687.37
+      ],
+      [
+        420,
+        0,
+        -662.23
+      ],
+      [
+        420,
+        0,
+        -637.1
+      ],
+      [
+        420,
+        0,
+        -611.96
+      ],
+      [
+        420,
+        0,
+        -586.83
+      ],
+      [
+        420,
+        0,
+        -561.7
+      ],
+      [
+        420,
+        0,
+        -536.56
+      ],
+      [
+        420,
+        0,
+        -511.43
+      ],
+      [
+        420,
+        0,
+        -486.29
+      ],
+      [
+        420,
+        0,
+        -461.16
+      ],
+      [
+        420,
+        0,
+        -436.02
+      ],
+      [
+        420,
+        0,
+        -410.89
+      ],
+      [
+        420,
+        0,
+        -385.76
+      ],
+      [
+        420,
+        0,
+        -360.62
+      ],
+      [
+        420,
+        0,
+        -335.49
+      ],
+      [
+        420,
+        0,
+        -310.35
+      ],
+      [
+        420,
+        0,
+        -285.22
+      ],
+      [
+        420,
+        0,
+        -260.08
+      ],
+      [
+        420,
+        0,
+        -234.95
+      ],
+      [
+        420,
+        0,
+        -209.81
+      ],
+      [
+        420,
+        0,
+        -184.68
+      ],
+      [
+        420,
+        0,
+        -159.55
+      ],
+      [
+        420,
+        0,
+        -134.41
+      ],
+      [
+        420,
+        0,
+        -109.28
+      ],
+      [
+        420,
+        0,
+        -84.14
+      ],
+      [
+        420,
+        0,
+        -59.01
+      ],
+      [
+        420,
+        0,
+        -33.87
+      ],
+      [
+        420,
+        0,
+        -8.74
+      ],
+      [
+        420,
+        0,
+        16.39
+      ],
+      [
+        420,
+        0,
+        41.53
+      ],
+      [
+        420,
+        0,
+        66.66
+      ],
+      [
+        420,
+        0,
+        91.8
+      ],
+      [
+        415.29,
+        0,
+        116.03
+      ],
+      [
+        394.99,
+        0,
+        129.53
+      ],
+      [
+        369.89,
+        0,
+        130
+      ],
+      [
+        344.75,
+        0,
+        130
+      ],
+      [
+        319.62,
+        0,
+        130
+      ],
+      [
+        294.49,
+        0,
+        130
+      ],
+      [
+        269.35,
+        0,
+        130
+      ],
+      [
+        244.22,
+        0,
+        130
+      ],
+      [
+        219.08,
+        0,
+        130
+      ],
+      [
+        193.95,
+        0,
+        130
+      ],
+      [
+        168.81,
+        0,
+        130
+      ],
+      [
+        143.68,
+        0,
+        130
+      ],
+      [
+        118.55,
+        0,
+        130
+      ],
+      [
+        93.41,
+        0,
+        130
+      ],
+      [
+        68.28,
+        0,
+        130
+      ],
+      [
+        43.14,
+        0,
+        130
+      ],
+      [
+        19.1,
+        0,
+        124.08
+      ],
+      [
+        3.09,
+        0,
+        105.26
+      ],
+      [
+        0,
+        0,
+        80.54
+      ],
+      [
+        0,
+        0,
+        55.4
+      ],
+      [
+        0,
+        0,
+        30.27
+      ],
+      [
+        0,
+        0,
+        5.13
+      ]
+    ],
+    "note": "points[0] = start on the truck road heading north. Truck road → right through the terminal gate chicane → container-yard lanes → quay apron south under the quay cranes → ferry landing → ferry road west → back to the truck road."
+  },
+  "startLine": {
+    "t": 0,
+    "grid": [
+      [
+        -5,
+        -8
+      ],
+      [
+        -1.7,
+        -8
+      ],
+      [
+        1.7,
+        -16
+      ],
+      [
+        5,
+        -16
+      ],
+      [
+        -3.4,
+        -24
+      ],
+      [
+        3.4,
+        -24
+      ]
+    ]
+  },
+  "checkpoints": [
+    {
+      "id": 1,
+      "t": 0.0995
+    },
+    {
+      "id": 2,
+      "t": 0.2752
+    },
+    {
+      "id": 3,
+      "t": 0.3397
+    },
+    {
+      "id": 4,
+      "t": 0.549
+    },
+    {
+      "id": 5,
+      "t": 0.6555
+    },
+    {
+      "id": 6,
+      "t": 0.762
+    },
+    {
+      "id": 7,
+      "t": 0.8748
+    },
+    {
+      "id": 8,
+      "t": 0.9715
+    }
+  ],
+  "pickups": [
+    {
+      "t": 0.1527,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "nitro",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.3648,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "repair",
+          "lane": 1
+        }
+      ]
+    },
+    {
+      "t": 0.415,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        }
+      ]
+    },
+    {
+      "t": 0.5132,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        },
+        {
+          "type": "rocket",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.7087,
+      "items": [
+        {
+          "type": "repair",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "nitro",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.9103,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        },
+        {
+          "type": "repair",
+          "lane": 2
+        }
+      ]
+    }
+  ],
+  "shortcut": {
+    "name": "Reefer lane",
+    "fromT": 0.3435,
+    "toT": 0.4885,
+    "widthM": 7,
+    "points": [
+      [
+        250,
+        0,
+        -770
+      ],
+      [
+        300,
+        0,
+        -770
+      ],
+      [
+        330,
+        0,
+        -770
+      ],
+      [
+        360,
+        0,
+        -770
+      ],
+      [
+        420,
+        0,
+        -770
+      ]
+    ],
+    "ramp": {
+      "position": [
+        320,
+        0,
+        -770
+      ],
+      "heightM": 2.5,
+      "lengthM": 8,
+      "model": "models/props/jump_ramp.glb (scale X to 0.4)"
+    },
+    "note": "Gap between container blocks with a loading-ramp jump; saves ~200 m but ends in a 90° turn onto the quay. Reach stackers cross it."
+  },
+  "sections": [
+    {
+      "id": "A",
+      "name": "Nguyen Thi Dinh truck road",
+      "fromT": 0,
+      "toT": 0.206,
+      "note": "Wide 4-lane road, a queue of parked container trucks in the right lane (static obstacles), warehouses both sides"
+    },
+    {
+      "id": "B",
+      "name": "Terminal gate",
+      "fromT": 0.206,
+      "toT": 0.3003,
+      "note": "90° right, then an S-chicane through one of six gate lanes (booths are solid)"
+    },
+    {
+      "id": "C",
+      "name": "Container yard",
+      "fromT": 0.3003,
+      "toT": 0.4363,
+      "note": "Narrow lanes walled by container blocks, RTG cranes straddling overhead; Reefer-lane shortcut with a jump"
+    },
+    {
+      "id": "D",
+      "name": "Quay apron",
+      "fromT": 0.4363,
+      "toT": 0.7975,
+      "note": "~1 km flat-out under 6 quay cranes (legs either side of the lane), two ships alongside, river on the left"
+    },
+    {
+      "id": "E",
+      "name": "Ferry landing & ferry road",
+      "fromT": 0.7975,
+      "toT": 1,
+      "note": "Right-hander by the river car ferry, then west along the ferry road back to the truck road"
+    }
+  ],
+  "quay": {
+    "edgeX": 440,
+    "fromN": -110,
+    "toN": 880,
+    "edgeModel": "models/props_catlai/quay_edge.glb",
+    "tileM": 20,
+    "river": {
+      "fromX": 440,
+      "color": "#1A2A38"
+    }
+  },
+  "cranes": {
+    "sts": {
+      "model": "models/props_catlai/sts_quay_crane.glb",
+      "positions": [
+        [
+          420,
+          0,
+          -780
+        ],
+        [
+          420,
+          0,
+          -640
+        ],
+        [
+          420,
+          0,
+          -500
+        ],
+        [
+          420,
+          0,
+          -360
+        ],
+        [
+          420,
+          0,
+          -220
+        ],
+        [
+          420,
+          0,
+          -80
+        ]
+      ],
+      "note": "Legs at x ±15 of the lane centre (the lane passes between them; legs are solid). Boom points +X over the water. Animate trolley/spreader slowly."
+    },
+    "rtg": {
+      "model": "models/props_catlai/rtg_crane.glb",
+      "positions": [
+        [
+          250,
+          0,
+          -720
+        ],
+        [
+          250,
+          0,
+          -840
+        ],
+        [
+          330,
+          0,
+          -900
+        ]
+      ],
+      "note": "Straddle the yard lane; legs solid."
+    }
+  },
+  "ships": [
+    {
+      "model": "models/props_catlai/container_ship.glb",
+      "position": [
+        455,
+        0,
+        -650
+      ],
+      "headingDeg": 0
+    },
+    {
+      "model": "models/props_catlai/container_ship.glb",
+      "position": [
+        455,
+        0,
+        -300
+      ],
+      "headingDeg": 180
+    }
+  ],
+  "containerBlocks": {
+    "models": [
+      "models/props_catlai/container_block_a.glb",
+      "models/props_catlai/container_block_b.glb",
+      "models/props_catlai/container_block_c.glb"
+    ],
+    "blockSizeM": [
+      15,
+      13,
+      62.5
+    ],
+    "areas": [
+      {
+        "x": [
+          270,
+          400
+        ],
+        "n": [
+          680,
+          880
+        ]
+      },
+      {
+        "x": [
+          190,
+          240
+        ],
+        "n": [
+          700,
+          880
+        ]
+      },
+      {
+        "x": [
+          330,
+          400
+        ],
+        "n": [
+          -90,
+          640
+        ]
+      },
+      {
+        "x": [
+          260,
+          320
+        ],
+        "n": [
+          -90,
+          640
+        ]
+      }
+    ],
+    "note": "Fill the areas with blocks (rotate 0/180° for variety), keeping 10 m lanes clear; blocks are solid walls"
+  },
+  "gate": {
+    "model": "models/props_catlai/port_gate.glb",
+    "position": [
+      160,
+      0,
+      -660
+    ],
+    "note": "Rotate so the sign faces arriving (eastbound) traffic; booths and pillars are solid"
+  },
+  "truckQueue": {
+    "model": [
+      "models/props_xalo/container_truck_blue.glb",
+      "models/props_xalo/container_truck_red.glb"
+    ],
+    "lane": "rightmost lane of the truck road",
+    "fromN": 80,
+    "toN": 560,
+    "spacingM": 19,
+    "note": "Static, bumper to bumper — the famous Cat Lai queue. Solid."
+  },
+  "yardTraffic": {
+    "reachStackers": {
+      "model": "models/props_catlai/reach_stacker.glb",
+      "count": 3,
+      "note": "cross the Reefer lane and yard lanes slowly"
+    },
+    "trucks": 4
+  },
+  "ferry": {
+    "model": "models/props_catlai/river_ferry.glb",
+    "landing": [
+      430,
+      0,
+      170
+    ],
+    "crossing": {
+      "to": [
+        900,
+        0,
+        170
+      ],
+      "durationSec": 60
+    }
+  },
+  "lighting": {
+    "night": true,
+    "floodMasts": {
+      "model": "models/props_catlai/flood_mast.glb",
+      "spacingM": 60,
+      "along": "quay and yard edges",
+      "realLightsMax": 4
+    },
+    "moon": {
+      "dir": [
+        -0.3,
+        -0.8,
+        0.5
+      ],
+      "color": "#BFD4FF",
+      "intensity": 1.2
+    },
+    "hemi": {
+      "sky": "#1B2A4A",
+      "ground": "#0E1116",
+      "intensity": 1
+    },
+    "fog": {
+      "color": "#0E1116",
+      "density": 0.004
+    },
+    "bloom": {
+      "strength": 0.85,
+      "threshold": 0.6
+    }
+  },
+  "skyline": {
+    "model": "models/props_catlai/cable_stayed_bridge.glb",
+    "position": [
+      -500,
+      0,
+      700
+    ],
+    "headingDeg": 35,
+    "note": "backdrop only, lit deck"
+  },
+  "dressing": {
+    "warehouses": {
+      "model": "models/props_xalo/factory_shed.glb",
+      "along": "both sides of the truck road",
+      "spacingM": 70
+    },
+    "lamps": {
+      "model": "models/props_xalo/highway_lamp.glb",
+      "truckRoadMedianEveryM": 40
+    },
+    "barriers": {
+      "model": "models/props/barrier_jersey.glb",
+      "along": "yard lanes and quay inner edge"
+    }
+  }
+}

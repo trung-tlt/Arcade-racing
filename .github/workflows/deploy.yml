@@ -1,0 +1,50 @@
+name: Deploy
+
+# Static build deployed to AWS Amplify Hosting.
+#
+# EASIEST: connect this GitHub repo to an Amplify app in the console (Hosting -> Deploy from Git). Amplify then builds
+# amplify.yml on every push to main and this workflow is not needed (delete it or leave it disabled).
+#
+# This workflow is for a MANUAL-DEPLOY Amplify app (no Git connection): CI builds dist/ and uploads it as a zip.
+# Setup once:
+#   1. Create an Amplify app + a branch named `main` (Hosting -> "Deploy without Git").
+#   2. Create an IAM role that GitHub can assume via OIDC with amplify:CreateDeployment / StartDeployment on that app.
+#   3. Add repository secrets: AWS_ROLE_ARN, AWS_REGION, AMPLIFY_APP_ID.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  deploy-amplify:
+    name: Build and deploy (AWS Amplify Hosting)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Zip and deploy dist/ to Amplify
+        env:
+          APP_ID: ${{ secrets.AMPLIFY_APP_ID }}
+          BRANCH: main
+        run: |
+          set -euo pipefail
+          (cd dist && zip -qr ../dist.zip .)
+          DEPLOY=$(aws amplify create-deployment --app-id "$APP_ID" --branch-name "$BRANCH")
+          JOB_ID=$(echo "$DEPLOY" | jq -r .jobId)
+          UPLOAD_URL=$(echo "$DEPLOY" | jq -r .zipUploadUrl)
+          curl --fail -sS -T dist.zip "$UPLOAD_URL"
+          aws amplify start-deployment --app-id "$APP_ID" --branch-name "$BRANCH" --job-id "$JOB_ID"
+          echo "Started Amplify deployment $JOB_ID"

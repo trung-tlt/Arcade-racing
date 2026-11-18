@@ -1,0 +1,170 @@
+{
+  "master": 0.8,
+  "engine": {
+    "file": "sfx/engine_loop.wav",
+    "gain": 0.55,
+    "rateBase": 0.6,
+    "rateRpm": 1.4,
+    "gears": 6,
+    "idleRpm": 0.12,
+    "gearBaseRpm": 0.35
+  },
+  "skid": {
+    "file": "sfx/skid_loop.wav",
+    "gain": 0.5,
+    "minSlipDeg": 5,
+    "fullSlipDeg": 30,
+    "minSpeedMps": 4
+  },
+  "layerRampPerSec": 4,
+  "layers": {
+    "idle": {
+      "file": "sfx/elevenlabs/idle.mp3",
+      "gain": 0.3,
+      "start": 0.5,
+      "end": 9.5,
+      "fade": 0.8
+    },
+    "roar": {
+      "file": "sfx/elevenlabs/engine_roar.mp3",
+      "gain": 0.4,
+      "start": 7.5,
+      "end": 9.9,
+      "fade": 0.6
+    },
+    "turbo": {
+      "file": "sfx/elevenlabs/turbo.mp3",
+      "gain": 0.35,
+      "start": 5.25,
+      "end": 7.4,
+      "fade": 0.5
+    },
+    "crackle": {
+      "file": "sfx/elevenlabs/crackle.mp3",
+      "gain": 0.45,
+      "start": 0.5,
+      "end": 9.5,
+      "fade": 0.8
+    },
+    "chatter": {
+      "file": "sfx/elevenlabs/pit_chatter.mp3",
+      "gain": 0.2,
+      "start": 0.5,
+      "end": 9.5,
+      "fade": 0.8
+    },
+    "wind": {
+      "file": "sfx/elevenlabs/wind.mp3",
+      "gain": 0.5,
+      "start": 0.5,
+      "end": 9.5,
+      "fade": 0.8
+    }
+  },
+  "oneShots": {
+    "impact": {
+      "file": "sfx/elevenlabs/collision.mp3",
+      "gain": 0.7,
+      "start": 0,
+      "dur": 0.9,
+      "fadeIn": 0.01,
+      "fadeOut": 0.35
+    },
+    "hitMetal": {
+      "file": "sfx/hit_metal.wav",
+      "gain": 0.6
+    },
+    "screech": {
+      "file": "sfx/elevenlabs/screech.mp3",
+      "gain": 0.45,
+      "start": 6.75,
+      "dur": 1.8,
+      "fadeIn": 0.1,
+      "fadeOut": 0.5
+    },
+    "squeal": {
+      "file": "sfx/elevenlabs/brake_squeal.mp3",
+      "gain": 0.4,
+      "start": 1.25,
+      "dur": 1.6,
+      "fadeIn": 0.1,
+      "fadeOut": 0.5
+    },
+    "launch": {
+      "file": "sfx/elevenlabs/accel_rush.mp3",
+      "gain": 0.55,
+      "start": 0,
+      "dur": 1.4,
+      "fadeIn": 0.02,
+      "fadeOut": 0.6
+    },
+    "shift": {
+      "file": "sfx/elevenlabs/gear_shift.mp3",
+      "gain": 6,
+      "start": 0,
+      "dur": 0.6,
+      "fadeIn": 0.01,
+      "fadeOut": 0.2
+    },
+    "nitro": {
+      "file": "sfx/nitro.wav",
+      "gain": 0.7
+    },
+    "checkpoint": {
+      "file": "sfx/checkpoint.wav",
+      "gain": 0.6
+    },
+    "countdownBeep": {
+      "file": "sfx/countdown_beep.wav",
+      "gain": 0.7
+    },
+    "countdownGo": {
+      "file": "sfx/countdown_go.wav",
+      "gain": 0.8
+    },
+    "mgShot": {
+      "file": "sfx/mg_shot.wav",
+      "gain": 0.35
+    },
+    "overheat": {
+      "file": "sfx/overheat.wav",
+      "gain": 0.7
+    },
+    "rocketLaunch": {
+      "file": "sfx/rocket_launch.wav",
+      "gain": 0.7
+    },
+    "explosion": {
+      "file": "sfx/explosion.wav",
+      "gain": 0.9
+    },
+    "pickup": {
+      "file": "sfx/pickup.wav",
+      "gain": 0.7
+    }
+  },
+  "thresholds": {
+    "impactDecelMps": 6,
+    "impactCooldownSec": 0.3,
+    "squealMinSpeedMps": 25,
+    "squealCooldownSec": 3,
+    "screechCooldownSec": 2.5,
+    "shiftCooldownSec": 0.4,
+    "idleFadeSpeedMps": 8,
+    "roarMinSpeedFrac": 0.3,
+    "turboMinSpeedFrac": 0.5,
+    "windMinSpeedFrac": 0.15,
+    "soundRangeM": 140
+  },
+  "vehiclePitch": {
+    "car": 1,
+    "bike": 1.4,
+    "apc8x8": 0.7
+  },
+  "reverb": {
+    "decaySec": 1.4,
+    "wet": 0.5,
+    "fadeSec": 0.12,
+    "underRoadY": -2.0
+  }
+}

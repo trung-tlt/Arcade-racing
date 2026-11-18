@@ -1,0 +1,129 @@
+{
+  "stepSec": 0.016667,
+  "maxOffsetM": 7,
+  "steering": {
+    "lookaheadBaseM": 11,
+    "lookaheadPerMps": 0.5,
+    "lookaheadMaxM": 45,
+    "gain": 2.5,
+    "lookaheadMinM": 4,
+    "radiusLookFrac": 0.9
+  },
+  "speed": {
+    "cornerLookaheadBaseM": 30,
+    "cornerLookaheadPerMps": 1.3,
+    "maxLatAccelMps2": 18,
+    "minTargetMps": 8,
+    "throttleSlackMps": 2,
+    "brakeOverMps": 3,
+    "brakeFullOverMps": 9,
+    "brakeMin": 0.4,
+    "handlingRef": 7,
+    "absoluteMinMps": 3
+  },
+  "nitro": {
+    "minBars": 1,
+    "maxSteerAbs": 0.12,
+    "minSpeedMps": 25,
+    "speedMul": 1.12
+  },
+  "stuck": {
+    "speedBelowMps": 1.5,
+    "afterSec": 1.5,
+    "reverseSec": 1.3,
+    "movedSpeedMps": 5
+  },
+  "pickups": {
+    "detourM": 14,
+    "lookaheadM": 60,
+    "minAheadM": 6,
+    "repairBelowHull": 0.6,
+    "edgeMarginM": 1.8
+  },
+  "avoid": {
+    "aheadM": 20,
+    "widthM": 3.2,
+    "nudgeM": 3
+  },
+  "offset": {
+    "ratePerSec": 3,
+    "noiseM": 0.8,
+    "noiseEverySec": 2.5
+  },
+  "rubberBand": {
+    "maxBoost": 0.06,
+    "maxPenalty": 0.05
+  },
+  "gunner": {
+    "coneDeg": 6,
+    "rangeM": 90,
+    "reactionSec": 0.35,
+    "burstEverySec": 2.5,
+    "pauseSec": 0.6,
+    "rocketConeDeg": 10,
+    "rocketMinRangeM": 15,
+    "rocketMaxRangeM": 90,
+    "rocketCooldownSec": 4,
+    "selfHeightM": 1.2
+  },
+  "difficulty": {
+    "default": "normal",
+    "easy": {
+      "skillMul": 0.9,
+      "reactionMul": 1.8
+    },
+    "normal": {
+      "skillMul": 1,
+      "reactionMul": 1
+    },
+    "hard": {
+      "skillMul": 1.04,
+      "reactionMul": 0.6
+    }
+  },
+  "rivals": [
+    {
+      "id": "razor",
+      "name": "NHI",
+      "car": "rhino_x4",
+      "laneOffsetM": -6,
+      "skill": 1.0
+    },
+    {
+      "id": "viper",
+      "name": "LINH",
+      "car": "wisp_r",
+      "laneOffsetM": 0,
+      "skill": 0.98
+    },
+    {
+      "id": "nova",
+      "name": "THAO",
+      "car": "kestrel_gt",
+      "laneOffsetM": 6,
+      "skill": 0.97
+    },
+    {
+      "id": "blitz",
+      "name": "LAN",
+      "car": "rhino_x4",
+      "laneOffsetM": -3,
+      "skill": 0.95
+    },
+    {
+      "id": "kite",
+      "name": "HAN",
+      "car": "wisp_r",
+      "laneOffsetM": 3,
+      "skill": 0.93
+    }
+  ],
+  "recovery": {
+    "flippedUpY": 0.3,
+    "flippedSec": 1.2,
+    "stepAheadM": 14,
+    "graceSec": 6,
+    "progressWindowSec": 4.5,
+    "minProgressM": 8
+  }
+}

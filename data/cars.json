@@ -1,0 +1,579 @@
+[
+  {
+    "id": "kestrel_gt",
+    "name": "Kestrel GT",
+    "file": "models/cars/kestrel_gt.glb",
+    "paint": "#FF6A1A",
+    "collider": {
+      "halfExtents": [0.95, 0.559, 2.279],
+      "center": [0, 0.679, 0]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.83,
+        "y": 0.29,
+        "z": 1.304,
+        "radius": 0.29,
+        "width": 0.26,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.83,
+        "y": 0.29,
+        "z": 1.304,
+        "radius": 0.29,
+        "width": 0.26,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.82,
+        "y": 0.29,
+        "z": -1.357,
+        "radius": 0.29,
+        "width": 0.28,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.82,
+        "y": 0.29,
+        "z": -1.357,
+        "radius": 0.29,
+        "width": 0.28,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.238, -0.263],
+    "role": null,
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 290,
+    "accel": 7,
+    "handling": 7,
+    "hp": 100,
+    "massKg": 1350,
+    "grip": 1,
+    "drift": 0.85,
+    "nitroBoost": 0.35,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 1
+  },
+  {
+    "id": "rhino_x4",
+    "name": "Rhino X4",
+    "file": "models/cars/rhino_x4.glb",
+    "paint": "#2EC5FF",
+    "collider": {
+      "halfExtents": [1, 0.627, 2.402],
+      "center": [0, 0.747, 0.061]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.84,
+        "y": 0.34,
+        "z": 1.293,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.84,
+        "y": 0.34,
+        "z": 1.293,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.84,
+        "y": 0.34,
+        "z": -1.375,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.84,
+        "y": 0.34,
+        "z": -1.375,
+        "radius": 0.34,
+        "width": 0.34,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.375, -0.231],
+    "role": null,
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 260,
+    "accel": 5,
+    "handling": 5,
+    "hp": 150,
+    "massKg": 2100,
+    "grip": 1.1,
+    "drift": 0.6,
+    "nitroBoost": 0.3,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 2
+  },
+  {
+    "id": "wisp_r",
+    "name": "Wisp R",
+    "file": "models/cars/wisp_r.glb",
+    "paint": "#C6FF3D",
+    "collider": {
+      "halfExtents": [0.975, 0.568, 2.328],
+      "center": [0, 0.688, 0]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.86,
+        "y": 0.262,
+        "z": 1.23,
+        "radius": 0.262,
+        "width": 0.25,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.86,
+        "y": 0.262,
+        "z": 1.23,
+        "radius": 0.262,
+        "width": 0.25,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.83,
+        "y": 0.288,
+        "z": -1.413,
+        "radius": 0.288,
+        "width": 0.31,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.83,
+        "y": 0.288,
+        "z": -1.413,
+        "radius": 0.288,
+        "width": 0.31,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.033, -0.222],
+    "role": null,
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 320,
+    "accel": 8,
+    "handling": 8,
+    "hp": 80,
+    "massKg": 1100,
+    "grip": 0.95,
+    "drift": 0.95,
+    "nitroBoost": 0.4,
+    "nitroBarSec": 2,
+    "ramDamageMul": 0.8
+  },
+  {
+    "id": "warden_px",
+    "name": "Warden PX",
+    "file": "models/cars/warden_px.glb",
+    "paint": "#14171D",
+    "collider": {
+      "halfExtents": [0.975, 0.558, 2.515],
+      "center": [0, 0.678, 0.084]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.85,
+        "y": 0.312,
+        "z": 1.406,
+        "radius": 0.312,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.85,
+        "y": 0.312,
+        "z": 1.406,
+        "radius": 0.312,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.85,
+        "y": 0.312,
+        "z": -1.434,
+        "radius": 0.312,
+        "width": 0.27,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.85,
+        "y": 0.312,
+        "z": -1.434,
+        "radius": 0.312,
+        "width": 0.27,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.193, -0.596],
+    "role": "PURSUIT · RAMMER",
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 300,
+    "accel": 7,
+    "handling": 6,
+    "hp": 120,
+    "massKg": 1700,
+    "grip": 1,
+    "drift": 0.75,
+    "nitroBoost": 0.38,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 1.5
+  },
+  {
+    "id": "bastion_m8",
+    "name": "Bastion M8",
+    "file": "models/cars/bastion_m8.glb",
+    "paint": "#4B5A3A",
+    "collider": {
+      "halfExtents": [1.075, 0.699, 2.551],
+      "center": [0, 0.819, 0.071]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.875,
+        "y": 0.43,
+        "z": 1.39,
+        "radius": 0.43,
+        "width": 0.42,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.875,
+        "y": 0.43,
+        "z": 1.39,
+        "radius": 0.43,
+        "width": 0.42,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.875,
+        "y": 0.43,
+        "z": -1.476,
+        "radius": 0.43,
+        "width": 0.42,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.875,
+        "y": 0.43,
+        "z": -1.476,
+        "radius": 0.43,
+        "width": 0.42,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.519, -0.53],
+    "role": "ARMORED · TANK",
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 230,
+    "accel": 4,
+    "handling": 4,
+    "hp": 200,
+    "massKg": 3200,
+    "grip": 1.15,
+    "drift": 0.45,
+    "nitroBoost": 0.28,
+    "nitroBarSec": 3,
+    "ramDamageMul": 2.5
+  },
+  {
+    "id": "sable_rs",
+    "name": "Sable RS",
+    "file": "models/cars/sable_rs.glb",
+    "paint": "#8B5CF6",
+    "collider": {
+      "halfExtents": [0.925, 0.597, 2.149],
+      "center": [0, 0.717, 0.014]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.8,
+        "y": 0.297,
+        "z": 1.145,
+        "radius": 0.297,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.8,
+        "y": 0.297,
+        "z": 1.145,
+        "radius": 0.297,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.8,
+        "y": 0.297,
+        "z": -1.287,
+        "radius": 0.297,
+        "width": 0.27,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.8,
+        "y": 0.297,
+        "z": -1.287,
+        "radius": 0.297,
+        "width": 0.27,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.287, -0.608],
+    "role": "AGILE · DRIFTER",
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 275,
+    "accel": 9,
+    "handling": 9,
+    "hp": 85,
+    "massKg": 1050,
+    "grip": 1.05,
+    "drift": 1,
+    "nitroBoost": 0.4,
+    "nitroBarSec": 2,
+    "ramDamageMul": 0.8
+  },
+  {
+    "id": "hauler_ht",
+    "name": "Hauler HT",
+    "file": "models/cars/hauler_ht.glb",
+    "paint": "#2FBF9F",
+    "collider": {
+      "halfExtents": [1, 0.634, 2.588],
+      "center": [0, 0.754, 0.058]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.845,
+        "y": 0.38,
+        "z": 1.389,
+        "radius": 0.38,
+        "width": 0.33,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.845,
+        "y": 0.38,
+        "z": 1.389,
+        "radius": 0.38,
+        "width": 0.33,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.845,
+        "y": 0.38,
+        "z": -1.594,
+        "radius": 0.38,
+        "width": 0.33,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.845,
+        "y": 0.38,
+        "z": -1.594,
+        "radius": 0.38,
+        "width": 0.33,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.228, -1.623],
+    "role": "UTILITY · BED TURRET",
+    "vehicleType": "car",
+    "turretYawDeg": 360,
+    "topSpeedKmh": 250,
+    "accel": 6,
+    "handling": 5,
+    "hp": 140,
+    "massKg": 2300,
+    "grip": 1.05,
+    "drift": 0.65,
+    "nitroBoost": 0.32,
+    "nitroBarSec": 2.5,
+    "ramDamageMul": 1.6
+  },
+  {
+    "id": "truongson_av8",
+    "name": "Truong Son AV8",
+    "file": "models/cars/truongson_av8.glb",
+    "paint": "#56653F",
+    "collider": {
+      "halfExtents": [1.25, 0.849, 3.479],
+      "center": [0, 0.969, 0]
+    },
+    "wheels": [
+      {
+        "name": "wheel_1L",
+        "x": 1.01,
+        "y": 0.593,
+        "z": 2.214,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": true
+      },
+      {
+        "name": "wheel_1R",
+        "x": -1.01,
+        "y": 0.593,
+        "z": 2.214,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": true
+      },
+      {
+        "name": "wheel_2L",
+        "x": 1.01,
+        "y": 0.593,
+        "z": 0.909,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": true
+      },
+      {
+        "name": "wheel_2R",
+        "x": -1.01,
+        "y": 0.593,
+        "z": 0.909,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": true
+      },
+      {
+        "name": "wheel_3L",
+        "x": 1.01,
+        "y": 0.593,
+        "z": -0.712,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": false
+      },
+      {
+        "name": "wheel_3R",
+        "x": -1.01,
+        "y": 0.593,
+        "z": -0.712,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": false
+      },
+      {
+        "name": "wheel_4L",
+        "x": 1.01,
+        "y": 0.593,
+        "z": -2.016,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": false
+      },
+      {
+        "name": "wheel_4R",
+        "x": -1.01,
+        "y": 0.593,
+        "z": -2.016,
+        "radius": 0.593,
+        "width": 0.5,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.937, -0.297],
+    "role": "APC · 8x8 FORTRESS",
+    "vehicleType": "apc8x8",
+    "turretYawDeg": 360,
+    "topSpeedKmh": 210,
+    "accel": 3,
+    "handling": 3,
+    "hp": 260,
+    "massKg": 6000,
+    "grip": 1.2,
+    "drift": 0.3,
+    "nitroBoost": 0.25,
+    "nitroBarSec": 3,
+    "ramDamageMul": 3
+  },
+  {
+    "id": "mantis_650r",
+    "name": "Mantis 650R",
+    "file": "models/cars/mantis_650r.glb",
+    "paint": "#2EC5FF",
+    "collider": {
+      "halfExtents": [0.21, 0.555, 1.151],
+      "center": [0, 0.675, 0.06]
+    },
+    "wheels": [
+      {
+        "name": "wheel_F",
+        "x": 0,
+        "y": 0.33,
+        "z": 1.016,
+        "radius": 0.33,
+        "width": 0.12,
+        "steer": true
+      },
+      {
+        "name": "wheel_R",
+        "x": 0,
+        "y": 0.33,
+        "z": -0.579,
+        "radius": 0.33,
+        "width": 0.18,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 0.7, 0.417],
+    "role": "SPORT BIKE · GLASS CANNON",
+    "vehicleType": "bike",
+    "turretYawDeg": 15,
+    "topSpeedKmh": 310,
+    "accel": 10,
+    "handling": 9,
+    "hp": 60,
+    "massKg": 420,
+    "grip": 0.95,
+    "drift": 0.5,
+    "nitroBoost": 0.45,
+    "nitroBarSec": 2,
+    "ramDamageMul": 0.4,
+    "maxLeanDeg": 42
+  }
+]

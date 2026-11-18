@@ -1,0 +1,13 @@
+{
+  "hemi": {
+    "sky": "#1B2A4A",
+    "ground": "#0E1116",
+    "intensity": 3.5
+  },
+  "moon": {
+    "color": "#B4C8FF",
+    "intensity": 4.5
+  },
+  "exposure": 1.55,
+  "tunnelEmissiveMul": 0.45
+}
