@@ -888,3 +888,17 @@ body.is-touch .mn-controls .ctl-back {
   min-height: 48px;
   font-size: 18px;
 }
+
+/* Endorsement on phones: never under 120 px, never wider than the wordmark above it. */
+body.is-touch .mn-loading .logo .endorse {
+  width: 180px;
+  margin-top: 8px;
+}
+body.is-touch .mn-title .endorse {
+  width: 124px;
+  margin-top: 6px;
+}
+#rotate-screen .endorse {
+  width: 150px;
+  margin: 18px auto 0;
+}

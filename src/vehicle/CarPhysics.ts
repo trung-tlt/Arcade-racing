@@ -427,8 +427,9 @@ export class CarPhysics {
     // A hard hit (another car's edge, a traffic body) must never throw the car skywards or into a spin: cap what the
     // collision can add vertically and rotationally. Ramp and crest jumps are wheel-driven and not affected.
     if (this.impactStrength > this.h.body.impactClampMinMps) {
-      if (v.y > this.h.body.maxUpAfterImpactMps)
-        this.body.setLinvel({ x: v.x, y: this.h.body.maxUpAfterImpactMps, z: v.z }, true);
+      // ...nor press it down through the road (a rival ramming a parked car, or riding over its roof).
+      const vy = Math.min(this.h.body.maxUpAfterImpactMps, Math.max(-this.h.body.maxDownAfterImpactMps, v.y));
+      if (vy !== v.y) this.body.setLinvel({ x: v.x, y: vy, z: v.z }, true);
       const w = this.body.angvel();
       const spin = Math.hypot(w.x, w.y, w.z);
       const maxSpin = this.h.body.maxSpinAfterImpactRadS;

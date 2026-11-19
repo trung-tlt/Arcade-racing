@@ -128,6 +128,9 @@ export class Game {
   private path!: TrackPath;
   private track!: Track;
   private readonly rivals: Rival[];
+  /** Dev/e2e only: where and why cars were put back on the road by recoverFallen. */
+  private readonly fallLog: string[] = [];
+  private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
   private sponsors: Sponsors | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
@@ -786,6 +789,50 @@ export class Game {
   }
 
   /**
+   * Map 3 only (the one map with elevation and no solid land): the player's car goes back on the track if it ends up
+   * in the pit beside or under the road, or is stood back up if a hard hit pressed it down through the road onto the
+   * sheet below. Rivals keep the stuck-recovery below: respawning them here put them back at the underpass mouth and
+   * they fell again.
+   */
+  private recoverFallen(): void {
+    const def = this.trackDef;
+    const c = this.car;
+    if (!def.hasElevation || c.hull.wrecked || this.race.phase === 'finished') return;
+    const p = c.physics.curr.p;
+    if (def.groundY <= -1 && p.y <= def.groundY + RACE.fall.belowGroundM) {
+      if (this.devStats && this.fallLog.length < 40)
+        this.fallLog.push(`pit @${p.x.toFixed(0)},${p.y.toFixed(1)},${p.z.toFixed(0)}`);
+      this.resetPlayer();
+      return;
+    }
+    if (c.physics.speedMps > RACE.fall.sunkSlowBelowMps) return;
+    const t = this.carTs.get(c.id) ?? 0;
+    // Cheap pre-check: a sunk car is also well below the road height at its place along the track.
+    if (p.y > this.path.pointAt(t).y - RACE.fall.sunkBelowRoadM / 2) return;
+    // The road's real height comes from a ray onto the fixed collider just above the car. Both tests must agree, so a
+    // car pressed against a side wall (the ray sees the wall top) or on the underpass ramp (the path height lags) is
+    // never mistaken for a sunk one.
+    this.sunkRay.origin.x = p.x;
+    this.sunkRay.origin.y = p.y + RACE.fall.sunkRayAboveM;
+    this.sunkRay.origin.z = p.z;
+    const hit = this.world.castRay(
+      this.sunkRay,
+      RACE.fall.sunkRayAboveM + RACE.fall.sunkBelowRoadM + 1,
+      true,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      (col) => col.parent()?.bodyType() === RAPIER.RigidBodyType.Fixed,
+    );
+    if (hit && this.sunkRay.origin.y - hit.timeOfImpact > p.y + RACE.fall.sunkBelowRoadM) {
+      if (this.devStats && this.fallLog.length < 40)
+        this.fallLog.push(`sunk @${p.x.toFixed(0)},${p.y.toFixed(1)},${p.z.toFixed(0)}`);
+      c.respawn(respawnPose(this.path, t, 0));
+    }
+  }
+
+  /**
    * Rivals that stop moving (or end up on their roof) are put back on the road a few metres ahead, like the player's
    * R key. Wall breaches, traffic pile-ups and failed jumps otherwise leave them parked for the whole race.
    */
@@ -895,6 +942,11 @@ export class Game {
     return out;
   }
 
+  /** Dev/e2e only: where and why cars were put back on the road by recoverFallen (first 40). */
+  debugFallLog(): string[] {
+    return this.fallLog;
+  }
+
   /** Dev/e2e only: colliders overlapping a box around (x, z), to find invisible obstacles. */
   debugCollidersNear(x: number, z: number, r: number): string[] {
     const out: string[] = [];
@@ -1001,6 +1053,7 @@ export class Game {
     for (const c of this.cars) c.postStep();
     this.combat.update(dt);
     if (this.devStats) this.collectDevStats(dt);
+    this.recoverFallen();
     this.recoverStuckAi(dt);
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
     this.landmarks?.update(dt);

@@ -18,7 +18,9 @@ export class PostFX {
     track: TrackDef,
   ) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = track.daylight?.toneMappingExposure ?? LIGHTING.exposure;
+    renderer.toneMappingExposure =
+      (track.daylight?.toneMappingExposure ?? LIGHTING.exposure) *
+      (track.timeOfDay === 'dusk' ? LIGHTING.dusk.exposureMul : 1);
     this.composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     const baseRender = renderPass.render.bind(renderPass);

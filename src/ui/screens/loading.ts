@@ -38,6 +38,7 @@ export class LoadingScreen implements Screen {
       <div class="logo">
         <div class="mn-eyebrow">ARCADE COMBAT RACING</div>
         <h1>VOLTLINE</h1>
+        <img class="endorse" src="/assets/brand/endorsement_craftmann_app_on_dark.svg" alt="a CraftMann app" width="130" height="24" draggable="false" />
       </div>
       <div class="bar">
         <div class="track" role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="fill"></div></div>

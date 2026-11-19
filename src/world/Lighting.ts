@@ -30,11 +30,13 @@ export class Lighting {
       this.shadowHalf = 60;
     }
 
+    // The pack's dusk numbers read dark in this renderer; data/lighting.json scales them to the design render.
+    const k = track.timeOfDay === 'dusk' ? LIGHTING.dusk : { hemiMul: 1, sunMul: 1, exposureMul: 1 };
     this.hemi = day
-      ? new THREE.HemisphereLight(day.hemi.sky, day.hemi.ground, day.hemi.intensity)
+      ? new THREE.HemisphereLight(day.hemi.sky, day.hemi.ground, day.hemi.intensity * k.hemiMul)
       : new THREE.HemisphereLight(LIGHTING.hemi.sky, LIGHTING.hemi.ground, LIGHTING.hemi.intensity);
     this.moon = day
-      ? new THREE.DirectionalLight(day.sun.color, day.sun.intensity)
+      ? new THREE.DirectionalLight(day.sun.color, day.sun.intensity * k.sunMul)
       : new THREE.DirectionalLight(LIGHTING.moon.color, LIGHTING.moon.intensity);
     this.moon.castShadow = true;
     this.moon.shadow.mapSize.set(2048, 2048);

@@ -817,3 +817,19 @@
     padding: 3px 6px 4px;
   }
 }
+
+/* Studio endorsement ("a CraftMann app"): the shipped SVG, unaltered, directly under the wordmark. */
+.endorse {
+  display: block;
+  height: auto;
+  user-select: none;
+  pointer-events: none;
+}
+.mn-loading .logo .endorse {
+  width: 230px;
+  margin: 14px auto 0;
+}
+.mn-title .endorse {
+  width: 168px;
+  margin-top: 10px;
+}

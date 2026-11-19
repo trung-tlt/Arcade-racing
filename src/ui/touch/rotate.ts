@@ -15,7 +15,8 @@ export class RotateScreen {
         <path d="M100 104 l-9 -2 M100 104 l-2 -9" stroke="#FF6A1A" stroke-width="5" stroke-linecap="round"/>
       </svg>
       <h2>Turn your phone sideways</h2>
-      <p>VOLTLINE is played in landscape.</p>`;
+      <p>VOLTLINE is played in landscape.</p>
+      <img class="endorse" src="/assets/brand/endorsement_craftmann_app_on_dark.svg" alt="a CraftMann app" width="130" height="24" draggable="false" />`;
     root.appendChild(this.el);
   }
 

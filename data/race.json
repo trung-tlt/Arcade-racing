@@ -3,12 +3,7 @@
     "steps": 3,
     "stepSec": 1,
     "goHoldSec": 1.2,
-    "lampsLit": [
-      2,
-      3,
-      4,
-      5
-    ],
+    "lampsLit": [2, 3, 4, 5],
     "lampOnIntensity": 4,
     "stopColor": "#FF3D6E",
     "goColor": "#C6FF3D"
@@ -25,6 +20,12 @@
     "gridSlotCount": 6,
     "rampLeadInM": 1.6,
     "minTurnRadiusM": 8
+  },
+  "fall": {
+    "belowGroundM": 2.5,
+    "sunkBelowRoadM": 1,
+    "sunkRayAboveM": 2.5,
+    "sunkSlowBelowMps": 10
   },
   "ai": {
     "rubberBandScaleLaps": 0.04,

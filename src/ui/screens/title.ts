@@ -30,6 +30,7 @@ export class TitleScreen implements Screen {
         <div>
           <div class="mn-eyebrow">ARCADE COMBAT RACING</div>
           <h1>VOLTLINE</h1>
+          <img class="endorse" src="/assets/brand/endorsement_craftmann_app_on_dark.svg" alt="a CraftMann app" width="130" height="24" draggable="false" />
         </div>
         <nav aria-label="Main menu">
           <button type="button" class="item primary" data-act="race" data-hotkey="enter r" data-autofocus>${labelWithKeys('RACE', ['Enter', 'R'], true, 'Harbor Loop · 3 laps')}</button>

@@ -137,6 +137,8 @@ All bindings go through one action map in `Input.ts`.
 ## Sponsor brands
 Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner (`brand/*.svg`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 
+**Studio endorsement:** VOLTLINE is "a CraftMann app". Show `brand/endorsement_craftmann_app_on_dark.svg` (use `_on_light` only on light backgrounds) directly under the VOLTLINE wordmark on the Loading and Title screens, desktop and mobile (mobile: also the rotate-device screen). Keep it at least 120 px wide, unaltered, no tint or effects, and never larger than the VOLTLINE wordmark.
+
 ## Performance budget (enforce it)
 - 60 fps at 1080p on Apple M1 / Intel Iris Xe. Fewer than 150 draw calls, under 400k triangles on
   screen, first load under 5 s.

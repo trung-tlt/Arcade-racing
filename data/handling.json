@@ -11,6 +11,7 @@
     "chassisClearanceBoostM": 0.04,
     "impactClampMinMps": 4,
     "maxUpAfterImpactMps": 5,
+      "maxDownAfterImpactMps": 6,
     "maxSpinAfterImpactRadS": 9
   },
   "suspension": {
