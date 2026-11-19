@@ -113,9 +113,6 @@ A static build (`dist/`) hosted on **AWS Amplify Hosting**.
   branch `main`. Amplify reads `amplify.yml` (Node 22, `npm ci`, `npm run build`, artifacts in `dist/`) and rebuilds on
   every push. The same file sets the headers: `/assets/**` is cached for a year (`immutable`), `/index.html` is
   `no-cache`, plus `nosniff`, a referrer policy and a CSP that allows only self, Google Fonts, `blob:` and WASM.
-- **Manual deploy from CI:** `.github/workflows/deploy.yml` builds, zips `dist/` and uploads it with
-  `aws amplify create-deployment` / `start-deployment`. It needs the secrets `AWS_ROLE_ARN` (an IAM role GitHub can
-  assume via OIDC), `AWS_REGION` and `AMPLIFY_APP_ID`.
 - **Asset filenames:** models, sounds and textures keep fixed names under `/assets/` and are cached for a year. When art
   or audio changes, rename the file or add a `?v=` query to its URL, or visitors will keep the old copy.
 - **Other hosts:** `staticwebapp.config.json` (Azure Static Web Apps) and `public/_headers` (Cloudflare Pages) carry the
