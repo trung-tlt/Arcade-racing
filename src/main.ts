@@ -27,6 +27,7 @@ import { XALO_DRESSING_MODELS } from './world/XaLoDressing';
 import { XALO_METRO_MODELS } from './world/XaLoMetro';
 import { XALO_STRUCTURE_MODELS } from './world/XaLoStructures';
 import { XALO_TRAFFIC_MODELS } from './world/XaLoTraffic';
+import { installAutoFullscreen } from './ui/touch/fullscreen';
 import { RotateScreen } from './ui/touch/rotate';
 import { TouchHud } from './ui/touch/touchHud';
 import './ui/styles.css';
@@ -90,6 +91,7 @@ async function boot(): Promise<void> {
     (f) => loading.setProgress(f),
   );
 
+  if (isTouch) installAutoFullscreen();
   const rotate = new RotateScreen(document.body);
   const touchHud = isTouch ? new TouchHud(document.body, touchInput) : null;
   if (isTouch) {
