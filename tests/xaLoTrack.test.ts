@@ -3,8 +3,8 @@ import { TRACKS, XA_LO, roadWidthAt } from '../src/core/Data';
 import { TrackPath } from '../src/world/TrackPath';
 
 describe('Hanoi Highway track data', () => {
-  it('is registered as the third, dusk, elevated map', () => {
-    expect(TRACKS.map((t) => t.id)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi']);
+  it('is registered as the third (of four), dusk, elevated map', () => {
+    expect(TRACKS.map((t) => t.id).slice(0, 3)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi']);
     expect(XA_LO.timeOfDay).toBe('dusk');
     expect(XA_LO.hasElevation).toBe(true);
     expect(XA_LO.groundY).toBeLessThan(-6.5);

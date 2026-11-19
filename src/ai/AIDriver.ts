@@ -55,6 +55,8 @@ export interface AIDriverOpts {
   difficulty?: Difficulty;
   /** cars.json handling rating (1–10); scales the slowest speed the AI will take a hairpin at. Default = reference. */
   handling?: number;
+  /** Wet road: scales the cornering grip the driver assumes (default 1) and how much earlier it starts braking. */
+  wet?: { gripMul: number; brakeDistanceMul: number };
 }
 
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
@@ -164,8 +166,9 @@ export class AIDriver {
     // --- speed ---
     const rb = o.rubberBand();
     const pace = this.skill * (1 + (rb > 0 ? rb * AI.rubberBand.maxBoost : rb * AI.rubberBand.maxPenalty));
-    const ahead = AI.speed.cornerLookaheadBaseM + AI.speed.cornerLookaheadPerMps * Math.abs(v);
-    const corner = o.line.maxCornerSpeed(s.t, ahead, AI.speed.maxLatAccelMps2);
+    const wet = o.wet ?? { gripMul: 1, brakeDistanceMul: 1 };
+    const ahead = (AI.speed.cornerLookaheadBaseM + AI.speed.cornerLookaheadPerMps * Math.abs(v)) * wet.brakeDistanceMul;
+    const corner = o.line.maxCornerSpeed(s.t, ahead, AI.speed.maxLatAccelMps2 * wet.gripMul);
     const straight = corner > Math.abs(v) * 1.3 && Math.abs(c.steer) < AI.nitro.maxSteerAbs;
 
     // Nitro: start with a full bar on a straight, keep going until empty or a turn.

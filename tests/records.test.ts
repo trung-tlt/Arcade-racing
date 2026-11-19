@@ -40,6 +40,14 @@ describe('per-map records', () => {
     expect(loadBestLap('cat_lai', s)).toEqual({ ms: 70000, car: 'Kestrel GT' });
     expect(loadBestLap('cong_hoa', s)).toEqual({ ms: 90000, car: 'Wisp R' });
   });
+  it('keeps the 4th map (Pham Van Dong) separate too', () => {
+    const s = fake();
+    expect(loadBestLap('pham_van_dong', s)).toBeNull();
+    expect(saveBestLap('pham_van_dong', 88.123, 'Wisp R', s)).toBe(true);
+    expect(saveBestLap('pham_van_dong', 90, 'Kestrel GT', s)).toBe(false);
+    expect(loadBestLap('pham_van_dong', s)).toEqual({ ms: 88123, car: 'Wisp R' });
+    expect(loadBestLap('xa_lo_ha_noi', s)).toBeNull();
+  });
   it('ignores the old pre-maps key (Harbor Loop is gone)', () => {
     const s = fake();
     s.setItem('voltline.bestLap', JSON.stringify({ ms: 64912, car: 'Kestrel GT' }));

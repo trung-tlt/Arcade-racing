@@ -1,3 +1,4 @@
+import { TRACKS } from '../../core/Data';
 import { keyBar, labelWithKeys } from '../hotkeys';
 import { enableMenuNav, focusFirst } from '../nav';
 import type { CarPreview, PreviewFactory, Screen } from '../types';
@@ -33,7 +34,7 @@ export class TitleScreen implements Screen {
           <img class="endorse" src="/assets/brand/endorsement_craftmann_app_on_dark.svg" alt="a CraftMann app" width="130" height="24" draggable="false" />
         </div>
         <nav aria-label="Main menu">
-          <button type="button" class="item primary" data-act="race" data-hotkey="enter r" data-autofocus>${labelWithKeys('RACE', ['Enter', 'R'], true, 'Harbor Loop · 3 laps')}</button>
+          <button type="button" class="item primary" data-act="race" data-hotkey="enter r" data-autofocus>${labelWithKeys('RACE', ['Enter', 'R'], true, `${TRACKS[0].name} · ${TRACKS[0].laps} laps`)}</button>
           <button type="button" class="item" data-act="garage" data-hotkey="g">${labelWithKeys('GARAGE', ['G'])}</button>
           <button type="button" class="item" data-act="settings" data-hotkey="s">${labelWithKeys('SETTINGS', ['S'])}</button>
           <button type="button" class="item" data-act="controls" data-hotkey="c">${labelWithKeys('CONTROLS', ['C'])}</button>
@@ -50,7 +51,7 @@ export class TitleScreen implements Screen {
         <div class="tonight">
           <span class="mn-eyebrow">TONIGHT</span>
           <b>Cat Lai Port</b>
-          <span>6 racers · guns hot · 2.8 km</span>
+          <span class="facts">6 racers · guns hot · ${(TRACKS[0].lapLengthM / 1000).toFixed(1)} km</span>
         </div>
       </div>
       ${keyBar(
@@ -83,9 +84,12 @@ export class TitleScreen implements Screen {
   /** Show the selected map on the RACE button and the side card. */
   setTrackName(name: string): void {
     const sub = this.el.querySelector('[data-act="race"] small');
-    if (sub) sub.textContent = `${name} · 3 laps`;
+    const t = TRACKS.find((x) => x.name === name);
+    if (sub) sub.textContent = `${name} · ${t?.laps ?? 3} laps`;
     const card = this.el.querySelector('.tonight b');
     if (card) card.textContent = name;
+    const facts = this.el.querySelector('.tonight .facts');
+    if (facts && t) facts.textContent = `6 racers · guns hot · ${(t.lapLengthM / 1000).toFixed(1)} km`;
   }
 
   /** Re-read the best-lap text (call after a race). */

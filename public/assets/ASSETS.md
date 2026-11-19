@@ -90,7 +90,7 @@ Budget: 6 vehicles on the grid ≈ 20–30k tris. Instance repeated props to sta
 | river_ferry.glb | generic 42 m river car ferry with ramps |
 | cable_stayed_bridge.glb | skyline backdrop, 300 m deck, lit stays |
 | quay_edge.glb | 20 m quay lip with bollards, fenders, yellow edge |
-Sponsor banners `models/props/sponsor_banner_{emesoft,capturemann,craftmann,voltline}.glb`: 8 × 2 m printed board on two posts (bottom edge 0.9 m), printed on both faces, front looks −Z, ~40 tris. Tracks list them with `position` and `yawDeg` (90 = long side parallel to a north–south road). Placements: `cat_lai.json` → `sponsors.{banners,billboards,quayBanners}`; `cong_hoa.json` → `dressing.{sponsorBanners,rooftopBillboards}`; `xa_lo_ha_noi.json` → `dressing.billboards` (now 9 boards).
+Sponsor banners `models/props/sponsor_banner_{emesoft,capturemann,craftmann,voltline}.glb`: 8 × 2 m printed board on two posts (bottom edge 0.9 m), printed on both faces, front looks −Z, ~40 tris. Tracks list them with `position` and `yawDeg` (90 = long side parallel to a north–south road). Placements: `cat_lai.json` → `sponsors.{banners,billboards,quayBanners}`; `cong_hoa.json` → `dressing.{sponsorBanners,rooftopBillboards}`; `xa_lo_ha_noi.json` → `dressing.billboards` (now 9 boards); `pham_van_dong.json` → `sponsors.{billboards,banners,mallScreens}`.
 
 Older Harbor props (`models/props/*`: containers, crane_gantry, barrier, streetlight, buildings, ramp, gates, tunnel) stay as shared props for all maps.
 
@@ -128,18 +128,36 @@ Ambient traffic in `cong_hoa.json` → `ambientTraffic.models` lists scooters, c
 | highway_lamp.glb | 12 m double-arm sodium lamp (`light_L/R` empties) |
 | container_truck_blue/red.glb | generic 16.5 m container trucks for ambient traffic |
 
+## Map 4 props — `models/props_pvd/*.glb` (Pham Van Dong Boulevard / Đại lộ Phạm Văn Đồng, monsoon storm)
+| Model | Notes |
+|---|---|
+| boulevard_median.glb | 20 m × 8 m tree median: striped curbs, grass, 2 tall shade trees, double-arm LED lamp (`light_L`/`light_R` empties) |
+| lane_separator.glb | 20 m × 1.6 m divider between car lanes and motorbike/mixed lanes: planters, yellow rail |
+| poncho_rider_{blue,yellow,pink,clear}.glb | scooter + rider in a rain poncho, 1.85 m, +Z forward, head/tail lights emissive |
+| bridge_branch_segment.glb / bridge_branch_pier.glb | Bình Lợi bridge: one 24 m branch per direction, 40 m segment, deck top y = 0; pier cap at −3 m |
+| arch_rail_bridge.glb | 120 m red steel tied-arch railway bridge, backdrop only |
+| ramp_span.glb | 30 m × 11 m elevated deck with LED parapet strip — lay along the U-turn flyover spline |
+| cross_overpass.glb | ring-road overpass, 64 m across X, deck at 8 m, piers in the median/separators |
+| mall_capturemann.glb / mall_craftmann.glb | 80 × 24 × 46 m mall, front +Z, LED screen showing the sponsor billboard row |
+| flood_sign.glb | "ĐƯỜNG NGẬP · FLOODED · SLOW" sign with amber blinkers, faces −Z |
+| rain_shelter.glb | 8 m covered bus stop for the mixed-lane side |
+| sign_gantry_outbound / inbound.glb | direction gantries (Linh Xuân, Gò Dưa, Ring Road 2 / Sân bay Tân Sơn Nhất) |
+
+Reuses: shophouses, street trees, pedestrian overpass, flyover pier, civilian cars, city bus (props_conghoa); apartment towers, billboards (props_xalo); sponsor banners (props).
+
 ## Textures — `textures/*.png`
 road_lanes (road ribbon, u across 18 m, v along) · window_atlas · checker · fx_muzzle_flash · fx_tracer ·
 fx_spark · fx_smoke · fx_explosion_4x4 (16-frame flipbook) · fx_nitro_flame · fx_glow · fx_skidmark.
 Map 2: day_road_3lane (one carriageway, u across 11 m, v tiles every ~12 m; flip 180° for the other direction) ·
 day_shop_signs (8-row atlas) · day_sky_gradient (scene.background).
 Map 1: catlai_apron (port concrete with yellow lanes) · catlai_gate_sign.
+Map 4: pvd_road_car_3lane (11 m, wet asphalt, "Ô TÔ") · pvd_road_moto_2lane (7 m, "XE MÁY" + scooter glyph) · pvd_puddle (alpha decal) · rain_sky_gradient · pvd_direction_signs (4 rows) · pvd_flood_sign · fx_rain_streaks · fx_splash · fx_lightning.
 Map 3: xalo_road_4lane (main carriageway, 15 m) · dusk_sky_gradient · xalo_direction_signs (4 rows) · xalo_billboards (6 rows: Emesoft, VOLTLINE, apartments, EV, CaptureMann, CraftMann) · sponsor_banners (4 rows: Emesoft, CaptureMann, CraftMann, VOLTLINE).
 
 ## Sound — `sfx/*.wav` (44.1 kHz mono, normalized)
 engine_loop and skid_loop are seamless loops (engine playbackRate ≈ 0.6 + rpm × 1.4; use 1.4× pitch for
 the bike, 0.7× for the APC). One-shots: mg_shot, overheat, hit_metal, rocket_launch, explosion, nitro,
-pickup, checkpoint, countdown_beep, countdown_go, ui_click. No music included.
+pickup, checkpoint, countdown_beep, countdown_go, ui_click. Map 4 ambience: rain_loop (4 s seamless), thunder (5.5 s), splash.
 
 ## Menu sounds & music (all original, synthesized)
 - `sfx/ui/*.wav` — 13 UI sounds: ui_move, ui_select, ui_back, ui_error, ui_toggle_on/off, ui_slider_tick, ui_whoosh,
@@ -151,6 +169,9 @@ pickup, checkpoint, countdown_beep, countdown_go, ui_click. No music included.
 ## Data — `data/`
 - `cars.json` — 9 vehicles (see above).
 - `weapons.json` — Pulse MG, Hornet rocket, pickups, damage states, wreck/respawn rules.
+- `tracks/pham_van_dong.json` — Map 4, monsoon storm, 4.8 km, 2 laps, **elevation in the spline** (Bình Lợi bridge +12 m, Gò Dưa
+  hump +3.5 m, U-turn flyover +8 m, flooded dip −2.5 m). Outbound on the car lanes, inbound on the motorbike/mixed lanes with
+  poncho scooter traffic. Has a `weather` block (rain, wet grip, 13 puddles, flood zone, spray, lightning, audio) — see CLAUDE.md.
 - `tracks/xa_lo_ha_noi.json` — Map 3, dusk, 4.3 km, **with elevation in the spline** (bridge crest +11 m, underpass −6.5 m,
   U-turn hump +5 m). Includes metro viaduct path, stations, trains, gantries, billboards, bridge/underpass ranges,
   ambient traffic (trucks, cars, buses, scooters) and the dusk lighting setup.
@@ -162,4 +183,4 @@ pickup, checkpoint, countdown_beep, countdown_go, ui_click. No music included.
   shortcut with a jump. Includes crane/ship/block/gate/truck-queue/ferry placement and night lighting.
 
 ## UI reference
-All screens are on the VOLTLINE design canvas: HUD (05), screens 09–19, vehicles 03, 07, 20, 21, Map 2 on 22, Map 3 on 24.
+All screens are on the VOLTLINE design canvas: HUD (05), screens 09–19, vehicles 03, 07, 20, 21, Map 2 on 22, Map 3 on 24, sponsors on 33, Map 4 on 34.

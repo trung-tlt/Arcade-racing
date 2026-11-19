@@ -647,11 +647,23 @@ body.is-touch .mn-setup .row {
 body.is-touch .mn-setup .pills {
   gap: 8px;
 }
+/* a pill with a short label (the track row) swaps its text for it: font-size 0 hides the full name */
+body.is-touch .mn-setup .pill[data-short] {
+  font-size: 0;
+}
+body.is-touch .mn-setup .pill[data-short]::after {
+  content: attr(data-short);
+  font-size: 15px;
+}
 body.is-touch .mn-setup .pill {
   min-height: 44px;
   max-width: none;
-  padding: 6px 10px;
+  padding: 6px 8px;
   font-size: 15px;
+}
+body.is-touch .mn-setup [data-group='track'] .pill {
+  padding: 6px 6px;
+  white-space: nowrap;
 }
 body.is-touch .mn-foot {
   gap: 10px;

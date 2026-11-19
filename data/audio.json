@@ -166,5 +166,24 @@
     "wet": 0.5,
     "fadeSec": 0.12,
     "underRoadY": -2.0
+  },
+  "weather": {
+    "rainLoop": {
+      "file": "sfx/rain_loop.wav",
+      "gain": 0.55
+    },
+    "thunder": {
+      "file": "sfx/thunder.wav",
+      "gain": 0.9
+    },
+    "splash": {
+      "file": "sfx/splash.wav",
+      "gain": 0.6
+    },
+    "rainFadePerSec": 1.5,
+    "splashRangeM": 60,
+    "overpassHalfXM": 34,
+    "overpassHalfZM": 16,
+    "overpassDeckHeightM": 8
   }
 }

@@ -84,10 +84,10 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 ## Game rules (numbers live in data/)
-- Tracks: `cat_lai.json` (night, Cát Lái Port — replaces Cát Lái Port), `cong_hoa.json` (day) and `xa_lo_ha_noi.json` (dusk, the only one with elevation —
-  build the road ribbon from 3D spline points and bank nothing). Track code is data-driven: one `Track` class builds
-  road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay`.
-- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard or Hanoi Highway), 3 laps, 6 cars (1 player + 5 AI picked from the 9-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
+- Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk) and `pham_van_dong.json` (monsoon storm).
+  Xa lộ and Phạm Văn Đồng have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
+  road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay` and the optional `weather` block.
+- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway or Pham Van Dong Boulevard), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 9-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
 - Nitro: up to 3 bars. Bars are earned by drifting, near-misses, MG hits (+2% per hit), takedowns
   (+1 bar) and nitro pickups.
 - Pulse MG: hitscan, 10 shots/s, 4 damage, 8° soft auto-aim cone, 120 m range. Heat locks the gun
@@ -134,6 +134,17 @@ All bindings go through one action map in `Input.ts`.
 - HUD (top-left) position and lap/time · (top-centre) takedown banner · (top-right) round minimap ·
   (bottom-left) hull, MG heat, rockets · (bottom-right) speed, gear and 3 nitro bars.
 
+## Weather (Map 4 only)
+`pham_van_dong.json` has a `weather` block; every other track has none, so the code must treat it as optional.
+- **Rain:** GPU particles (instanced quads or LineSegments) in a box that follows the camera, using `fx_rain_streaks.png`. Use 6000 particles on desktop and 1500 on mobile. Intensity is per lap: `rain.intensity[lap]`.
+- **Wet road:** set the road material to roughness 0.22 and metalness 0.15, with an envMap. Grip multiplies by `grip.wetMul` everywhere.
+- **Puddles:** flat decals (`pvd_puddle.png`) placed at `{t, lateralM, radiusM}`. Entering one applies `puddleMul` grip for 0.4 s, a small yaw kick, `fx_splash` and `sfx/splash.wav`.
+- **Flood:** between `flood.fromT` and `flood.toT`, add a water plane at `waterY`, then apply `floodMul` grip and `dragMul` drag and throw a bow-wave spray.
+- **Spray:** each car above 60 km/h emits `fx_splash` sprites behind its rear wheels.
+- **Lightning:** a timer of `lightning.everySec` triggers a hemi-light boost (double flash), a bolt sprite on the skyline, then `sfx/thunder.wav` after a delay.
+- **Audio:** `sfx/rain_loop.wav` loops, with volume taken from rain intensity. Halve it under the bridge and the overpass.
+- **Performance:** on the Low preset, no spray sprites and 1500 rain particles. Puddles stay, because they matter for gameplay.
+
 ## Sponsor brands
 Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner (`brand/*.svg`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 
@@ -165,7 +176,7 @@ Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner 
 | M5 | City dressing (buildings, cranes, tunnel, lights, water), all VFX, quality presets, perf pass, deploy | every MVP criterion passes |
 
 ## Out of scope for the MVP (don't build unless asked)
-Multiplayer, career and upgrades, more tracks, weather, paint and decals, mobile touch controls,
+Multiplayer, career and upgrades, more tracks, dynamic weather changes (only Phạm Văn Đồng's fixed storm is in scope), paint editor, mobile touch controls,
 leaderboards, music system.
 
 ## Deploy

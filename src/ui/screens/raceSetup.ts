@@ -17,7 +17,8 @@ export interface RaceSetupDeps {
   onStart(setup: RaceSetup): void;
 }
 
-const LAPS: RaceSetup['laps'][] = [1, 3, 5];
+/** Lap choices on a map: 1, 3 and 5, plus the map's own default when it is something else (Map 4 runs 2). */
+const lapOptions = (t: TrackDef): number[] => [...new Set([1, t.laps, 3, 5])].sort((a, b) => a - b);
 const DIFFS: { id: Difficulty; label: string; note: string }[] = [
   { id: 'easy', label: 'Easy', note: 'Rivals brake early and rarely shoot. Rubber-banding helps you.' },
   { id: 'normal', label: 'Normal', note: 'Rivals race clean and fight back. Wins about half the time.' },
@@ -27,6 +28,13 @@ const DIFFS: { id: Difficulty; label: string; note: string }[] = [
 type RowId = 'track' | 'laps' | 'diff';
 
 const shortName = (t: TrackDef): string => t.name.replace('Boulevard', 'Blvd');
+/** Phone labels: four buttons share ~430 px. */
+const MOBILE_NAMES: Record<string, string> = {
+  cat_lai: 'Cat Lai',
+  cong_hoa: 'Cong Hoa',
+  xa_lo_ha_noi: 'Hanoi Hwy',
+  pham_van_dong: 'P.V. Đồng',
+};
 const kmText = (t: TrackDef): string => `${(t.lapLengthM / 1000).toFixed(1)} km`;
 
 interface Section {
@@ -45,13 +53,25 @@ const NOTES: Record<string, { sub: string; note: string; feature: { v: string; l
     note: 'Day · HCMC boulevard · roundabout + traffic',
     feature: { v: '2 × 3', l: 'lanes + median' },
   },
+  xa_lo_ha_noi: {
+    sub: 'Dusk · Thủ Đức, HCMC',
+    note: 'Dusk · highway · river bridge, underpass + metro viaduct',
+    feature: { v: '+11 m', l: 'bridge crest' },
+  },
+  pham_van_dong: {
+    sub: 'Storm · Gò Vấp to Thủ Đức, HCMC',
+    note: 'Storm · wet grip · puddles, flooded dip + lightning',
+    feature: { v: '12 lanes', l: '+ flooded dip' },
+  },
 };
+
+const TIME_OF_DAY: Record<TrackDef['timeOfDay'], string> = { night: 'Night', day: 'Day', dusk: 'Dusk', storm: 'Storm' };
 
 /** Subtitle, note and headline feature for a map; falls back to data for maps without hand-written copy. */
 function trackCopy(t: TrackDef): { sub: string; note: string; feature: { v: string; l: string } } {
   const known = NOTES[t.id];
   if (known) return known;
-  const tod = t.timeOfDay === 'day' ? 'Day' : 'Night';
+  const tod = TIME_OF_DAY[t.timeOfDay];
   const sections = (t.raw.sections as Section[] | undefined)?.length ?? 0;
   return { sub: tod, note: `${tod} · ${sections} sections`, feature: { v: String(sections), l: 'sections' } };
 }
@@ -62,7 +82,9 @@ export class RaceSetupScreen implements Screen {
   readonly el = document.createElement('section');
   private readonly disposeNav: () => void;
   private trackIndex = 0;
-  private laps: RaceSetup['laps'] = 3;
+  private laps = TRACKS[0].laps;
+  /** Once the player picks a lap count, switching maps keeps it (when the new map offers it). */
+  private lapsChosen = false;
   private difficulty: Difficulty = 'normal';
 
   constructor(
@@ -149,15 +171,25 @@ export class RaceSetupScreen implements Screen {
   private change(row: RowId, dir: 1 | -1, wrap: boolean): void {
     const step = wrap ? wrapStep : clampStep;
     const before = `${this.trackIndex}|${this.laps}|${this.difficulty}`;
-    if (row === 'track') this.trackIndex = step(this.trackIndex, dir, TRACKS.length);
-    else if (row === 'laps') this.laps = LAPS[step(LAPS.indexOf(this.laps), dir, LAPS.length)];
-    else {
+    if (row === 'track') this.setTrack(step(this.trackIndex, dir, TRACKS.length));
+    else if (row === 'laps') {
+      const opts = lapOptions(TRACKS[this.trackIndex]);
+      this.laps = opts[step(opts.indexOf(this.laps), dir, opts.length)];
+      this.lapsChosen = true;
+    } else {
       const i = DIFFS.findIndex((d) => d.id === this.difficulty);
       this.difficulty = DIFFS[step(i, dir, DIFFS.length)].id;
     }
     const changed = before !== `${this.trackIndex}|${this.laps}|${this.difficulty}`;
     uiAudio.play(!changed ? 'blocked' : row === 'track' ? 'track_switch' : 'toggle_on');
     this.render();
+  }
+
+  /** Select a map. Laps follow the map's own count until the player picks one, and always stay a valid choice. */
+  private setTrack(i: number): void {
+    this.trackIndex = i;
+    const t = TRACKS[i];
+    if (!this.lapsChosen || !lapOptions(t).includes(this.laps)) this.laps = t.laps;
   }
 
   private start(): void {
@@ -206,7 +238,12 @@ export class RaceSetupScreen implements Screen {
     return false;
   }
 
-  private pills<T>(group: string, opts: { v: T; label: string }[], current: T, pick: (v: T) => void): void {
+  private pills<T>(
+    group: string,
+    opts: { v: T; label: string; short?: string }[],
+    current: T,
+    pick: (v: T) => void,
+  ): void {
     const host = this.el.querySelector(`[data-group="${group}"]`) as HTMLElement;
     host.replaceChildren(
       ...opts.map((o) => {
@@ -216,10 +253,13 @@ export class RaceSetupScreen implements Screen {
         b.dataset.sfx = 'none';
         b.tabIndex = -1;
         b.textContent = o.label;
+        // Phones show the short label from CSS (`::after`), so the DOM text stays the full name.
+        if (o.short) b.dataset.short = o.short;
         b.setAttribute('aria-pressed', String(o.v === current));
         b.addEventListener('click', () => {
           if (o.v !== current) uiAudio.play(group === 'track' ? 'track_switch' : 'toggle_on');
           pick(o.v);
+          if (group === 'laps') this.lapsChosen = true;
           this.render();
           (this.el.querySelector(`[data-row="${group}"]`) as HTMLElement | null)?.focus();
         });
@@ -269,14 +309,14 @@ export class RaceSetupScreen implements Screen {
   private render(): void {
     this.pills(
       'track',
-      TRACKS.map((t, i) => ({ v: i, label: shortName(t) })),
+      TRACKS.map((t, i) => ({ v: i, label: shortName(t), short: MOBILE_NAMES[t.id] ?? shortName(t) })),
       this.trackIndex,
-      (v) => (this.trackIndex = v),
+      (v) => this.setTrack(v),
     );
     this.renderTrack(TRACKS[this.trackIndex]);
     this.pills(
       'laps',
-      LAPS.map((v) => ({ v, label: `${v} ${v === 1 ? 'lap' : 'laps'}` })),
+      lapOptions(TRACKS[this.trackIndex]).map((v) => ({ v, label: `${v} ${v === 1 ? 'lap' : 'laps'}` })),
       this.laps,
       (v) => (this.laps = v),
     );

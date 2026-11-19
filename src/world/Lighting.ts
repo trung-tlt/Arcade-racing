@@ -8,6 +8,7 @@ export class Lighting {
   private readonly hemi: THREE.HemisphereLight;
   private readonly moon: THREE.DirectionalLight;
 
+  private readonly baseHemi: number;
   private readonly offset = NIGHT_OFFSET.clone();
   private readonly shadowHalf: number;
 
@@ -35,6 +36,7 @@ export class Lighting {
     this.hemi = day
       ? new THREE.HemisphereLight(day.hemi.sky, day.hemi.ground, day.hemi.intensity * k.hemiMul)
       : new THREE.HemisphereLight(LIGHTING.hemi.sky, LIGHTING.hemi.ground, LIGHTING.hemi.intensity);
+    this.baseHemi = this.hemi.intensity;
     this.moon = day
       ? new THREE.DirectionalLight(day.sun.color, day.sun.intensity * k.sunMul)
       : new THREE.DirectionalLight(LIGHTING.moon.color, LIGHTING.moon.intensity);
@@ -59,6 +61,11 @@ export class Lighting {
     const z = Math.round(target.z / texel) * texel;
     this.moon.target.position.set(x, 0, z);
     this.moon.position.set(x + this.offset.x, this.offset.y, z + this.offset.z);
+  }
+
+  /** Transient flash (lightning): hemisphere intensity = base × (1 + boost). 0 restores the normal level. */
+  setHemiBoost(boost: number): void {
+    this.hemi.intensity = this.baseHemi * (1 + boost);
   }
 
   setShadows(on: boolean): void {

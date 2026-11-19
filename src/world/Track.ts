@@ -27,6 +27,8 @@ const LANDMARK_DRAW_M = 300;
 export class Track {
   readonly group = new THREE.Group();
   private readonly lamps: THREE.MeshStandardMaterial[] = [];
+  /** The road surface materials (one per texture run), so a wet map's weather can give them a reflection map. */
+  readonly roadMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly body: RAPIER.RigidBody;
   private gates: InstancedModel | null = null;
   /** Half the carriageway width at each path sample (varies on maps with a narrower stretch). */
@@ -134,7 +136,15 @@ export class Track {
     geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
     geo.setIndex(idx);
     geo.computeVertexNormals();
-    const mesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.9, metalness: 0 }));
+    // Wet maps (`lighting.road`): low roughness so lamps and car lights streak on the tarmac.
+    const wet = def.daylight?.road;
+    const mat = new THREE.MeshStandardMaterial({
+      map: tex,
+      roughness: wet?.roughness ?? 0.9,
+      metalness: wet?.metalness ?? 0,
+    });
+    this.roadMaterials.push(mat);
+    const mesh = new THREE.Mesh(geo, mat);
     mesh.receiveShadow = true;
     return mesh;
   }

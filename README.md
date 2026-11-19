@@ -1,7 +1,7 @@
 # VOLTLINE
 
 Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro, shoot to clear the
-line, finish first. Pick one of 9 vehicles and one of 3 maps, then race 5 AI rivals: 3 laps, pickups, rockets, wrecks
+line, finish first. Pick one of 9 vehicles and one of 4 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
 and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
 
 ## Maps
@@ -10,7 +10,8 @@ and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
 |---|---|---|
 | Cat Lai Port | Night | Container yard, port gate, truck queue, quay cranes, a Reefer-lane shortcut |
 | Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
-| Hanoi Highway (Xa Lo Ha Noi) | Dusk | The only map with elevation: bridge, underpass, metro viaduct, ambient traffic |
+| Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
+| Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps. 12-lane boulevard with a tree median: out on the car lanes, back on the motorbike lanes with poncho scooters. Binh Loi bridge, a small hop at Go Dua, ring-road overpass, a U-turn flyover and a flooded dip. Weather: heavy rain (easing on lap 2), wet grip, 13 puddles, tyre spray, lightning and thunder |
 
 Built with Vite + TypeScript (strict), three.js, Rapier (`DynamicRayCastVehicleController`), the Web Audio API and a
 plain HTML/CSS overlay for the HUD and menus.
@@ -56,7 +57,7 @@ Before finishing any change, `npm run build` and `npm run test` must pass and th
 - `?quick=1` skips the menus and starts a race with defaults.
 - `?mode=practice` skips the menus and starts solo with dummy targets (no AI).
 - `?car=<vehicle id>` picks the car for quick starts (e.g. `kestrel_gt`, `wisp_r`, `mantis_650r`).
-- `?track=cat_lai|cong_hoa|xa_lo_ha_noi` picks the map for quick starts.
+- `?track=cat_lai|cong_hoa|xa_lo_ha_noi|pham_van_dong` picks the map for quick starts.
 
 In dev builds `window.__voltline` exposes `debugState()` and test helpers used by the Playwright tests (fast-forward,
 teleport, autopilot, collider and ray queries). They are not in production builds.
@@ -68,7 +69,8 @@ src/
   main.ts            boot: load assets -> menus -> race
   core/              Game, Loop (60 Hz fixed step), Events, Input, TouchInput, Assets, Settings, Data, Records
   world/             Track (spline -> road, barriers), TrackPath, Environment, Lighting, per-map dressing
-                     (CatLai*, CongHoa*, XaLo*), Windowed/InstancedModel (draw-call budget)
+                     (CatLai*, CongHoa*, XaLo*, Pvd*), Windowed/InstancedModel (draw-call budget)
+  weather/           Map 4's storm: rain, wet road, puddles, flood, spray, lightning and rain audio
   vehicle/           Car, CarPhysics, CarVisual, ChaseCamera, Nitro, Turret
   combat/            Pulse MG, rockets, damage, pickups, CombatSystem
   ai/                RacingLine, AIDriver, AIGunner
@@ -95,8 +97,9 @@ Every gameplay number lives in data, not in TypeScript.
 - `lighting.json` - hemisphere, moonlight and exposure.
 - `ui_sounds.json` - menu event -> sound map.
 - `touch.json` - touch control layout, sizes and mobile defaults.
-- `tracks/cat_lai.json`, `tracks/cong_hoa.json`, `tracks/xa_lo_ha_noi.json` - spline, road layout, checkpoints, grid,
-  pickups and dressing for each map.
+- `tracks/cat_lai.json`, `tracks/cong_hoa.json`, `tracks/xa_lo_ha_noi.json`, `tracks/pham_van_dong.json` - spline,
+  road layout, checkpoints, grid, pickups and dressing for each map. `pham_van_dong.json` also has an optional
+  `weather` block (rain per lap, wet grip, puddles, flood zone, spray, lightning, audio); no other map has one.
 
 ## Performance budget
 

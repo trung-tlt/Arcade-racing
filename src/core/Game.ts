@@ -25,7 +25,11 @@ import { CongHoaDressing } from '../world/CongHoaDressing';
 import { CongHoaLandmarks } from '../world/CongHoaLandmarks';
 import { CatLaiQuay } from '../world/CatLaiQuay';
 import { CatLaiYard } from '../world/CatLaiYard';
+import { PvdDressing } from '../world/PvdDressing';
+import { PvdStructures, pvdTerrainHoles } from '../world/PvdStructures';
+import { PvdTraffic } from '../world/PvdTraffic';
 import { Sponsors } from '../world/Sponsors';
+import { WeatherSystem } from '../weather/WeatherSystem';
 import { XaLoDressing } from '../world/XaLoDressing';
 import { XaLoMetro } from '../world/XaLoMetro';
 import { XaLoStructures, xaLoTerrainHoles } from '../world/XaLoStructures';
@@ -53,6 +57,7 @@ import {
   getTrack,
   roadWidthAt,
   XA_LO,
+  PHAM_VAN_DONG,
   type TrackDef,
 } from './Data';
 import { setupDevTools } from './DevTools';
@@ -132,6 +137,12 @@ export class Game {
   private readonly fallLog: string[] = [];
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
   private sponsors: Sponsors | null = null;
+  private pvd: {
+    structures: PvdStructures;
+    dressing: PvdDressing;
+    traffic: PvdTraffic;
+  } | null = null;
+  private weather: WeatherSystem | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
   private catLai: { yard: CatLaiYard; quay: CatLaiQuay } | null = null;
@@ -242,12 +253,13 @@ export class Game {
       RACE.track.projectWindowSamples,
     );
     const isXaLo = this.trackDef.id === XA_LO.id;
+    const isPvd = this.trackDef.id === PHAM_VAN_DONG.id;
     this.env = new Environment(
       this.scene,
       RAPIER,
       this.world,
       this.trackDef,
-      isXaLo ? xaLoTerrainHoles(this.trackDef, this.path) : [],
+      isXaLo ? xaLoTerrainHoles(this.trackDef, this.path) : isPvd ? pvdTerrainHoles(this.trackDef, this.path) : [],
     );
     this.track = new Track(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
     if (this.trackDef.id === CAT_LAI.id) {
@@ -270,6 +282,32 @@ export class Game {
         metro: new XaLoMetro(...a),
         traffic: new XaLoTraffic(...a),
       };
+    } else if (isPvd) {
+      const a: [THREE.Scene, typeof RAPIER, RAPIER.World, Assets, TrackDef, TrackPath] = [
+        this.scene,
+        RAPIER,
+        this.world,
+        this.assets,
+        this.trackDef,
+        this.path,
+      ];
+      this.pvd = {
+        structures: new PvdStructures(...a),
+        dressing: new PvdDressing(...a),
+        traffic: new PvdTraffic(...a),
+      };
+      this.weather = new WeatherSystem({
+        scene: this.scene,
+        renderer: this.renderer,
+        camera: this.chase.camera,
+        assets: this.assets,
+        track: this.trackDef,
+        path: this.path,
+        roadMaterials: this.track.roadMaterials,
+        audio: this.audio,
+        lighting: this.lighting,
+        getCars: () => this.cars,
+      });
     } else {
       this.dressing = new CongHoaDressing(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
@@ -327,6 +365,7 @@ export class Game {
           skill: r.skill,
           difficulty: this.cfg.difficulty,
           handling: car.def.handling,
+          wet: this.wetForAi(),
           topSpeedMps: car.def.topSpeedKmh / 3.6,
           self: () => {
             const p = car.physics;
@@ -488,6 +527,12 @@ export class Game {
       });
       if (this.feed.length > 3) this.feed.shift();
     });
+  }
+
+  /** Rain: rivals assume the wet grip and brake earlier, as the weather's multipliers apply to them too. */
+  private wetForAi(): { gripMul: number; brakeDistanceMul: number } | undefined {
+    const g = this.trackDef.weather?.grip;
+    return g ? { gripMul: g.wetMul, brakeDistanceMul: g.brakeDistanceMul } : undefined;
   }
 
   private resetPlayer(): void {
@@ -1022,7 +1067,12 @@ export class Game {
 
   /** Dev/e2e only: along-track t of ambient vehicles (0 scooters, 1 cars, 2 buses). */
   debugTrafficTs(kind: number): number[] {
-    return this.landmarks?.debugTrafficTs(kind) ?? this.xaLo?.traffic.debugTrafficTs(kind) ?? [];
+    return (
+      this.landmarks?.debugTrafficTs(kind) ??
+      this.xaLo?.traffic.debugTrafficTs(kind) ??
+      this.pvd?.traffic.debugTrafficTs(kind) ??
+      []
+    );
   }
 
   /** Dev/e2e only: put the player on the centreline at along-track `t`, facing the road. */
@@ -1048,6 +1098,7 @@ export class Game {
     }
     if (this.input.wasPressed('restart')) this.restartRace();
     if (this.input.wasPressed('reset')) this.resetPlayer();
+    this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
     for (const c of this.cars) c.preStep(dt);
     this.world.step();
     for (const c of this.cars) c.postStep();
@@ -1060,6 +1111,12 @@ export class Game {
     if (this.catLai) {
       this.catLai.quay.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
       this.catLai.quay.update(dt);
+    }
+    if (this.pvd) {
+      this.pvd.traffic.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
+      this.pvd.traffic.update(dt);
+      this.pvd.dressing.update(dt);
+      this.pvd.structures.update(dt);
     }
     if (this.xaLo) {
       this.xaLo.traffic.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
@@ -1293,6 +1350,10 @@ export class Game {
     this.sponsors?.dispose();
     this.dressing?.dispose();
     this.landmarks?.dispose();
+    this.weather?.dispose();
+    this.weather = null;
+    if (this.pvd) for (const m of Object.values(this.pvd)) m.dispose();
+    this.pvd = null;
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();
     this.xaLo = null;
     if (this.catLai) for (const m of Object.values(this.catLai)) m.dispose();

@@ -9,6 +9,7 @@ import raceJson from '../../data/race.json';
 import uiSoundsJson from '../../data/ui_sounds.json';
 import congHoaJson from '../../data/tracks/cong_hoa.json';
 import catLaiJson from '../../data/tracks/cat_lai.json';
+import phamVanDongJson from '../../data/tracks/pham_van_dong.json';
 import xaLoJson from '../../data/tracks/xa_lo_ha_noi.json';
 
 export type VehicleType = 'car' | 'apc8x8' | 'bike';
@@ -144,7 +145,7 @@ export function validateTrack(data: unknown): string[] {
   return errors;
 }
 
-export type TimeOfDay = 'night' | 'day' | 'dusk';
+export type TimeOfDay = 'night' | 'day' | 'dusk' | 'storm';
 
 export interface DayLighting {
   sun: { dir: [number, number, number]; color: string; intensity: number };
@@ -154,6 +155,38 @@ export interface DayLighting {
   sky: string;
   bloom: { strength: number; threshold: number };
   toneMappingExposure: number;
+  /** Wet maps: the road material's look (low roughness so lamps and lights streak on it). */
+  road?: { roughness: number; metalness: number };
+}
+
+/** Map 4's storm (`weather` in its JSON). Every other map has none. */
+export interface WeatherDef {
+  rain: {
+    /** Per lap (the last value holds for later laps). */
+    intensity: number[];
+    particles: {
+      texture: string;
+      countDesktop: number;
+      countMobile: number;
+      fallSpeedMps: number;
+      windSlant: number;
+      boxAroundCameraM: [number, number, number];
+    };
+  };
+  grip: { wetMul: number; puddleMul: number; floodMul: number; brakeDistanceMul: number };
+  puddles: {
+    decal: string;
+    material: { roughness: number; metalness: number; polygonOffset: number };
+    items: { t: number; lateralM: number; radiusM: number }[];
+  };
+  flood: { fromT: number; toT: number; waterY: number; waterColor: string; dragMul: number; sprayFx: string };
+  spray: { texture: string; fromRearWheelsAboveKmh: number };
+  lightning: {
+    everySec: [number, number];
+    flash: { durationSec: number; double: boolean; hemiBoost: number };
+    thunder: { sfx: string; delaySec: [number, number] };
+  };
+  audio: { loop: string; volumeFromIntensity: boolean; underBridgeMute: number };
 }
 
 /** One playable map, normalised from its JSON (cat_lai.json / cong_hoa.json / xa_lo_ha_noi.json). */
@@ -183,6 +216,8 @@ export interface TrackDef {
   widthProfile: { fromT: number; toT: number; widthM: number; texture: string }[];
   /** Set for day and dusk maps; night maps use data/lighting.json. */
   daylight: DayLighting | null;
+  /** Rain, puddles, flood and lightning: Map 4 only. */
+  weather: WeatherDef | null;
   /** The untouched JSON, for map-specific dressing (sections, dressing, flyover, traffic...). */
   raw: Record<string, unknown>;
 }
@@ -203,6 +238,8 @@ interface RawTrack {
     truckRoad?: { widthM: number; lanes: number; texture: string };
     portLanes?: { widthM: number; texture: string };
     yardLanes?: { widthM: number };
+    /** Map 4: median, car lanes (outbound racing), separator, motorbike lanes (inbound racing), sidewalk. */
+    crossSectionFromCentre?: { part: string; widthM: number; texture?: string }[];
   };
   sections?: { id: string; name: string; fromT: number; toT: number }[];
   laneOffsetsM?: number[];
@@ -212,11 +249,27 @@ interface RawTrack {
   ramps?: TrackDef['ramps'];
   pickups: TrackDef['pickups'];
   dressing?: { lighting?: DayLighting };
+  /** Map 4 keeps its lighting at the top level. */
+  lighting?: DayLighting;
+  weather?: WeatherDef;
 }
 
 export function loadTrack(json: unknown): TrackDef {
   const r = json as RawTrack;
-  const main = r.roadLayout?.mainCarriageway ?? r.roadLayout?.truckRoad;
+  // Map 4: outbound runs on the 3 car lanes, inbound on the 2 motorbike lanes (the narrower, textured stretch).
+  const cross = r.roadLayout?.crossSectionFromCentre;
+  const carLanes = cross?.find((x) => /car lanes/i.test(x.part));
+  const motoLanes = cross?.find((x) => /motorbike/i.test(x.part));
+  const main =
+    r.roadLayout?.mainCarriageway ??
+    r.roadLayout?.truckRoad ??
+    (carLanes
+      ? {
+          widthM: carLanes.widthM,
+          lanes: Number(/x(\d)/.exec(carLanes.part)?.[1] ?? 3),
+          texture: carLanes.texture ?? '',
+        }
+      : undefined);
   const width = main?.widthM ?? r.roadLayout?.carriagewayWidthM ?? r.roadWidthM ?? 18;
   // Lanes across the racing carriageway: the old maps list lanes per direction, Map 3 lists the 4 lanes of its road.
   const lanes = main?.lanes ?? r.roadLayout?.lanesPerDirection ?? 3;
@@ -237,6 +290,17 @@ export function loadTrack(json: unknown): TrackDef {
       toT: frontSection.toT,
       widthM: front.widthM,
       texture: 'textures/day_road_3lane.png',
+    });
+  }
+  const returnSection = motoLanes ? section((x) => x.id === 'H') : undefined;
+  if (motoLanes && returnSection) {
+    // From the U-turn flyover to the final U-turn: the 7 m motorbike lanes.
+    const flyover = section((x) => x.id === 'F');
+    widthProfile.push({
+      fromT: flyover?.toT ?? returnSection.fromT,
+      toT: returnSection.toT,
+      widthM: motoLanes.widthM,
+      texture: motoLanes.texture ?? '',
     });
   }
   const port = r.roadLayout?.portLanes;
@@ -266,7 +330,8 @@ export function loadTrack(json: unknown): TrackDef {
     hasElevation,
     groundY: minY < -1 ? Math.floor(minY) - 3 : 0,
     widthProfile,
-    daylight: r.dressing?.lighting ?? null,
+    daylight: r.dressing?.lighting ?? (r.timeOfDay === 'storm' ? (r.lighting ?? null) : null),
+    weather: r.weather ?? null,
     raw: json as Record<string, unknown>,
   };
 }
@@ -294,7 +359,8 @@ export const CAT_LAI = loadTrack(catLaiJson);
 export const CONG_HOA = loadTrack(congHoaJson);
 /** Every map, in menu order. */
 export const XA_LO = loadTrack(xaLoJson);
-export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO];
+export const PHAM_VAN_DONG = loadTrack(phamVanDongJson);
+export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG];
 
 export function getTrack(id: string): TrackDef {
   const t = TRACKS.find((x) => x.id === id);

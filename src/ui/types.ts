@@ -5,7 +5,8 @@ export interface RaceSetup {
   carId: string;
   /** Id of the map (data/tracks/<id>.json). */
   trackId: string;
-  laps: 1 | 3 | 5;
+  /** 1, 2, 3 or 5: each map offers 1, its own default (data `laps`), 3 and 5. */
+  laps: number;
   difficulty: Difficulty;
 }
 

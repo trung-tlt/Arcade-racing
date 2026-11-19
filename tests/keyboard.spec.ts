@@ -77,8 +77,14 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
   await page.keyboard.press('t');
   await page.keyboard.press('t');
-  await page.keyboard.press('t'); // Cong Hoa → Hanoi → wrapped around to Cat Lai
+  await expect(page.locator('.mn-setup .tname')).toHaveText('Hanoi Highway');
+  await page.keyboard.press('t'); // → Pham Van Dong (a 2-lap storm map: laps follow the map)
+  await expect(page.locator('.mn-setup .tname')).toHaveText('Pham Van Dong Boulevard');
+  await expect(page.locator('[data-group="track"] .pill')).toHaveCount(4);
+  await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('2 laps');
+  await page.keyboard.press('t'); // wrapped around to Cat Lai
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
+  await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('3 laps');
   await page.keyboard.press('l');
   await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('5 laps');
   await page.keyboard.press('d');

@@ -130,6 +130,16 @@ export class CarPhysics {
   steerAngle = 0;
   /** Horizontal speed (m/s) lost in the last step; large values mean a crash. */
   impactStrength = 0;
+  /**
+   * Surface multipliers a map's weather sets every fixed step (1 = dry road: the other maps never touch them).
+   * `surfaceGripMul` scales tyre grip, `brakeDistanceMul` lengthens braking distances (a counter-force while braking) and
+   * `dragMul` (>1) adds a speed-proportional drag, as in standing water.
+   */
+  surfaceGripMul = 1;
+  brakeDistanceMul = 1;
+  dragMul = 1;
+  /** Yaw rate (rad/s) added at the next step, then cleared: puddle twitches. */
+  private pendingYawKick = 0;
   private lastHSpeed = 0;
   /** Bike only: visual lean about the local +Z axis in radians; positive = leaning to the right. 0 for other vehicles. */
   get leanRad(): number {
@@ -245,12 +255,22 @@ export class CarPhysics {
     out.q.w = r.w;
   }
 
+  /** Queue a one-off yaw-rate change (rad/s, + = turn left); applied at the start of the next step. */
+  addYawKick(radS: number): void {
+    this.pendingYawKick += radS;
+  }
+
   /** Runs before `world.step()`: converts controls into wheel forces. */
   preStep(dt: number, c: CarControls): void {
     const { h, def } = this;
     this.prev.copy(this.curr);
     this.applyStatic();
 
+    if (this.pendingYawKick !== 0) {
+      const w = this.body.angvel();
+      this.body.setAngvel({ x: w.x, y: w.y + this.pendingYawKick, z: w.z }, true);
+      this.pendingYawKick = 0;
+    }
     const q = this.body.rotation();
     const v = this.body.linvel();
     // Local axes from the quaternion: forward = q·(0,0,1), left = q·(1,0,0).
@@ -316,7 +336,7 @@ export class CarPhysics {
 
     // --- grip (front/rear split lets the tail swing out while drifting) ---
     this.gripMix = approach(this.gripMix, this.drifting ? 1 : 0, h.grip.gripBlendPerSec * dt);
-    const baseSlip = h.grip.frictionSlip * def.grip * this.tp.frictionMul;
+    const baseSlip = h.grip.frictionSlip * def.grip * this.tp.frictionMul * this.surfaceGripMul;
     const rearMul = 1 - h.grip.driftRearGripDrop * def.drift * this.gripMix;
     const frontMul = 1 + (h.grip.driftFrontGripBoost - 1) * this.gripMix;
 
@@ -330,7 +350,7 @@ export class CarPhysics {
       this.vehicle.setWheelFrictionSlip(i, baseSlip * (rear ? rearMul : frontMul));
       this.vehicle.setWheelSideFrictionStiffness(
         i,
-        h.grip.sideFrictionStiffness * (rear ? Math.max(0.25, rearMul) : 1),
+        h.grip.sideFrictionStiffness * this.surfaceGripMul * (rear ? Math.max(0.25, rearMul) : 1),
       );
     }
 
@@ -346,6 +366,17 @@ export class CarPhysics {
     this.body.resetForces(true);
     this.body.resetTorques(true);
     this.body.addForce({ x: 0, y: -h.body.downforcePerSpeedSq * this.tp.downforceMul * speed * speed, z: 0 }, true);
+    if (this.brakeDistanceMul !== 1 && this.braking && fwd > 1) {
+      // The brakes saturate on the tyres, so neither brake force nor friction changes the stopping distance; instead
+      // push back along the heading by the share of the (measured) braking deceleration that has to go: 1 - 1/mul.
+      const k = (1 - 1 / this.brakeDistanceMul) * h.surface.measuredBrakeDecelMps2 * def.massKg;
+      this.body.addForce({ x: fx * k, y: 0, z: fz * k }, true);
+    }
+    if (this.dragMul !== 1) {
+      // Standing water: a drag deceleration proportional to speed, scaled by how much the multiplier exceeds 1.
+      const k = (this.dragMul - 1) * h.surface.floodDragAccelPerMps * def.massKg;
+      this.body.addForce({ x: -v.x * k, y: 0, z: -v.z * k }, true);
+    }
     if (this.def.vehicleType === 'bike')
       this.applyRollBalance(
         q,

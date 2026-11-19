@@ -21,9 +21,12 @@ import { uiAudio } from './ui/uiAudio';
 import type { RaceSetup, Screen } from './ui/types';
 import { TRACK_MODELS, TRACK_TEXTURES } from './world/Track';
 import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
-import { CAT_LAI_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
+import { CAT_LAI_TEXTURES, PVD_MODELS, PVD_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
 import { CAT_LAI_QUAY_MODELS } from './world/CatLaiQuay';
 import { CAT_LAI_YARD_MODELS } from './world/CatLaiYard';
+import { PVD_DRESSING_MODELS } from './world/PvdDressing';
+import { PVD_STRUCTURE_MODELS } from './world/PvdStructures';
+import { PVD_TRAFFIC_MODELS } from './world/PvdTraffic';
 import { SPONSOR_MODELS } from './world/Sponsors';
 import { XALO_DRESSING_MODELS } from './world/XaLoDressing';
 import { XALO_METRO_MODELS } from './world/XaLoMetro';
@@ -70,10 +73,14 @@ async function boot(): Promise<void> {
         ...CARS.map((c) => c.file),
         ...TRACK_MODELS,
         ...CONG_HOA_MODELS,
+        ...PVD_MODELS,
         ...new Set([
           ...CAT_LAI_QUAY_MODELS,
           ...CAT_LAI_YARD_MODELS,
           ...SPONSOR_MODELS,
+          ...PVD_DRESSING_MODELS,
+          ...PVD_STRUCTURE_MODELS,
+          ...PVD_TRAFFIC_MODELS,
           ...XALO_DRESSING_MODELS,
           ...XALO_METRO_MODELS,
           ...XALO_STRUCTURE_MODELS,
@@ -87,6 +94,7 @@ async function boot(): Promise<void> {
         ...TRACK_TEXTURES,
         ...CONG_HOA_TEXTURES,
         ...XALO_TEXTURES,
+        ...PVD_TEXTURES,
         ...CAT_LAI_TEXTURES,
         ...FX_TEXTURES,
       ],

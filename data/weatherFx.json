@@ -1,0 +1,49 @@
+{
+  "envMapIntensity": 0.35,
+  "rain": {
+    "lengthM": 1.3,
+    "widthM": 0.045,
+    "alpha": 0.6,
+    "color": "#C9D9EE",
+    "boxCentreUpM": 6
+  },
+  "puddle": {
+    "gripSec": 0.4,
+    "yawKickDegS": 4,
+    "hitRadiusMul": 0.85,
+    "liftM": 0.02,
+    "burstParticles": 14,
+    "splashMinSpeedMps": 6,
+    "decalScale": 1.25
+  },
+  "flood": {
+    "surfaceLiftM": 0,
+    "depthTestMarginM": 1,
+    "bowWaveParticlesPerSec": 70,
+    "waterAlpha": 0.82,
+    "planeMarginM": 40
+  },
+  "spray": {
+    "poolSize": 420,
+    "particlesPerSecAtTop": 38,
+    "topSpeedKmh": 220,
+    "lifeSec": 0.7,
+    "riseMps": 1.4,
+    "backMps": 3,
+    "sizeM": [0.5, 2.2],
+    "alpha": 0.5,
+    "rearOffsetM": 0.3
+  },
+  "lightning": {
+    "boltDistanceM": [300, 600],
+    "boltHeightM": 300,
+    "boltAspect": 0.42,
+    "flashPattern": [1, 0.25, 1],
+    "boltAlpha": 0.9,
+    "sectorDeg": 55,
+    "hemiBoostScale": 0.3
+  },
+  "unlit": {
+    "note": "Low preset: no continuous spray sprites; puddles and thunder stay."
+  }
+}

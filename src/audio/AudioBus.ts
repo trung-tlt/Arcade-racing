@@ -80,6 +80,35 @@ export class AudioBus {
     this.wet.gain.setTargetAtTime(amount * AUDIO.reverb.wet, this.ctx.currentTime, AUDIO.reverb.fadeSec);
   }
 
+  /**
+   * A looping clip (rain ambience) on the effects bus. Returns null when the file is not loaded. `setLevel` eases the
+   * volume (0..1 × the clip's gain) so intensity changes and bridge muting never click.
+   */
+  loop(file: string, gain: number): { setLevel(level: number, rampSec?: number): void; stop(): void } | null {
+    const buf = this.buffers.get(file);
+    if (!buf) return null;
+    const g = this.ctx.createGain();
+    g.gain.value = 0;
+    g.connect(this.sfx);
+    const src = this.ctx.createBufferSource();
+    src.buffer = buf;
+    src.loop = true;
+    src.connect(g);
+    src.start();
+    return {
+      setLevel: (level, rampSec = 0.2) => g.gain.setTargetAtTime(level * gain, this.ctx.currentTime, rampSec / 3),
+      stop: () => {
+        try {
+          src.stop();
+        } catch {
+          /* already stopped */
+        }
+        src.disconnect();
+        g.disconnect();
+      },
+    };
+  }
+
   suspend(): void {
     void this.ctx.suspend();
   }

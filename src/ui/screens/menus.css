@@ -485,6 +485,13 @@
   font-weight: 700;
   cursor: pointer;
 }
+.mn-setup [data-group='track'] .pill {
+  /* four maps share the row: smaller type, tighter padding, the long name wraps */
+  max-width: none;
+  padding: 10px 8px;
+  font-size: 15px;
+  line-height: 1.15;
+}
 .mn-setup .pill[aria-pressed='true'] {
   background: var(--mn-neon);
   border-color: var(--mn-neon);

@@ -10,7 +10,12 @@ const BILLBOARDS = ['capturemann', 'craftmann', 'emesoft', 'voltline'].map(
 );
 
 /** Sponsor models placed from a track's JSON (Hanoi Highway places its own billboards in XaLoMetro). */
-export const SPONSOR_MODELS: string[] = [...BANNERS, ...BILLBOARDS];
+export const SPONSOR_MODELS: string[] = [
+  ...BANNERS,
+  ...BILLBOARDS,
+  'models/props_pvd/mall_capturemann.glb',
+  'models/props_pvd/mall_craftmann.glb',
+];
 
 export interface SponsorPlacement {
   model: string;
@@ -47,6 +52,7 @@ export function sponsorPlacements(track: TrackDef): SponsorPlacement[] {
     ...list(raw.sponsors?.banners),
     ...list(raw.sponsors?.billboards),
     ...list(raw.sponsors?.quayBanners),
+    ...list(raw.sponsors?.mallScreens),
     ...list(raw.dressing?.sponsorBanners?.items),
     ...list(raw.dressing?.rooftopBillboards),
   ];

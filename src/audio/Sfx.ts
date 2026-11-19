@@ -51,5 +51,8 @@ export function sfxFiles(): string[] {
     AUDIO.skid.file,
     ...Object.values(AUDIO.layers).map((l) => l.file),
     ...Object.values(AUDIO.oneShots).map((o) => o.file),
+    AUDIO.weather.rainLoop.file,
+    AUDIO.weather.thunder.file,
+    AUDIO.weather.splash.file,
   ];
 }

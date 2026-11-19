@@ -36,3 +36,34 @@ export const CONG_HOA_TEXTURES: string[] = [
 export const XALO_TEXTURES: string[] = ['textures/xalo_road_4lane.png', 'textures/dusk_sky_gradient.png'];
 
 export const CAT_LAI_TEXTURES: string[] = ['textures/catlai_apron.png', 'textures/xalo_road_4lane.png'];
+
+/** Map 4 (Pham Van Dong Boulevard): its own props. Shophouses, trees, cars and the bus come from props_conghoa. */
+export const PVD_MODELS: string[] = [
+  'arch_rail_bridge',
+  'boulevard_median',
+  'bridge_branch_pier',
+  'bridge_branch_segment',
+  'cross_overpass',
+  'flood_sign',
+  'lane_separator',
+  'mall_capturemann',
+  'mall_craftmann',
+  'poncho_rider_blue',
+  'poncho_rider_clear',
+  'poncho_rider_pink',
+  'poncho_rider_yellow',
+  'rain_shelter',
+  'ramp_span',
+  'sign_gantry_inbound',
+  'sign_gantry_outbound',
+].map((n) => `models/props_pvd/${n}.glb`);
+
+export const PVD_TEXTURES: string[] = [
+  'textures/pvd_road_car_3lane.png',
+  'textures/pvd_road_moto_2lane.png',
+  'textures/pvd_puddle.png',
+  'textures/rain_sky_gradient.png',
+  'textures/fx_rain_streaks.png',
+  'textures/fx_splash.png',
+  'textures/fx_lightning.png',
+];
