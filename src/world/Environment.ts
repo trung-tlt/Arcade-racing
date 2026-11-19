@@ -1,6 +1,7 @@
 import type RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { HANDLING, type TrackDef } from '../core/Data';
+import { lightingScale } from './Lighting';
 
 const SIZE = 2000;
 const DAY_SIZE = 6000;
@@ -85,7 +86,11 @@ export class Environment {
     }
     this.land = new THREE.Mesh(
       landGeo,
-      new THREE.MeshStandardMaterial({ color: day ? '#8E9086' : '#12171F', roughness: 1, metalness: 0 }),
+      new THREE.MeshStandardMaterial({
+        color: day ? (track ? (lightingScale(track.timeOfDay).landColor ?? '#8E9086') : '#8E9086') : '#12171F',
+        roughness: 1,
+        metalness: 0,
+      }),
     );
     this.land.rotation.x = -Math.PI / 2;
     if (holes.length > 0 && day) this.land.position.set(0, 0, 0);

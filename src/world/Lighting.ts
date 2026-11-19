@@ -2,6 +2,20 @@ import * as THREE from 'three';
 import type { Assets } from '../core/Assets';
 import { LIGHTING, type TrackDef } from '../core/Data';
 
+/** Pack lighting numbers read dark in this renderer; data/lighting.json scales them per time of day. */
+export function lightingScale(tod: TrackDef['timeOfDay']): {
+  hemiMul: number;
+  sunMul: number;
+  exposureMul: number;
+  fogMul: number;
+  /** Ground colour of a map whose land is not the default day grey. */
+  landColor?: string;
+} {
+  if (tod === 'dusk') return LIGHTING.dusk;
+  if (tod === 'storm') return LIGHTING.storm;
+  return { hemiMul: 1, sunMul: 1, exposureMul: 1, fogMul: 1 };
+}
+
 const NIGHT_OFFSET = new THREE.Vector3(-40, 80, -30);
 
 export class Lighting {
@@ -19,10 +33,12 @@ export class Lighting {
     assets: Assets,
   ) {
     const day = track.daylight;
+    const k = lightingScale(track.timeOfDay);
     if (day) {
       const sky = assets.texture(day.sky);
       scene.background = sky;
       scene.fog = new THREE.FogExp2(day.fog.color, day.fog.density);
+      scene.fog.color.multiplyScalar(k.fogMul); // a storm's haze is darker than the pack's grey reads here
       this.offset.set(-day.sun.dir[0], -day.sun.dir[1], -day.sun.dir[2]).normalize().multiplyScalar(110);
       this.shadowHalf = 70;
     } else {
@@ -32,7 +48,6 @@ export class Lighting {
     }
 
     // The pack's dusk numbers read dark in this renderer; data/lighting.json scales them to the design render.
-    const k = track.timeOfDay === 'dusk' ? LIGHTING.dusk : { hemiMul: 1, sunMul: 1, exposureMul: 1 };
     this.hemi = day
       ? new THREE.HemisphereLight(day.hemi.sky, day.hemi.ground, day.hemi.intensity * k.hemiMul)
       : new THREE.HemisphereLight(LIGHTING.hemi.sky, LIGHTING.hemi.ground, LIGHTING.hemi.intensity);

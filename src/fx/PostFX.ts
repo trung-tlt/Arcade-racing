@@ -1,3 +1,4 @@
+import { lightingScale } from '../world/Lighting';
 import * as THREE from 'three';
 import { LIGHTING, type TrackDef } from '../core/Data';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -19,8 +20,7 @@ export class PostFX {
   ) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure =
-      (track.daylight?.toneMappingExposure ?? LIGHTING.exposure) *
-      (track.timeOfDay === 'dusk' ? LIGHTING.dusk.exposureMul : 1);
+      (track.daylight?.toneMappingExposure ?? LIGHTING.exposure) * lightingScale(track.timeOfDay).exposureMul;
     this.composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     const baseRender = renderPass.render.bind(renderPass);

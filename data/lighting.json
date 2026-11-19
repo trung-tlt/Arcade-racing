@@ -13,6 +13,14 @@
   "dusk": {
     "hemiMul": 3.0,
     "sunMul": 1.8,
-    "exposureMul": 1.4
+    "exposureMul": 1.4,
+    "fogMul": 1
+  },
+  "storm": {
+    "hemiMul": 2.9,
+    "sunMul": 2.0,
+    "exposureMul": 1.25,
+    "fogMul": 0.55,
+    "landColor": "#3E454B"
   }
 }
