@@ -75,9 +75,9 @@ tests/           *.test.ts, smoke.spec.ts
 `chassis`, `wheel_*` (names and steer flags in cars.json; cars use `wheel_FL/FR/RL/RR`) (spin around local X, front wheels steer around Y), `gun_mount`
 (yaw around Y) › `gun` › `muzzle` (fire origin, +Z), `exhaust_L/R` (nitro flames).
 Take collider half-extents, wheel positions, radius and width from `data/cars.json`.
-9 vehicles: kestrel_gt, rhino_x4, wisp_r, warden_px (police), bastion_m8 (military), sable_rs (rally),
+10 vehicles: kestrel_gt, rhino_x4, wisp_r, warden_px (police), bastion_m8 (military), sable_rs (rally),
 hauler_ht (pickup), truongson_av8 (8x8 APC, 8 wheels `wheel_1L…4R`), mantis_650r (sport bike + `rider`,
-wheels `wheel_F/R`). Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
+wheels `wheel_F/R`), mira_150 (retro scooter + `rider`, `wheel_F/R`, vehicleType bike). Car select keys 1–9 and 0. Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
 the bike uses 4 virtual raycast wheels plus visual lean. Turret yaw limit = `turretYawDeg` in cars.json.
 Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (player colour),
 `Light_Siren_Red/Blue` (warden_px, alternate at ~2 Hz),
@@ -87,7 +87,7 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
 - Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk) and `pham_van_dong.json` (monsoon storm).
   Xa lộ and Phạm Văn Đồng have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
   road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay` and the optional `weather` block.
-- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway or Pham Van Dong Boulevard), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 9-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
+- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway or Pham Van Dong Boulevard), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 10-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
 - Nitro: up to 3 bars. Bars are earned by drifting, near-misses, MG hits (+2% per hit), takedowns
   (+1 bar) and nitro pickups.
 - Pulse MG: hitscan, 10 shots/s, 4 damage, 8° soft auto-aim cone, 120 m range. Heat locks the gun

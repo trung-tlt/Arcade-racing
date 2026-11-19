@@ -64,6 +64,11 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: '650-class sport bike. Fastest launch, fits any gap, very fragile.',
     weapon: 'Twin fairing guns · ±15°',
   },
+  mira_150: {
+    role: 'RETRO SCOOTER · NIMBLE',
+    blurb: 'Retro step-through scooter. Tightest turning circle, slips through traffic, very fragile.',
+    weapon: 'Twin pulse pods on a crash bar · ±12°',
+  },
 };
 
 const STATS: { label: string; pct: (c: CarDef) => number; value: (c: CarDef) => string }[] = [
@@ -103,7 +108,7 @@ export class CarSelectScreen implements Screen {
       <div class="mn-page">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
           <div><div class="mn-eyebrow">STEP 1 OF 2 · GARAGE</div><h2>Choose your ride</h2></div>
-          <div class="cs-hint">${kc('←')} ${kc('→')} or ${kc('1')}–${kc('9')} to switch</div>
+          <div class="cs-hint">${kc('←')} ${kc('→')} or ${kc('1')}–${kc('0')} to switch</div>
         </div>
         <div class="body">
           <div class="stage">
@@ -128,7 +133,7 @@ export class CarSelectScreen implements Screen {
         ${keyBar(
           [
             { keys: ['←', '→'], label: 'Switch' },
-            { keys: ['1-9'], label: 'Pick' },
+            { keys: ['1-0'], label: 'Pick' },
             { keys: ['Enter'], label: 'Select' },
             { keys: ['Esc'], label: 'Back' },
           ],
@@ -214,7 +219,7 @@ export class CarSelectScreen implements Screen {
     this.setSelected(CARS[wrapStep(i, dir, CARS.length)].id);
   }
 
-  /** ←/→/A/D/↑/↓ cycle (wrapping), 1–9 jump straight to vehicle N, Enter selects. */
+  /** ←/→/A/D/↑/↓ cycle (wrapping), 1–9 and 0 jump straight to vehicle N, Enter selects. */
   private handleKey(token: string): boolean {
     if (token === 'arrowright' || token === 'd' || token === 'arrowdown') this.step(1);
     else if (token === 'arrowleft' || token === 'a' || token === 'arrowup') this.step(-1);
@@ -222,7 +227,7 @@ export class CarSelectScreen implements Screen {
     else {
       const i = digitIndex(token, CARS.length);
       if (i === null) {
-        if (/^[1-9]$/.test(token)) {
+        if (/^[0-9]$/.test(token)) {
           uiAudio.play('blocked'); // a number with no vehicle behind it
           return true;
         }

@@ -37,11 +37,12 @@ describe('chords and steps', () => {
     expect(hasChord({ altKey: true })).toBe(true);
     expect(hasChord({ shiftKey: true } as never)).toBe(false);
   });
-  it('maps 1–9 to a vehicle index only when it exists', () => {
+  it('maps 1–9 and 0 to a vehicle index only when it exists', () => {
     expect(digitIndex('1', 9)).toBe(0);
     expect(digitIndex('9', 9)).toBe(8);
     expect(digitIndex('9', 3)).toBeNull();
-    expect(digitIndex('0', 9)).toBeNull();
+    expect(digitIndex('0', 9)).toBeNull(); // no tenth vehicle
+    expect(digitIndex('0', 10)).toBe(9);
     expect(digitIndex('a', 9)).toBeNull();
   });
   it('wraps and clamps', () => {

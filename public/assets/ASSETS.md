@@ -14,7 +14,7 @@ code only; it should not need to create or edit any art.
   `Muzzle`, `Underglow`, `Rider_Suit`, `Rider_Helmet`, `Rider_Visor`, `Neon_*`.
 - Materials are shared inside a file. **Clone materials per instance** before tinting / damage effects.
 
-## Vehicles — `models/cars/*.glb` (9 vehicles)
+## Vehicles — `models/cars/*.glb` (10 vehicles)
 | file | type | tris | notes |
 |---|---|---|---|
 | kestrel_gt.glb | car | ~12.9k | balanced starter, orange |
@@ -26,6 +26,7 @@ code only; it should not need to create or edit any art.
 | hauler_ht.glb | car | ~13.9k | pickup with shielded bed turret (360° yaw) |
 | truongson_av8.glb | apc8x8 | ~26.9k | original 8x8 armored personnel carrier, olive, autocannon turret (360°), antenna. 8 wheels `wheel_1L…wheel_4R`; axles 1–2 steer |
 | mantis_650r.glb | bike | ~13.5k | original 650-class sport bike with rider. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns |
+| mira_150.glb | bike | ~21.6k | original retro step-through scooter (12" wheels), red with tan seat, chrome grab rail, round headlight in the handlebar cover, upright rider. 2 wheels `wheel_F`, `wheel_R`; twin pulse pods on a legshield crash bar (±12°). Smallest turning circle, very fragile |
 
 **Realism pass (all vehicles):** smooth creased-normal body with rounded profile corners, a hood/roof crown and flared wheel haunches; `MeshPhysicalMaterial` clearcoat paint (`KHR_materials_clearcoat`, GLTFLoader reads it) and tinted clearcoat glass; textured LED headlight clusters (projectors + DRL) and tail-light bars; hex-mesh grilles; black window seals and B-pillars; door seams and chrome handles; side mirrors; wipers; front/rear race plates (fictional `VL …`, Warden `POLICE 01`); carbon splitter, side skirts and diffuser on road cars; chrome exhaust tips; shark-fin antenna; rubber arch lips. Wheels: rounded lathe tyres with tread texture (block lugs on off-road/military), dished twin-spoke alloys with lug nuts, brake discs and coloured calipers; Bastion uses beadlock steel wheels, the AV8 military steel wheels. Bike rider now uses capsule limbs and a round helmet. Gun turrets have rounded housings, cooling-jacket rings, ammo box and an optic. Rig names, origins, collider and gun_mount positions are unchanged, so code that loads the old models keeps working.
 **Draw calls:** ~35 per car (wheel meshes have 4 materials each). Clone one loaded template per car type and share its materials between AI copies. On the Low preset swap `MeshPhysicalMaterial` for `MeshStandardMaterial` (copy color/roughness/metalness). Optional: `gltf-transform meshopt` for ~3× smaller downloads (needs `MeshoptDecoder` in GLTFLoader).
@@ -33,6 +34,7 @@ code only; it should not need to create or edit any art.
 **Sponsor decals (logos supplied by the project owner, used unchanged):**
 - kestrel_gt — Emesoft: white stacked logo on both doors, ink mark on the hood.
 - mantis_650r — Emesoft: red mark on the front fairing, white stacked logo on the engine panel, both sides.
+- mira_150 — Emesoft: white stacked logo on both rear side cowls, ink mark on the front of the legshield.
 - rhino_x4 — CaptureMann: patch (0.90 × 0.28 m) on the bolted door armour plate, both sides; on-light mark (0.42 m) on the bonnet.
 - wisp_r — CraftMann: patch (0.75 × 0.23 m) on the doors ahead of the side intake, both sides; on-light mark (0.50 m) on the bonnet.
 

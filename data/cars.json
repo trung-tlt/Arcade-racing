@@ -5,8 +5,16 @@
     "file": "models/cars/kestrel_gt.glb",
     "paint": "#FF6A1A",
     "collider": {
-      "halfExtents": [0.95, 0.559, 2.279],
-      "center": [0, 0.679, 0]
+      "halfExtents": [
+        0.95,
+        0.559,
+        2.279
+      ],
+      "center": [
+        0,
+        0.679,
+        0
+      ]
     },
     "wheels": [
       {
@@ -46,7 +54,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.238, -0.263],
+    "gunMount": [
+      0,
+      1.238,
+      -0.263
+    ],
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -67,8 +79,16 @@
     "file": "models/cars/rhino_x4.glb",
     "paint": "#2EC5FF",
     "collider": {
-      "halfExtents": [1, 0.627, 2.402],
-      "center": [0, 0.747, 0.061]
+      "halfExtents": [
+        1,
+        0.627,
+        2.402
+      ],
+      "center": [
+        0,
+        0.747,
+        0.061
+      ]
     },
     "wheels": [
       {
@@ -108,7 +128,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.375, -0.231],
+    "gunMount": [
+      0,
+      1.375,
+      -0.231
+    ],
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -129,8 +153,16 @@
     "file": "models/cars/wisp_r.glb",
     "paint": "#C6FF3D",
     "collider": {
-      "halfExtents": [0.975, 0.568, 2.328],
-      "center": [0, 0.688, 0]
+      "halfExtents": [
+        0.975,
+        0.568,
+        2.328
+      ],
+      "center": [
+        0,
+        0.688,
+        0
+      ]
     },
     "wheels": [
       {
@@ -170,7 +202,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.033, -0.222],
+    "gunMount": [
+      0,
+      1.033,
+      -0.222
+    ],
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -191,8 +227,16 @@
     "file": "models/cars/warden_px.glb",
     "paint": "#14171D",
     "collider": {
-      "halfExtents": [0.975, 0.558, 2.515],
-      "center": [0, 0.678, 0.084]
+      "halfExtents": [
+        0.975,
+        0.558,
+        2.515
+      ],
+      "center": [
+        0,
+        0.678,
+        0.084
+      ]
     },
     "wheels": [
       {
@@ -232,7 +276,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.193, -0.596],
+    "gunMount": [
+      0,
+      1.193,
+      -0.596
+    ],
     "role": "PURSUIT · RAMMER",
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -253,8 +301,16 @@
     "file": "models/cars/bastion_m8.glb",
     "paint": "#4B5A3A",
     "collider": {
-      "halfExtents": [1.075, 0.699, 2.551],
-      "center": [0, 0.819, 0.071]
+      "halfExtents": [
+        1.075,
+        0.699,
+        2.551
+      ],
+      "center": [
+        0,
+        0.819,
+        0.071
+      ]
     },
     "wheels": [
       {
@@ -294,7 +350,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.519, -0.53],
+    "gunMount": [
+      0,
+      1.519,
+      -0.53
+    ],
     "role": "ARMORED · TANK",
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -315,8 +375,16 @@
     "file": "models/cars/sable_rs.glb",
     "paint": "#8B5CF6",
     "collider": {
-      "halfExtents": [0.925, 0.597, 2.149],
-      "center": [0, 0.717, 0.014]
+      "halfExtents": [
+        0.925,
+        0.597,
+        2.149
+      ],
+      "center": [
+        0,
+        0.717,
+        0.014
+      ]
     },
     "wheels": [
       {
@@ -356,7 +424,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.287, -0.608],
+    "gunMount": [
+      0,
+      1.287,
+      -0.608
+    ],
     "role": "AGILE · DRIFTER",
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -377,8 +449,16 @@
     "file": "models/cars/hauler_ht.glb",
     "paint": "#2FBF9F",
     "collider": {
-      "halfExtents": [1, 0.634, 2.588],
-      "center": [0, 0.754, 0.058]
+      "halfExtents": [
+        1,
+        0.634,
+        2.588
+      ],
+      "center": [
+        0,
+        0.754,
+        0.058
+      ]
     },
     "wheels": [
       {
@@ -418,7 +498,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.228, -1.623],
+    "gunMount": [
+      0,
+      1.228,
+      -1.623
+    ],
     "role": "UTILITY · BED TURRET",
     "vehicleType": "car",
     "turretYawDeg": 360,
@@ -439,8 +523,16 @@
     "file": "models/cars/truongson_av8.glb",
     "paint": "#56653F",
     "collider": {
-      "halfExtents": [1.25, 0.849, 3.479],
-      "center": [0, 0.969, 0]
+      "halfExtents": [
+        1.25,
+        0.849,
+        3.479
+      ],
+      "center": [
+        0,
+        0.969,
+        0
+      ]
     },
     "wheels": [
       {
@@ -516,7 +608,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 1.937, -0.297],
+    "gunMount": [
+      0,
+      1.937,
+      -0.297
+    ],
     "role": "APC · 8x8 FORTRESS",
     "vehicleType": "apc8x8",
     "turretYawDeg": 360,
@@ -537,8 +633,16 @@
     "file": "models/cars/mantis_650r.glb",
     "paint": "#2EC5FF",
     "collider": {
-      "halfExtents": [0.21, 0.555, 1.151],
-      "center": [0, 0.675, 0.06]
+      "halfExtents": [
+        0.21,
+        0.555,
+        1.151
+      ],
+      "center": [
+        0,
+        0.675,
+        0.06
+      ]
     },
     "wheels": [
       {
@@ -560,7 +664,11 @@
         "steer": false
       }
     ],
-    "gunMount": [0, 0.7, 0.417],
+    "gunMount": [
+      0,
+      0.7,
+      0.417
+    ],
     "role": "SPORT BIKE · GLASS CANNON",
     "vehicleType": "bike",
     "turretYawDeg": 15,
@@ -575,5 +683,62 @@
     "nitroBarSec": 2,
     "ramDamageMul": 0.4,
     "maxLeanDeg": 42
+  },
+  {
+    "id": "mira_150",
+    "name": "Mira 150",
+    "file": "models/cars/mira_150.glb",
+    "paint": "#D21F2B",
+    "collider": {
+      "halfExtents": [
+        0.17,
+        0.614,
+        1.068
+      ],
+      "center": [
+        0,
+        0.734,
+        -0.107
+      ]
+    },
+    "wheels": [
+      {
+        "name": "wheel_F",
+        "x": 0,
+        "y": 0.26,
+        "z": 0.66,
+        "radius": 0.26,
+        "width": 0.11,
+        "steer": true
+      },
+      {
+        "name": "wheel_R",
+        "x": 0,
+        "y": 0.26,
+        "z": -0.64,
+        "radius": 0.26,
+        "width": 0.12,
+        "steer": false
+      }
+    ],
+    "gunMount": [
+      0,
+      0.72,
+      0.4
+    ],
+    "role": "RETRO SCOOTER · NIMBLE",
+    "vehicleType": "bike",
+    "turretYawDeg": 12,
+    "topSpeedKmh": 215,
+    "accel": 8,
+    "handling": 10,
+    "hp": 50,
+    "massKg": 260,
+    "grip": 0.9,
+    "drift": 0.9,
+    "nitroBoost": 0.5,
+    "nitroBarSec": 1.8,
+    "ramDamageMul": 0.3,
+    "maxLeanDeg": 38
   }
 ]

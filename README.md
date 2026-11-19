@@ -1,7 +1,7 @@
 # VOLTLINE
 
 Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro, shoot to clear the
-line, finish first. Pick one of 9 vehicles and one of 4 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
+line, finish first. Pick one of 10 vehicles and one of 4 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
 and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
 
 ## Maps

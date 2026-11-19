@@ -13,7 +13,7 @@ describe('data files', () => {
 });
 
 describe('vehicle garage', () => {
-  it('has the 9 vehicles with the expected types', () => {
+  it('has the 10 vehicles with the expected types', () => {
     expect(CARS.map((c) => c.id)).toEqual([
       'kestrel_gt',
       'rhino_x4',
@@ -24,9 +24,10 @@ describe('vehicle garage', () => {
       'hauler_ht',
       'truongson_av8',
       'mantis_650r',
+      'mira_150',
     ]);
     expect(CARS.filter((c) => c.vehicleType === 'apc8x8')).toHaveLength(1);
-    expect(CARS.filter((c) => c.vehicleType === 'bike')).toHaveLength(1);
+    expect(CARS.filter((c) => c.vehicleType === 'bike')).toHaveLength(2);
   });
   it('rejects a bike without lean or an APC with 4 wheels', () => {
     const bike = { ...CARS.find((c) => c.id === 'mantis_650r')!, maxLeanDeg: undefined };
