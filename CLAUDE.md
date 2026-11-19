@@ -46,7 +46,7 @@ src/
   audio/    AudioBus.ts EngineSound.ts Sfx.ts
   ui/       hud.ts menus.ts results.ts styles.css
 public/assets/   models/ textures/ sfx/ ASSETS.md      (read-only for you)
-data/            cars.json weapons.json tracks/harbor.json (tuning only; keep the schema)
+data/            cars.json weapons.json tracks/cat_lai.json (tuning only; keep the schema)
 tests/           *.test.ts, smoke.spec.ts
 ```
 
@@ -66,20 +66,28 @@ tests/           *.test.ts, smoke.spec.ts
 
 ## World conventions
 - Meters, **+Y up, +Z forward** (glTF convention). The chase camera sits behind the car on its −Z side.
-- Track = closed Catmull-Rom spline from `data/tracks/harbor.json`. Every along-track position is
+- Track = closed Catmull-Rom spline from `data/tracks/cat_lai.json`. Every along-track position is
   `t ∈ [0,1)` from the start line. Race position = `lap + t`; resolve ties by distance to the next checkpoint.
 - A lap counts only if all 8 checkpoints were passed in order. Respawn puts the car on the spline
   at the last checkpoint, facing the tangent.
 
-## Car rig (from the .glb files — don't rename)
-`chassis`, `wheel_FL/FR/RL/RR` (spin around local X, front wheels steer around Y), `gun_mount`
+## Vehicle rig (from the .glb files — don't rename)
+`chassis`, `wheel_*` (names and steer flags in cars.json; cars use `wheel_FL/FR/RL/RR`) (spin around local X, front wheels steer around Y), `gun_mount`
 (yaw around Y) › `gun` › `muzzle` (fire origin, +Z), `exhaust_L/R` (nitro flames).
 Take collider half-extents, wheel positions, radius and width from `data/cars.json`.
+9 vehicles: kestrel_gt, rhino_x4, wisp_r, warden_px (police), bastion_m8 (military), sable_rs (rally),
+hauler_ht (pickup), truongson_av8 (8x8 APC, 8 wheels `wheel_1L…4R`), mantis_650r (sport bike + `rider`,
+wheels `wheel_F/R`). Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
+the bike uses 4 virtual raycast wheels plus visual lean. Turret yaw limit = `turretYawDeg` in cars.json.
 Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (player colour),
+`Light_Siren_Red/Blue` (warden_px, alternate at ~2 Hz),
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 ## Game rules (numbers live in data/)
-- Race: Harbor Loop, 3 laps, 6 cars (1 player + 5 AI), grid from `harbor.json`, 3-2-1-GO countdown.
+- Tracks: `cat_lai.json` (night, Cát Lái Port — replaces Cát Lái Port), `cong_hoa.json` (day) and `xa_lo_ha_noi.json` (dusk, the only one with elevation —
+  build the road ribbon from 3D spline points and bank nothing). Track code is data-driven: one `Track` class builds
+  road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay`.
+- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard or Hanoi Highway), 3 laps, 6 cars (1 player + 5 AI picked from the 9-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
 - Nitro: up to 3 bars. Bars are earned by drifting, near-misses, MG hits (+2% per hit), takedowns
   (+1 bar) and nitro pickups.
 - Pulse MG: hitscan, 10 shots/s, 4 damage, 8° soft auto-aim cone, 120 m range. Heat locks the gun
@@ -105,8 +113,29 @@ All bindings go through one action map in `Input.ts`.
   2048 shadow map that follows the player. Exponential fog `#0E1116` at density 0.006.
   ACES filmic tone mapping. Bloom strength 0.8, threshold 0.6.
 - Speed feel: FOV 70 → 85 on nitro, camera lag, screen shake on hits and wrecks, speed lines.
+- Screens: follow the design canvas artboards 09–19 (flow: Loading → Title → Car select → Race setup →
+  Countdown → Racing ⇄ Pause / Wrecked → Results). Each maps to one `GameState`.
+- **Keyboard-first menus (required):** every menu works without a mouse. ↑/↓ move focus, ←/→ change
+  values, Enter/Space confirm, Esc/Backspace go back. Every button shows its hotkey chip (e.g. RACE
+  `Enter`/`R`, GARAGE `G`, SETTINGS `S`, CONTROLS `C`, pause: `Esc` resume, `R` restart, `Q` quit;
+  results: `Enter` race again, `C` change car, `M` menu; car select: `←`/`→` or `1`–`9`). Implement
+  one `MenuInput` that maps keys and gamepad (D-pad, A = confirm, B = back) to the same actions. Show a
+  visible focus ring and a bottom key-hint bar on every screen, as on the design canvas artboards 09–19.
+- **Menu audio (required):** every menu action makes a sound and menus have music. Use `data/ui_sounds.json`
+  for the event → sound map (move, confirm, back, blocked, toggles, slider, vehicle switch/confirm, track switch,
+  start race, title sting, countdown). One `AudioBus` with UI / music / game buses tied to the Settings volumes;
+  unlock audio on the first input; menu music loops across menu screens and fades out on START RACE.
+- **Mobile (required for M4+):** landscape-only on phones (portrait shows a rotate screen), designed at 844×390
+  CSS px with 44 px side safe areas (`env(safe-area-inset-*)`). Touch controls write the same action object as
+  keyboard/gamepad via a `TouchInput` (pointer events, multi-touch, capture). Default scheme: ◀ ▶ pads bottom-left
+  (78 px), FIRE 92 px / rocket / nitro / brake arc bottom-right, drift above the left pads, pause top-centre;
+  alternatives: tilt (DeviceOrientation, ask permission on iOS) and swipe-wheel. Auto-gas ON by default.
+  Touch targets ≥ 48 px. Mobile defaults: Low preset, DPR cap 1.5, ambient traffic off. Follow canvas artboards 25–32.
 - HUD (top-left) position and lap/time · (top-centre) takedown banner · (top-right) round minimap ·
   (bottom-left) hull, MG heat, rockets · (bottom-right) speed, gear and 3 nitro bars.
+
+## Sponsor brands
+Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner (`brand/*.svg`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 
 ## Performance budget (enforce it)
 - 60 fps at 1080p on Apple M1 / Intel Iris Xe. Fewer than 150 draw calls, under 400k triangles on
@@ -127,7 +156,7 @@ All bindings go through one action map in `Input.ts`.
 | # | Scope | Done when |
 |---|---|---|
 | M0 | Vite scaffold, loop, input, Kestrel GT on a flat plane with Rapier raycast vehicle, chase camera, drift, nitro, lil-gui tuning | driving is fun on an empty plane at 60 fps |
-| M1 | Track from `harbor.json`: road ribbon (`road_lanes.png`), barriers, checkpoints, laps, timer, countdown, reset | a solo 3-lap time trial works end to end |
+| M1 | Track from `cat_lai.json`: road ribbon (`road_lanes.png`), barriers, checkpoints, laps, timer, countdown, reset | a solo 3-lap time trial works end to end |
 | M2 | Pulse MG, rockets, pickups, HP and damage states, wreck + respawn, dummy targets | you can wreck a dummy and respawn cleanly |
 | M3 | 5 AI rivals (drive + shoot + pickups), live positions | races are close; the AI wins about 50% |
 | M4 | HUD, menu → car select → race → results, pause, settings, all SFX | a new player can play with no explanation |

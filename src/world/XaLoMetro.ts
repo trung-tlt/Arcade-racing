@@ -26,7 +26,9 @@ const CAB = `${P}metro_car_cab.glb`;
 const MID = `${P}metro_car_mid.glb`;
 const GANTRY_OUT = `${P}sign_gantry_outbound.glb`;
 const GANTRY_IN = `${P}sign_gantry_inbound.glb`;
-const BILLBOARDS = ['emesoft', 'voltline', 'apartments', 'ev'].map((n) => `${P}billboard_${n}.glb`);
+const BILLBOARDS = ['emesoft', 'voltline', 'apartments', 'ev', 'capturemann', 'craftmann'].map(
+  (n) => `${P}billboard_${n}.glb`,
+);
 
 /** Every model this module loads (the parent adds them to the Map 3 asset list). */
 export const XALO_METRO_MODELS: string[] = [VIADUCT, STATION, SKYWALK, CAB, MID, GANTRY_OUT, GANTRY_IN, ...BILLBOARDS];

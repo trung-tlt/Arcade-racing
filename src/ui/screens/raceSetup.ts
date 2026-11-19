@@ -1,4 +1,5 @@
-import { AI, CARS, TRACKS, type TrackDef } from '../../core/Data';
+import type { Rival } from '../../ai/Roster';
+import { CARS, TRACKS, type TrackDef } from '../../core/Data';
 import { clampStep, kc, keyBar, keyChips, labelWithKeys, wrapStep } from '../hotkeys';
 import { type PadButton, enableMenuNav, focusFirst } from '../nav';
 import { uiAudio } from '../uiAudio';
@@ -8,6 +9,8 @@ import './menus.css';
 
 export interface RaceSetupDeps {
   getCarId(): string;
+  /** The five rivals for the coming race (random names and cars), so the grid preview matches the race. */
+  getRoster(): Rival[];
   /** Best-lap text for one map (records are per map). */
   bestLapText(trackId: string): string;
   onBack(): void;
@@ -297,8 +300,9 @@ export class RaceSetupScreen implements Screen {
       d.append(b, document.createElement('br'), s);
       return d;
     };
-    const slots = AI.rivals.map((r, i) => slot(i + 1, r.name, carName(r.car), false));
-    slots.push(slot(AI.rivals.length + 1, 'YOU', carName(this.deps.getCarId()), true));
+    const rivals = this.deps.getRoster();
+    const slots = rivals.map((r, i) => slot(i + 1, r.name, carName(r.car), false));
+    slots.push(slot(rivals.length + 1, 'YOU', carName(this.deps.getCarId()), true));
     grid.replaceChildren(...slots);
   }
 

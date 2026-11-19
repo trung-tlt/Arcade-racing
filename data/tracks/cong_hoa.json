@@ -866,6 +866,161 @@
         4
       ]
     },
+    "sponsorBanners": {
+      "note": "Trackside sponsor banners (8 x 2 m, both faces printed). Long axis parallel to the road: yawDeg is the world rotation to apply.",
+      "items": [
+        {
+          "model": "models/props/sponsor_banner_emesoft.glb",
+          "position": [
+            20,
+            0,
+            -60
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_craftmann.glb",
+          "position": [
+            -20,
+            0,
+            -60
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_capturemann.glb",
+          "position": [
+            20,
+            0,
+            -100
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_voltline.glb",
+          "position": [
+            -20,
+            0,
+            -100
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_craftmann.glb",
+          "position": [
+            20,
+            0,
+            -140
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_emesoft.glb",
+          "position": [
+            -20,
+            0,
+            -140
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_voltline.glb",
+          "position": [
+            20,
+            0,
+            -180
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_capturemann.glb",
+          "position": [
+            -20,
+            0,
+            -180
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_emesoft.glb",
+          "position": [
+            90,
+            0,
+            -1360
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_craftmann.glb",
+          "position": [
+            50,
+            0,
+            -1360
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_capturemann.glb",
+          "position": [
+            90,
+            0,
+            -1380
+          ],
+          "yawDeg": 90
+        },
+        {
+          "model": "models/props/sponsor_banner_voltline.glb",
+          "position": [
+            50,
+            0,
+            -1380
+          ],
+          "yawDeg": 90
+        }
+      ]
+    },
+    "rooftopBillboards": [
+      {
+        "model": "models/props_xalo/billboard_capturemann.glb",
+        "position": [
+          30,
+          9,
+          -300
+        ],
+        "yawDeg": 0,
+        "note": "stands on a shophouse roof (+9 m); ad faces oncoming traffic"
+      },
+      {
+        "model": "models/props_xalo/billboard_craftmann.glb",
+        "position": [
+          -14.9,
+          9,
+          -640
+        ],
+        "yawDeg": 180,
+        "note": "stands on a shophouse roof (+9 m); ad faces oncoming traffic"
+      },
+      {
+        "model": "models/props_xalo/billboard_emesoft.glb",
+        "position": [
+          100,
+          9,
+          -1050
+        ],
+        "yawDeg": 0,
+        "note": "stands on a shophouse roof (+9 m); ad faces oncoming traffic"
+      },
+      {
+        "model": "models/props_xalo/billboard_voltline.glb",
+        "position": [
+          40,
+          9,
+          -1180
+        ],
+        "yawDeg": 180,
+        "note": "stands on a shophouse roof (+9 m); ad faces oncoming traffic"
+      }
+    ],
     "lighting": {
       "sun": {
         "dir": [

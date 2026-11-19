@@ -144,9 +144,9 @@ function build(): { metro: XaLoMetro; scene: THREE.Scene; world: RAPIER.World } 
 }
 
 describe('XaLoMetro scene', () => {
-  it('lists its eleven models', () => {
-    expect(XALO_METRO_MODELS).toHaveLength(11);
-    expect(new Set(XALO_METRO_MODELS).size).toBe(11);
+  it('lists its thirteen models', () => {
+    expect(XALO_METRO_MODELS).toHaveLength(13);
+    expect(new Set(XALO_METRO_MODELS).size).toBe(13);
   });
 
   it('builds, animates trains without allocating new instance buffers, and disposes', () => {

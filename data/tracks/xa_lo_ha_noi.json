@@ -868,7 +868,7 @@
       "name": "Riverside towers",
       "fromT": 0.0988,
       "toT": 0.2452,
-      "note": "High-rise apartments, billboards (Emesoft, VOLTLINE), metro viaduct on the left"
+      "note": "High-rise apartments, billboards (Emesoft, CaptureMann, CraftMann, VOLTLINE), metro viaduct on the left"
     },
     {
       "id": "C",
@@ -1027,6 +1027,15 @@
     },
     {
       "position": [
+        43.4,
+        0,
+        -820
+      ],
+      "model": "models/props_xalo/billboard_capturemann.glb",
+      "facing": "outbound traffic"
+    },
+    {
+      "position": [
         74.5,
         0,
         -980
@@ -1045,6 +1054,15 @@
     },
     {
       "position": [
+        124,
+        0,
+        -1820
+      ],
+      "model": "models/props_xalo/billboard_craftmann.glb",
+      "facing": "outbound traffic"
+    },
+    {
+      "position": [
         31.3,
         0,
         -1200
@@ -1059,6 +1077,24 @@
         -700
       ],
       "model": "models/props_xalo/billboard_emesoft.glb",
+      "facing": "inbound traffic"
+    },
+    {
+      "position": [
+        -52,
+        0,
+        -400
+      ],
+      "model": "models/props_xalo/billboard_craftmann.glb",
+      "facing": "inbound traffic"
+    },
+    {
+      "position": [
+        38,
+        0,
+        -1400
+      ],
+      "model": "models/props_xalo/billboard_capturemann.glb",
       "facing": "inbound traffic"
     }
   ],

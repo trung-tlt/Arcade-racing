@@ -5,6 +5,7 @@ import { EngineSound } from '../audio/EngineSound';
 import { bindSfx, playCountdown, sfxFiles } from '../audio/Sfx';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
 import { RacingLine } from '../ai/RacingLine';
+import { type Rival, rollRoster } from '../ai/Roster';
 import { CombatSystem } from '../combat/CombatSystem';
 import { expandPickups } from '../combat/Pickups';
 import { PickupVisuals } from '../combat/PickupVisuals';
@@ -24,6 +25,7 @@ import { CongHoaDressing } from '../world/CongHoaDressing';
 import { CongHoaLandmarks } from '../world/CongHoaLandmarks';
 import { CatLaiQuay } from '../world/CatLaiQuay';
 import { CatLaiYard } from '../world/CatLaiYard';
+import { Sponsors } from '../world/Sponsors';
 import { XaLoDressing } from '../world/XaLoDressing';
 import { XaLoMetro } from '../world/XaLoMetro';
 import { XaLoStructures, xaLoTerrainHoles } from '../world/XaLoStructures';
@@ -43,6 +45,7 @@ import {
   AUDIO,
   COMBAT,
   HANDLING,
+  CARS,
   CAT_LAI,
   RACE,
   WEAPONS,
@@ -69,6 +72,8 @@ export interface GameConfig {
   laps: number;
   difficulty: Difficulty;
   mode: GameMode;
+  /** Who the five rivals are this race (random names and cars); rolled from the player's car when omitted. */
+  rivals?: Rival[];
 }
 
 export interface GameHooks {
@@ -122,6 +127,8 @@ export class Game {
   private feed: { text: string; left: number }[] = [];
   private path!: TrackPath;
   private track!: Track;
+  private readonly rivals: Rival[];
+  private sponsors: Sponsors | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
   private catLai: { yard: CatLaiYard; quay: CatLaiQuay } | null = null;
@@ -178,6 +185,14 @@ export class Game {
   ) {
     this.carId = cfg.carId;
     this.mode = cfg.mode;
+    this.rivals =
+      cfg.rivals ??
+      rollRoster(
+        AI.rivals,
+        AI.rosterNames,
+        CARS.map((c) => c.id),
+        cfg.carId,
+      );
     this.trackDef = getTrack(cfg.trackId);
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(settings.pixelRatio);
@@ -256,6 +271,7 @@ export class Game {
       this.dressing = new CongHoaDressing(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
     }
+    if (!isXaLo) this.sponsors = new Sponsors(this.scene, this.assets, this.trackDef);
     const playerSlot = this.mode === 'race' ? RACE.ai.playerGridSlot : RACE.ai.practiceGridSlot;
     const line = new RacingLine(this.path, RACE.track.sampleSpacingM);
     const grid = this.gridPoseForSlot(playerSlot);
@@ -278,7 +294,7 @@ export class Game {
 
     if (this.mode === 'race') {
       const free = Array.from({ length: RACE.track.gridSlotCount }, (_, i) => i).filter((i) => i !== playerSlot);
-      AI.rivals.forEach((r, i) => {
+      this.rivals.forEach((r, i) => {
         const slot = free[i];
         const pose = this.gridPoseForSlot(slot);
         this.slots.set(r.id, slot);
@@ -436,7 +452,7 @@ export class Game {
 
   private nameOf(id: string): string {
     if (id === 'player') return 'YOU';
-    return AI.rivals.find((r) => r.id === id)?.name ?? id.replace('dummy', 'DUMMY ').toUpperCase();
+    return this.rivals.find((r) => r.id === id)?.name ?? id.replace('dummy', 'DUMMY ').toUpperCase();
   }
 
   /** Camera shake and the takedown banner / kill feed, driven by gameplay events. */
@@ -1221,6 +1237,7 @@ export class Game {
     this.skidmarks.dispose();
     this.speedLines.dispose();
     for (const c of this.cars) c.dispose();
+    this.sponsors?.dispose();
     this.dressing?.dispose();
     this.landmarks?.dispose();
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();

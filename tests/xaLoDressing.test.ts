@@ -34,7 +34,7 @@ describe('xa lo spec + models', () => {
     expect(spec.shophouses.frontageOffsetM).toBe(10);
     expect(spec.lampEveryM).toBe(40);
     expect(spec.viaduct).toHaveLength(2);
-    expect(spec.landmarks).toHaveLength(8);
+    expect(spec.landmarks).toHaveLength(12); // 3 stations + 9 billboards
   });
 
   it('lists every model once, all under the assets tree', () => {

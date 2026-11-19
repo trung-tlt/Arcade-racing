@@ -1062,6 +1062,164 @@
     "headingDeg": 35,
     "note": "backdrop only, lit deck"
   },
+  "sponsors": {
+    "banners": [
+      {
+        "model": "models/props/sponsor_banner_emesoft.glb",
+        "position": [
+          11,
+          0,
+          -20
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_capturemann.glb",
+        "position": [
+          -11,
+          0,
+          -20
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_capturemann.glb",
+        "position": [
+          11,
+          0,
+          -50
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_craftmann.glb",
+        "position": [
+          -11,
+          0,
+          -50
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_craftmann.glb",
+        "position": [
+          11,
+          0,
+          -80
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_voltline.glb",
+        "position": [
+          -11,
+          0,
+          -80
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_voltline.glb",
+        "position": [
+          11,
+          0,
+          -110
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      },
+      {
+        "model": "models/props/sponsor_banner_emesoft.glb",
+        "position": [
+          -11,
+          0,
+          -110
+        ],
+        "yawDeg": 90,
+        "note": "start straight, both faces printed"
+      }
+    ],
+    "billboards": [
+      {
+        "model": "models/props_xalo/billboard_capturemann.glb",
+        "position": [
+          22,
+          0,
+          -300
+        ],
+        "yawDeg": 180,
+        "note": "truck road roadside, ad faces northbound racers"
+      },
+      {
+        "model": "models/props_xalo/billboard_craftmann.glb",
+        "position": [
+          -22,
+          0,
+          -480
+        ],
+        "yawDeg": 180,
+        "note": "truck road roadside, ad faces northbound racers"
+      },
+      {
+        "model": "models/props_xalo/billboard_emesoft.glb",
+        "position": [
+          -22,
+          0,
+          -200
+        ],
+        "yawDeg": 180,
+        "note": "truck road roadside, ad faces northbound racers"
+      }
+    ],
+    "quayBanners": [
+      {
+        "model": "models/props/sponsor_banner_capturemann.glb",
+        "position": [
+          408,
+          0,
+          -600
+        ],
+        "yawDeg": 90,
+        "note": "inner edge of the quay apron, under the STS cranes"
+      },
+      {
+        "model": "models/props/sponsor_banner_craftmann.glb",
+        "position": [
+          408,
+          0,
+          -400
+        ],
+        "yawDeg": 90,
+        "note": "inner edge of the quay apron, under the STS cranes"
+      },
+      {
+        "model": "models/props/sponsor_banner_emesoft.glb",
+        "position": [
+          408,
+          0,
+          -200
+        ],
+        "yawDeg": 90,
+        "note": "inner edge of the quay apron, under the STS cranes"
+      },
+      {
+        "model": "models/props/sponsor_banner_voltline.glb",
+        "position": [
+          408,
+          0,
+          0
+        ],
+        "yawDeg": 90,
+        "note": "inner edge of the quay apron, under the STS cranes"
+      }
+    ]
+  },
   "dressing": {
     "warehouses": {
       "model": "models/props_xalo/factory_shed.glb",

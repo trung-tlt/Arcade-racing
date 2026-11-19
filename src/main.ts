@@ -1,5 +1,6 @@
 import { Assets } from './core/Assets';
-import { CARS, TRACKS, getTrack } from './core/Data';
+import { rollRoster, type Rival } from './ai/Roster';
+import { AI, CARS, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { bestLapText, loadBestLap } from './core/Records';
 import { applyMobileDefaults, loadSettings, updateSettings } from './core/Settings';
@@ -23,6 +24,7 @@ import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
 import { CAT_LAI_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
 import { CAT_LAI_QUAY_MODELS } from './world/CatLaiQuay';
 import { CAT_LAI_YARD_MODELS } from './world/CatLaiYard';
+import { SPONSOR_MODELS } from './world/Sponsors';
 import { XALO_DRESSING_MODELS } from './world/XaLoDressing';
 import { XALO_METRO_MODELS } from './world/XaLoMetro';
 import { XALO_STRUCTURE_MODELS } from './world/XaLoStructures';
@@ -71,6 +73,7 @@ async function boot(): Promise<void> {
         ...new Set([
           ...CAT_LAI_QUAY_MODELS,
           ...CAT_LAI_YARD_MODELS,
+          ...SPONSOR_MODELS,
           ...XALO_DRESSING_MODELS,
           ...XALO_METRO_MODELS,
           ...XALO_STRUCTURE_MODELS,
@@ -106,6 +109,24 @@ async function boot(): Promise<void> {
   let returnTo: State = 'title';
   let setup: RaceSetup = { ...DEFAULT_SETUP, carId, trackId };
   let game: Game | null = null;
+  // The five rivals (random names and cars) are rolled when the player confirms a car, so the setup grid shows
+  // exactly who they will race. Starting with a different car re-rolls.
+  let roster: Rival[] = [];
+  let rosterCar = '';
+  const rollFor = (carId: string): Rival[] => {
+    roster = rollRoster(
+      AI.rivals,
+      AI.rosterNames,
+      CARS.map((c) => c.id),
+      carId,
+    );
+    rosterCar = carId;
+    return roster;
+  };
+  // Dev/e2e only: `?roster=data` keeps the authored rivals (fixed cars), so finish tests don't depend on the dice.
+  const fixedRoster = import.meta.env.DEV && params.get('roster') === 'data';
+  const rosterFor = (carId: string): Rival[] =>
+    fixedRoster ? AI.rivals : rosterCar === carId ? roster : rollFor(carId);
   let resultsShown = false;
   const createPreview = makeShowroomFactory(assets);
   const bestText = (trackId: string = setup.trackId): string => bestLapText(loadBestLap(trackId));
@@ -157,6 +178,7 @@ async function boot(): Promise<void> {
       onBack: () => show('title', title),
       onConfirm: (id) => {
         setup = { ...setup, carId: id };
+        rollFor(id);
         show('raceSetup', raceSetupScreen);
       },
     }),
@@ -164,6 +186,7 @@ async function boot(): Promise<void> {
   const raceSetupScreen: RaceSetupScreen = reg(
     new RaceSetupScreen(screensRoot, {
       getCarId: () => setup.carId,
+      getRoster: () => rosterFor(setup.carId),
       bestLapText: (id: string) => bestText(id),
       onBack: () => show('carSelect', carSelect),
       onStart: (s) => void startRace({ ...s, carId: setup.carId }),
@@ -234,7 +257,7 @@ async function boot(): Promise<void> {
     game = await Game.create(
       canvas,
       assets,
-      { carId: s.carId, trackId: s.trackId, laps: s.laps, difficulty: s.difficulty, mode },
+      { carId: s.carId, trackId: s.trackId, laps: s.laps, difficulty: s.difficulty, mode, rivals: rosterFor(s.carId) },
       {
         onPause: () => {
           if (state !== 'racing') return;

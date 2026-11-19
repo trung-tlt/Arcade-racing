@@ -27,7 +27,13 @@ code only; it should not need to create or edit any art.
 | truongson_av8.glb | apc8x8 | ~7.2k | original 8x8 armored personnel carrier, olive, autocannon turret (360°), antenna. 8 wheels `wheel_1L…wheel_4R`; axles 1–2 steer |
 | mantis_650r.glb | bike | ~1.9k | original 650-class sport bike with rider. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns |
 
-**Sponsor decals (Emesoft, supplied by the project owner):** kestrel_gt has the white stacked logo on both doors and the ink mark on the hood; mantis_650r has the red mark on the front fairing and the white stacked logo on the engine panel, both sides. They live in a separate `decals` mesh (materials `Decal_Emesoft_*`, alpha-tested PNG textures, polygon offset) so they can be hidden or swapped in code. Source textures: `textures/decal_emesoft_{stacked_white,mark_color,mark_ink}.png`; source SVGs in `brand/`.
+**Sponsor decals (logos supplied by the project owner, used unchanged):**
+- kestrel_gt — Emesoft: white stacked logo on both doors, ink mark on the hood.
+- mantis_650r — Emesoft: red mark on the front fairing, white stacked logo on the engine panel, both sides.
+- rhino_x4 — CaptureMann: patch (0.90 × 0.28 m) on the bolted door armour plate, both sides; on-light mark (0.42 m) on the bonnet.
+- wisp_r — CraftMann: patch (0.75 × 0.23 m) on the doors ahead of the side intake, both sides; on-light mark (0.50 m) on the bonnet.
+
+All decals live in a separate `decals` mesh (materials `Decal_<kind>`, e.g. `Decal_cm_patch`, `Decal_crm_mark_light`, `Decal_stacked_white`; alpha-tested PNG, matte, polygon offset) so code can hide or swap them. Textures: `textures/decal_emesoft_{stacked_white,mark_color,mark_ink}.png`, `textures/decal_capturemann_{patch,mark}.png`, `textures/decal_craftmann_{patch,mark}.png`. Source SVGs in `brand/` (`capturemann_mark_{on_light,on_dark,mono_black}.svg`, `craftmann_mark_{on_light,on_dark,mono_black}.svg`, plus the Emesoft files).
 
 Node hierarchy (all vehicles):
 ```
@@ -84,6 +90,8 @@ Budget: 6 vehicles on the grid ≈ 20–30k tris. Instance repeated props to sta
 | river_ferry.glb | generic 42 m river car ferry with ramps |
 | cable_stayed_bridge.glb | skyline backdrop, 300 m deck, lit stays |
 | quay_edge.glb | 20 m quay lip with bollards, fenders, yellow edge |
+Sponsor banners `models/props/sponsor_banner_{emesoft,capturemann,craftmann,voltline}.glb`: 8 × 2 m printed board on two posts (bottom edge 0.9 m), printed on both faces, front looks −Z, ~40 tris. Tracks list them with `position` and `yawDeg` (90 = long side parallel to a north–south road). Placements: `cat_lai.json` → `sponsors.{banners,billboards,quayBanners}`; `cong_hoa.json` → `dressing.{sponsorBanners,rooftopBillboards}`; `xa_lo_ha_noi.json` → `dressing.billboards` (now 9 boards).
+
 Older Harbor props (`models/props/*`: containers, crane_gantry, barrier, streetlight, buildings, ramp, gates, tunnel) stay as shared props for all maps.
 
 ## Map 2 props — `models/props_conghoa/*.glb` (Cong Hoa Boulevard, daytime)
@@ -112,7 +120,7 @@ Ambient traffic in `cong_hoa.json` → `ambientTraffic.models` lists scooters, c
 | metro_car_cab.glb, metro_car_mid.glb | generic 20 m metro cars (invented white/orange livery); chain cab-mid-mid-cab (last cab rotated 180°) |
 | skywalk.glb | 24 m covered pedestrian bridge (deck 6 m) with stair at +X |
 | sign_gantry_outbound/inbound.glb | 34 m overhead gantry, green direction signs (place names only) |
-| billboard_emesoft / voltline / apartments / ev.glb | 12 × 5 m billboards on 13 m poles, ad faces −Z (toward traffic driving +Z); Emesoft uses the owner's logo |
+| billboard_emesoft / voltline / apartments / ev / capturemann / craftmann.glb | 12 × 5 m billboards on 13 m poles, ad faces −Z (toward traffic driving +Z). Usable on any map. Sponsor boards use the owner's logos |
 | river_bridge_segment.glb + river_bridge_pier.glb | 40 m × 32 m deck (both directions), deck top at y = 0 → raise to the spline elevation |
 | underpass_open/covered.glb | 20 m retaining-wall trough (covered = cross-street deck with tunnel lamps) |
 | apartment_tower_a/b.glb | 96 m / 72 m towers, windows lit via the window atlas |
@@ -126,7 +134,7 @@ fx_spark · fx_smoke · fx_explosion_4x4 (16-frame flipbook) · fx_nitro_flame �
 Map 2: day_road_3lane (one carriageway, u across 11 m, v tiles every ~12 m; flip 180° for the other direction) ·
 day_shop_signs (8-row atlas) · day_sky_gradient (scene.background).
 Map 1: catlai_apron (port concrete with yellow lanes) · catlai_gate_sign.
-Map 3: xalo_road_4lane (main carriageway, 15 m) · dusk_sky_gradient · xalo_direction_signs (4 rows) · xalo_billboards (4 rows: Emesoft, VOLTLINE, apartments, EV).
+Map 3: xalo_road_4lane (main carriageway, 15 m) · dusk_sky_gradient · xalo_direction_signs (4 rows) · xalo_billboards (6 rows: Emesoft, VOLTLINE, apartments, EV, CaptureMann, CraftMann) · sponsor_banners (4 rows: Emesoft, CaptureMann, CraftMann, VOLTLINE).
 
 ## Sound — `sfx/*.wav` (44.1 kHz mono, normalized)
 engine_loop and skid_loop are seamless loops (engine playbackRate ≈ 0.6 + rpm × 1.4; use 1.4× pitch for

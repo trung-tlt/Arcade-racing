@@ -125,5 +125,17 @@
     "graceSec": 6,
     "progressWindowSec": 4.5,
     "minProgressM": 8
-  }
+  },
+  "rosterNames": [
+    "Nhi",
+    "Vy",
+    "Linh",
+    "Ngọc",
+    "Hân",
+    "Huy",
+    "Khang",
+    "Bảo",
+    "Minh",
+    "Phúc"
+  ]
 }

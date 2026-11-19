@@ -15,7 +15,7 @@ type Dbg = {
 for (const track of ['cat_lai', 'cong_hoa', 'xa_lo_ha_noi']) {
   test(`all rivals finish 3 laps on ${track} without being blocked`, async ({ page }) => {
     test.setTimeout(300_000);
-    await page.goto(`/?quick=1&mode=race&track=${track}`);
+    await page.goto(`/?quick=1&mode=race&roster=data&track=${track}`);
     await page.waitForFunction(() => (window as unknown as { __voltline?: unknown }).__voltline !== undefined, null, {
       timeout: 60_000,
     });
