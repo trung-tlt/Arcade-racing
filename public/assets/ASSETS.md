@@ -187,5 +187,8 @@ pickup, checkpoint, countdown_beep, countdown_go, ui_click. Map 4 ambience: rain
   container-yard lanes (RTGs) → 1 km quay apron under 6 quay cranes beside two ships → ferry road. Reefer-lane
   shortcut with a jump. Includes crane/ship/block/gate/truck-queue/ferry placement and night lighting.
 
+## Branding — `branding/`
+VOLTLINE logo (horizontal + stacked, on dark/on light, SVG + PNG), wordmark, mark (colour + mono), app icon (SVG, 1024/512/192 PNG, maskable 512, apple-touch 180), favicon (SVG, ICO 16/32/48, PNGs), `site.webmanifest`, `head_snippet.html`. All shapes are paths, no fonts.
+
 ## UI reference
-All screens are on the VOLTLINE design canvas: HUD (05), screens 09–19, vehicles 03, 07, 20, 21, Map 2 on 22, Map 3 on 24, sponsors on 33, Map 4 on 34.
+All screens are on the VOLTLINE design canvas: HUD (05), screens 09–19, vehicles 03, 07, 20, 21, Map 2 on 22, Map 3 on 24, sponsors on 33, Map 4 on 34, brand identity on 35.

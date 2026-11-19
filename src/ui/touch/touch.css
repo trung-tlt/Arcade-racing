@@ -901,6 +901,13 @@ body.is-touch .mn-controls .ctl-back {
   font-size: 18px;
 }
 
+body.is-touch .mn-loading .logo .wordmark {
+  width: 300px;
+}
+body.is-touch .mn-title .wordmark {
+  width: 240px;
+}
+
 /* Endorsement on phones: never under 120 px, never wider than the wordmark above it. */
 body.is-touch .mn-loading .logo .endorse {
   width: 180px;

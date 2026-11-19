@@ -145,6 +145,12 @@ All bindings go through one action map in `Input.ts`.
 - **Audio:** `sfx/rain_loop.wav` loops, with volume taken from rain intensity. Halve it under the bridge and the overpass.
 - **Performance:** on the Low preset, no spray sprites and 1500 rain particles. Puddles stay, because they matter for gameplay.
 
+## Game branding (VOLTLINE identity)
+`branding/` holds the game's own logo, app icon and favicons (designed for VOLTLINE, safe to use anywhere).
+- Copy `branding/` to `public/branding/` and paste `branding/head_snippet.html` into `index.html` `<head>` (favicon.svg + .ico, apple-touch icon, `site.webmanifest` for the PWA: fullscreen, landscape, maskable icon).
+- Loading and Title screens show `voltline_logo_horizontal_on_dark.svg` (desktop 640 px / 360 px wide, mobile 300 px / 240 px) with the "a CraftMann app" endorsement under it.
+- Use the SVGs as `<img>`; never re-type the wordmark in a font. Mono marks are for watermarks and one-colour UI.
+
 ## Sponsor brands
 Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner (`brand/*.svg`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 

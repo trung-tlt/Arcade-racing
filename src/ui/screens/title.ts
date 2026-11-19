@@ -30,7 +30,7 @@ export class TitleScreen implements Screen {
       <div class="left">
         <div>
           <div class="mn-eyebrow">ARCADE COMBAT RACING</div>
-          <h1>VOLTLINE</h1>
+          <h1 class="wordmark"><img src="/branding/voltline_logo_horizontal_on_dark.svg" alt="VOLTLINE" width="596" height="120" draggable="false" /></h1>
           <img class="endorse" src="/assets/brand/endorsement_craftmann_app_on_dark.svg" alt="a CraftMann app" width="130" height="24" draggable="false" />
         </div>
         <nav aria-label="Main menu">
