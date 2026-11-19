@@ -98,7 +98,7 @@ test('Pham Van Dong boots as a six-car storm race with no console errors, and th
   const state = () => page.evaluate(() => (window as unknown as Dbg).__voltline.debugState());
   expect((await state()).cars).toHaveLength(6);
   await page.keyboard.down('w');
-  await page.evaluate(() => (window as unknown as Dbg).__voltline.debugFastForward(12));
+  await page.evaluate(() => (window as unknown as Dbg).__voltline.debugFastForward(20));
   await page.keyboard.up('w');
   expect((await state()).pos.z).toBeLessThan(-50); // north is -Z: the car left the grid (the countdown eats the first seconds)
   expect(errors.filter((e) => !/AudioContext/.test(e))).toEqual([]);

@@ -151,8 +151,9 @@ Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner 
 **Studio endorsement:** VOLTLINE is "a CraftMann app". Show `brand/endorsement_craftmann_app_on_dark.svg` (use `_on_light` only on light backgrounds) directly under the VOLTLINE wordmark on the Loading and Title screens, desktop and mobile (mobile: also the rotate-device screen). Keep it at least 120 px wide, unaltered, no tint or effects, and never larger than the VOLTLINE wordmark.
 
 ## Performance budget (enforce it)
-- 60 fps at 1080p on Apple M1 / Intel Iris Xe. Fewer than 150 draw calls, under 400k triangles on
-  screen, first load under 5 s.
+- 60 fps at 1080p on Apple M1 / Intel Iris Xe. Fewer than 350 draw calls (6 detailed cars are ~210 of them), under 400k triangles on
+  screen, first load under 5 s (load the 6 race cars + the chosen track only; lazy-load the rest).
+- Cars are ~13k tris (AV8 ~27k). Share materials between copies of the same car; on Low, swap physical (clearcoat) materials for standard ones.
 - Use `InstancedMesh` for barriers, streetlights, containers and tunnel segments. Merge static
   track meshes per material.
 - Allow at most 4 dynamic lights. Glow comes from emissive materials + bloom, not real lights.

@@ -33,10 +33,15 @@ test('race mode: 6 cars on the grid, the 5 rivals drive, live position is shown'
   await page.waitForFunction(() => document.querySelector('.race-banner')?.classList.contains('go'), null, {
     timeout: 15_000,
   });
-  await page.waitForTimeout(6000);
+  // The rivals must get going; wait for it rather than a fixed time (software GL is slow with detailed cars).
+  await page.waitForFunction(
+    () =>
+      (window as unknown as Dbg).__voltline.debugState().cars.filter((c) => c.kind === 'ai' && c.speed > 10).length >=
+      4,
+    null,
+    { timeout: 30_000 },
+  );
   const now = await page.evaluate(() => (window as unknown as Dbg).__voltline.debugState());
-  const moving = now.cars.filter((c) => c.kind === 'ai' && c.speed > 10);
-  expect(moving.length).toBeGreaterThanOrEqual(4);
   expect(await page.locator('.race-pos').textContent()).toMatch(/\d\/6/);
   await page.screenshot({ path: process.env.RACE_SHOT ?? 'test-results/race.png' });
   console.log(`RACE draw calls: ${now.drawCalls}`);
