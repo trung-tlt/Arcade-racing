@@ -2,7 +2,7 @@
   "$comment": "Azure Static Web Apps config. Copied into dist/ by the copy-staticwebapp-config plugin in vite.config.ts.",
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/assets/*", "/*.{png,jpg,jpeg,gif,svg,ico,wav,mp3,glb,wasm,css,js,json}"]
+    "exclude": ["/assets/*", "/*.{png,jpg,jpeg,gif,svg,ico,wav,mp3,glb,wasm,css,js,json}", "/robots.txt", "/sitemap.xml", "/site.webmanifest"]
   },
   "routes": [
     {

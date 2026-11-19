@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://racing.craftmann.app/sitemap.xml
