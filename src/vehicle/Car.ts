@@ -4,7 +4,7 @@ import type { Assets } from '../core/Assets';
 import { WEAPONS, type CarDef, type HandlingDef } from '../core/Data';
 import type { EventBus } from '../core/Events';
 import { Hull, type HullConfig } from '../combat/Damage';
-import { PulseGun } from '../combat/PulseMG';
+import { PulseGun, type PulseCfg } from '../combat/PulseMG';
 import { RocketAmmo } from '../combat/Rockets';
 import { CarPhysics, IDLE_CONTROLS, type CarControls } from './CarPhysics';
 import { CarVisual, type TurretAim } from './CarVisual';
@@ -34,6 +34,12 @@ export interface CarOptions {
   livery?: Livery;
 }
 
+/** The Pulse MG tuned for one vehicle: fast cars overheat sooner, slow ones run cooler. */
+export function gunConfig(def: CarDef): PulseCfg {
+  const c = WEAPONS.pulse_mg;
+  return { ...c, heatPerShot: c.heatPerShot * def.gunHeatMul };
+}
+
 /** Player and AI cars are the same class; only the controller differs. */
 export class Car {
   readonly id: string;
@@ -42,7 +48,7 @@ export class Car {
   readonly physics: CarPhysics;
   readonly visual: CarVisual;
   hull: Hull;
-  gun = new PulseGun(WEAPONS.pulse_mg);
+  gun: PulseGun;
   ammo = new RocketAmmo();
   private readonly hullCfg: HullConfig;
   /** Gun-mount yaw requested by combat (radians, + = left) and how long to hold it after the last shot. */
@@ -61,6 +67,7 @@ export class Car {
     this.id = o.id;
     this.kind = o.kind;
     this.def = o.def;
+    this.gun = new PulseGun(gunConfig(o.def));
     this.controller = o.controller;
     this.events = o.events;
     this.physics = new CarPhysics(o.R, o.world, o.def, o.handling, o.spawn);
@@ -98,7 +105,7 @@ export class Car {
   /** Fresh hull, gun, rockets, score and nitro (race restart). */
   resetCombat(): void {
     this.hull = new Hull(this.hullCfg);
-    this.gun = new PulseGun(WEAPONS.pulse_mg);
+    this.gun = new PulseGun(gunConfig(this.def));
     this.ammo = new RocketAmmo();
     this.score = 0;
     this.takedowns = 0;

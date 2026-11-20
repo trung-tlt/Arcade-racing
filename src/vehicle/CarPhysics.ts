@@ -127,6 +127,8 @@ export class CarPhysics {
   drifting = false;
   nitroActive = false;
   braking = false;
+  /** Brake force actually requested last step (N, whole car): ramps up with the pedal, drops at once on release. */
+  private brakeN = 0;
   airborne = false;
   steerAngle = 0;
   /** Horizontal speed (m/s) lost in the last step; large values mean a crash. */
@@ -328,6 +330,14 @@ export class CarPhysics {
       brake = h.engine.coastDecelMps2 * def.massKg;
     }
 
+    // ABS: the pedal ramps in rather than slamming on, and no wheel is braked harder than its tyre can hold at its
+    // current load (force = absMu × the wheel's suspension load). A wheel that is light (the tail on a nose-dive) or off the ground gets almost nothing, so hard
+    // stops stay straight and flat instead of locking, pitching over or hopping.
+    const bk = h.brake;
+    const brakeMax = h.engine.brakeDecelMps2 * def.massKg;
+    this.brakeN = brake > this.brakeN ? Math.min(brake, this.brakeN + (brakeMax / bk.riseFullSec) * dt) : brake;
+    const absMu = bk.absMu * def.grip * (def.vehicleType === 'bike' ? bk.bikeMuMul : 1);
+
     // --- steering ---
     // Max angle falls with speed² so lateral demand stays inside what the tyres can give.
     const ratio = speed / h.steering.falloffSpeedMps;
@@ -353,7 +363,9 @@ export class CarPhysics {
       const rear = wl.rear;
       this.vehicle.setWheelSteering(i, this.steerAngle * wl.steerScale);
       this.vehicle.setWheelEngineForce(i, engine / n);
-      this.vehicle.setWheelBrake(i, brake / n);
+      const load = this.vehicle.wheelIsInContact(i) ? (this.vehicle.wheelSuspensionForce(i) ?? 0) : 0;
+      // Rapier takes the brake as an impulse (N·s) per step, so force × dt.
+      this.vehicle.setWheelBrake(i, Math.min(this.brakeN / n, absMu * load) * dt);
       this.vehicle.setWheelFrictionSlip(i, baseSlip * (rear ? rearMul : frontMul));
       this.vehicle.setWheelSideFrictionStiffness(
         i,

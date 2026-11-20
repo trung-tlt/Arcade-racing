@@ -5,16 +5,8 @@
     "file": "models/cars/kestrel_gt.glb",
     "paint": "#FF6A1A",
     "collider": {
-      "halfExtents": [
-        0.95,
-        0.559,
-        2.279
-      ],
-      "center": [
-        0,
-        0.679,
-        0
-      ]
+      "halfExtents": [0.95, 0.559, 2.279],
+      "center": [0, 0.679, 0]
     },
     "wheels": [
       {
@@ -54,19 +46,11 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.238,
-      -0.263
-    ],
+    "gunMount": [0, 1.238, -0.263],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.36,
-        0.963,
-        -0.113
-      ],
+      "eye": [0.36, 0.963, -0.113],
       "fovDeg": 64,
       "tint": {
         "paint": "#FF6A1A",
@@ -76,16 +60,19 @@
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 290,
-    "accel": 7,
+    "topSpeedKmh": 250,
+    "accel": 6,
     "handling": 7,
-    "hp": 100,
+    "hp": 105,
     "massKg": 1350,
     "grip": 1,
     "drift": 0.85,
     "nitroBoost": 0.35,
     "nitroBarSec": 2.5,
-    "ramDamageMul": 1
+    "ramDamageMul": 1,
+    "realWorld": "sports GT coupe",
+    "gunDamageMul": 0.95,
+    "gunHeatMul": 1.05
   },
   {
     "id": "rhino_x4",
@@ -93,16 +80,8 @@
     "file": "models/cars/rhino_x4.glb",
     "paint": "#2EC5FF",
     "collider": {
-      "halfExtents": [
-        1,
-        0.627,
-        2.41
-      ],
-      "center": [
-        0,
-        0.747,
-        0.054
-      ]
+      "halfExtents": [1, 0.627, 2.41],
+      "center": [0, 0.747, 0.054]
     },
     "wheels": [
       {
@@ -142,19 +121,11 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.375,
-      -0.231
-    ],
+    "gunMount": [0, 1.375, -0.231],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.379,
-        1.108,
-        0.196
-      ],
+      "eye": [0.379, 1.108, 0.196],
       "fovDeg": 64,
       "tint": {
         "paint": "#2EC5FF",
@@ -164,16 +135,19 @@
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 260,
-    "accel": 5,
+    "topSpeedKmh": 180,
+    "accel": 3,
     "handling": 5,
-    "hp": 150,
+    "hp": 160,
     "massKg": 2100,
     "grip": 1.1,
     "drift": 0.6,
     "nitroBoost": 0.3,
     "nitroBarSec": 2.5,
-    "ramDamageMul": 2
+    "ramDamageMul": 2,
+    "realWorld": "heavy off-road SUV",
+    "gunDamageMul": 1.1,
+    "gunHeatMul": 0.95
   },
   {
     "id": "wisp_r",
@@ -181,16 +155,8 @@
     "file": "models/cars/wisp_r.glb",
     "paint": "#C6FF3D",
     "collider": {
-      "halfExtents": [
-        0.975,
-        0.568,
-        2.374
-      ],
-      "center": [
-        0,
-        0.688,
-        -0.046
-      ]
+      "halfExtents": [0.975, 0.568, 2.374],
+      "center": [0, 0.688, -0.046]
     },
     "wheels": [
       {
@@ -230,19 +196,11 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.033,
-      -0.222
-    ],
+    "gunMount": [0, 1.033, -0.222],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.369,
-        0.812,
-        -0.107
-      ],
+      "eye": [0.369, 0.812, -0.107],
       "fovDeg": 64,
       "tint": {
         "paint": "#C6FF3D",
@@ -252,16 +210,19 @@
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 320,
-    "accel": 8,
+    "topSpeedKmh": 280,
+    "accel": 7,
     "handling": 8,
-    "hp": 80,
+    "hp": 85,
     "massKg": 1100,
     "grip": 0.95,
     "drift": 0.95,
     "nitroBoost": 0.4,
     "nitroBarSec": 2,
-    "ramDamageMul": 0.8
+    "ramDamageMul": 0.8,
+    "realWorld": "lightweight track-day sports car",
+    "gunDamageMul": 0.9,
+    "gunHeatMul": 1.1
   },
   {
     "id": "warden_px",
@@ -269,16 +230,8 @@
     "file": "models/cars/warden_px.glb",
     "paint": "#14171D",
     "collider": {
-      "halfExtents": [
-        0.975,
-        0.558,
-        2.515
-      ],
-      "center": [
-        0,
-        0.678,
-        0.084
-      ]
+      "halfExtents": [0.975, 0.558, 2.515],
+      "center": [0, 0.678, 0.084]
     },
     "wheels": [
       {
@@ -318,30 +271,22 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.193,
-      -0.596
-    ],
+    "gunMount": [0, 1.193, -0.596],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.369,
-        0.949,
-        -0.065
-      ],
+      "eye": [0.369, 0.949, -0.065],
       "fovDeg": 64,
       "tint": {
         "paint": "#14171D",
         "accent": "#2E6BFF"
       }
     },
-    "role": "PURSUIT \u00b7 RAMMER",
+    "role": "PURSUIT · RAMMER",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 300,
-    "accel": 7,
+    "topSpeedKmh": 240,
+    "accel": 4,
     "handling": 6,
     "hp": 120,
     "massKg": 1700,
@@ -349,7 +294,10 @@
     "drift": 0.75,
     "nitroBoost": 0.38,
     "nitroBarSec": 2.5,
-    "ramDamageMul": 1.5
+    "ramDamageMul": 1.5,
+    "realWorld": "police pursuit sedan",
+    "gunDamageMul": 1.0,
+    "gunHeatMul": 1.0
   },
   {
     "id": "bastion_m8",
@@ -357,16 +305,8 @@
     "file": "models/cars/bastion_m8.glb",
     "paint": "#4B5A3A",
     "collider": {
-      "halfExtents": [
-        1.075,
-        0.699,
-        2.551
-      ],
-      "center": [
-        0,
-        0.819,
-        0.071
-      ]
+      "halfExtents": [1.075, 0.699, 2.551],
+      "center": [0, 0.819, 0.071]
     },
     "wheels": [
       {
@@ -406,30 +346,22 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.519,
-      -0.53
-    ],
+    "gunMount": [0, 1.519, -0.53],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.407,
-        1.174,
-        0.556
-      ],
+      "eye": [0.407, 1.174, 0.556],
       "fovDeg": 64,
       "tint": {
         "paint": "#4B5A3A",
         "accent": "#FFB37A"
       }
     },
-    "role": "ARMORED \u00b7 TANK",
+    "role": "ARMORED · TANK",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 230,
-    "accel": 4,
+    "topSpeedKmh": 130,
+    "accel": 2,
     "handling": 4,
     "hp": 200,
     "massKg": 3200,
@@ -437,7 +369,10 @@
     "drift": 0.45,
     "nitroBoost": 0.28,
     "nitroBarSec": 3,
-    "ramDamageMul": 2.5
+    "ramDamageMul": 2.5,
+    "realWorld": "armoured MRAP-class truck",
+    "gunDamageMul": 1.25,
+    "gunHeatMul": 0.85
   },
   {
     "id": "sable_rs",
@@ -445,16 +380,8 @@
     "file": "models/cars/sable_rs.glb",
     "paint": "#8B5CF6",
     "collider": {
-      "halfExtents": [
-        0.925,
-        0.597,
-        2.149
-      ],
-      "center": [
-        0,
-        0.717,
-        0.014
-      ]
+      "halfExtents": [0.925, 0.597, 2.149],
+      "center": [0, 0.717, 0.014]
     },
     "wheels": [
       {
@@ -494,38 +421,33 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.287,
-      -0.608
-    ],
+    "gunMount": [0, 1.287, -0.608],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.351,
-        1.015,
-        -0.342
-      ],
+      "eye": [0.351, 1.015, -0.342],
       "fovDeg": 64,
       "tint": {
         "paint": "#8B5CF6",
         "accent": "#2EC5FF"
       }
     },
-    "role": "AGILE \u00b7 DRIFTER",
+    "role": "AGILE · DRIFTER",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 275,
-    "accel": 9,
+    "topSpeedKmh": 200,
+    "accel": 6,
     "handling": 9,
-    "hp": 85,
+    "hp": 115,
     "massKg": 1050,
     "grip": 1.05,
     "drift": 1,
     "nitroBoost": 0.4,
     "nitroBarSec": 2,
-    "ramDamageMul": 0.8
+    "ramDamageMul": 0.8,
+    "realWorld": "WRC-style rally hatchback",
+    "gunDamageMul": 1.0,
+    "gunHeatMul": 1.0
   },
   {
     "id": "hauler_ht",
@@ -533,16 +455,8 @@
     "file": "models/cars/hauler_ht.glb",
     "paint": "#2FBF9F",
     "collider": {
-      "halfExtents": [
-        1,
-        0.634,
-        2.588
-      ],
-      "center": [
-        0,
-        0.754,
-        0.058
-      ]
+      "halfExtents": [1, 0.634, 2.588],
+      "center": [0, 0.754, 0.058]
     },
     "wheels": [
       {
@@ -582,38 +496,33 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.228,
-      -1.623
-    ],
+    "gunMount": [0, 1.228, -1.623],
     "fpv": {
       "mode": "cockpit",
       "rig": "models/cars/cockpit_rig.glb",
-      "eye": [
-        0.379,
-        1.127,
-        0.231
-      ],
+      "eye": [0.379, 1.127, 0.231],
       "fovDeg": 64,
       "tint": {
         "paint": "#2FBF9F",
         "accent": "#2FBF9F"
       }
     },
-    "role": "UTILITY \u00b7 BED TURRET",
+    "role": "UTILITY · BED TURRET",
     "vehicleType": "car",
     "turretYawDeg": 360,
-    "topSpeedKmh": 250,
-    "accel": 6,
+    "topSpeedKmh": 180,
+    "accel": 3,
     "handling": 5,
-    "hp": 140,
+    "hp": 150,
     "massKg": 2300,
     "grip": 1.05,
     "drift": 0.65,
     "nitroBoost": 0.32,
     "nitroBarSec": 2.5,
-    "ramDamageMul": 1.6
+    "ramDamageMul": 1.6,
+    "realWorld": "full-size pickup truck",
+    "gunDamageMul": 1.2,
+    "gunHeatMul": 0.9
   },
   {
     "id": "truongson_av8",
@@ -621,16 +530,8 @@
     "file": "models/cars/truongson_av8.glb",
     "paint": "#56653F",
     "collider": {
-      "halfExtents": [
-        1.25,
-        0.849,
-        3.479
-      ],
-      "center": [
-        0,
-        0.969,
-        0
-      ]
+      "halfExtents": [1.25, 0.849, 3.479],
+      "center": [0, 0.969, 0]
     },
     "wheels": [
       {
@@ -706,33 +607,28 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      1.937,
-      -0.297
-    ],
+    "gunMount": [0, 1.937, -0.297],
     "fpv": {
       "mode": "helmet",
-      "eye": [
-        0,
-        2.487,
-        0.003
-      ],
+      "eye": [0, 2.487, 0.003],
       "fovDeg": 70
     },
-    "role": "APC \u00b7 8x8 FORTRESS",
+    "role": "APC · 8x8 FORTRESS",
     "vehicleType": "apc8x8",
     "turretYawDeg": 360,
-    "topSpeedKmh": 210,
-    "accel": 3,
+    "topSpeedKmh": 100,
+    "accel": 1,
     "handling": 3,
-    "hp": 260,
+    "hp": 215,
     "massKg": 6000,
     "grip": 1.2,
     "drift": 0.3,
     "nitroBoost": 0.25,
     "nitroBarSec": 3,
-    "ramDamageMul": 3
+    "ramDamageMul": 3,
+    "realWorld": "8x8 armoured personnel carrier (BTR-class)",
+    "gunDamageMul": 1.3,
+    "gunHeatMul": 0.85
   },
   {
     "id": "mantis_650r",
@@ -740,16 +636,8 @@
     "file": "models/cars/mantis_650r.glb",
     "paint": "#2EC5FF",
     "collider": {
-      "halfExtents": [
-        0.21,
-        0.558,
-        1.15
-      ],
-      "center": [
-        0,
-        0.678,
-        0.062
-      ]
+      "halfExtents": [0.21, 0.558, 1.15],
+      "center": [0, 0.678, 0.062]
     },
     "wheels": [
       {
@@ -771,34 +659,29 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      0.7,
-      0.417
-    ],
+    "gunMount": [0, 0.7, 0.417],
     "fpv": {
       "mode": "helmet",
-      "eye": [
-        0,
-        1.387,
-        0.296
-      ],
+      "eye": [0, 1.387, 0.296],
       "fovDeg": 70
     },
-    "role": "SPORT BIKE \u00b7 GLASS CANNON",
+    "role": "SPORT BIKE · GLASS CANNON",
     "vehicleType": "bike",
     "turretYawDeg": 15,
-    "topSpeedKmh": 310,
-    "accel": 10,
+    "topSpeedKmh": 230,
+    "accel": 8,
     "handling": 9,
-    "hp": 60,
+    "hp": 70,
     "massKg": 420,
     "grip": 0.95,
     "drift": 0.5,
     "nitroBoost": 0.45,
     "nitroBarSec": 2,
     "ramDamageMul": 0.4,
-    "maxLeanDeg": 42
+    "maxLeanDeg": 42,
+    "realWorld": "650 cc sport bike",
+    "gunDamageMul": 1.1,
+    "gunHeatMul": 1.1
   },
   {
     "id": "mira_150",
@@ -806,16 +689,8 @@
     "file": "models/cars/mira_150.glb",
     "paint": "#D21F2B",
     "collider": {
-      "halfExtents": [
-        0.17,
-        0.614,
-        1.068
-      ],
-      "center": [
-        0,
-        0.734,
-        -0.107
-      ]
+      "halfExtents": [0.17, 0.614, 1.068],
+      "center": [0, 0.734, -0.107]
     },
     "wheels": [
       {
@@ -837,34 +712,29 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      0.72,
-      0.4
-    ],
+    "gunMount": [0, 0.72, 0.4],
     "fpv": {
       "mode": "helmet",
-      "eye": [
-        0,
-        1.56,
-        -0.16
-      ],
+      "eye": [0, 1.56, -0.16],
       "fovDeg": 70
     },
-    "role": "RETRO SCOOTER \u00b7 NIMBLE",
+    "role": "RETRO SCOOTER · NIMBLE",
     "vehicleType": "bike",
     "turretYawDeg": 12,
-    "topSpeedKmh": 215,
-    "accel": 8,
+    "topSpeedKmh": 95,
+    "accel": 2,
     "handling": 10,
-    "hp": 50,
+    "hp": 100,
     "massKg": 260,
     "grip": 0.9,
     "drift": 0.9,
     "nitroBoost": 0.5,
     "nitroBarSec": 1.8,
     "ramDamageMul": 0.3,
-    "maxLeanDeg": 38
+    "maxLeanDeg": 38,
+    "realWorld": "150 cc scooter",
+    "gunDamageMul": 0.95,
+    "gunHeatMul": 1.05
   },
   {
     "id": "fulmine_fx",
@@ -872,16 +742,8 @@
     "file": "models/cars/fulmine_fx.glb",
     "paint": "#F4F6F8",
     "collider": {
-      "halfExtents": [
-        0.99,
-        0.439,
-        2.9
-      ],
-      "center": [
-        0,
-        0.559,
-        0.19
-      ]
+      "halfExtents": [0.99, 0.439, 2.9],
+      "center": [0, 0.559, 0.19]
     },
     "wheels": [
       {
@@ -921,27 +783,19 @@
         "steer": false
       }
     ],
-    "gunMount": [
-      0,
-      0.92,
-      -0.47
-    ],
+    "gunMount": [0, 0.92, -0.47],
     "fpv": {
       "mode": "helmet",
-      "eye": [
-        0,
-        0.86,
-        0.13
-      ],
+      "eye": [0, 0.86, 0.13],
       "fovDeg": 70
     },
-    "role": "OPEN-WHEEL \u00b7 DOWNFORCE",
+    "role": "OPEN-WHEEL · DOWNFORCE",
     "vehicleType": "car",
     "turretYawDeg": 10,
-    "topSpeedKmh": 340,
-    "accel": 9,
+    "topSpeedKmh": 360,
+    "accel": 10,
     "handling": 10,
-    "hp": 70,
+    "hp": 55,
     "massKg": 800,
     "grip": 1.35,
     "drift": 0.35,
@@ -949,6 +803,9 @@
     "nitroBarSec": 2,
     "ramDamageMul": 0.3,
     "openWheel": true,
-    "downforce": 2.6
+    "downforce": 2.6,
+    "realWorld": "open-wheel hybrid racer (F1-class)",
+    "gunDamageMul": 0.78,
+    "gunHeatMul": 1.3
   }
 ]

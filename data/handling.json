@@ -14,9 +14,14 @@
     "maxDownAfterImpactMps": 6,
     "maxSpinAfterImpactRadS": 9
   },
+  "brake": {
+    "absMu": 1.05,
+    "riseFullSec": 0.15,
+    "bikeMuMul": 0.65
+  },
   "surface": {
     "floodDragAccelPerMps": 0.6,
-    "measuredBrakeDecelMps2": 30
+    "measuredBrakeDecelMps2": 16.5
   },
   "suspension": {
     "restLength": 0.3,
@@ -27,9 +32,9 @@
     "maxForce": 200000
   },
   "engine": {
-    "baseAccelMps2": 3,
-    "accelPerRating": 0.9,
-    "topSpeedRolloffPower": 3,
+    "baseAccelMps2": 1,
+    "accelPerRating": 1.05,
+    "topSpeedRolloffPower": 8,
     "reverseMaxMps": 14,
     "reverseAccelMul": 0.6,
     "brakeDecelMps2": 22,

@@ -30,6 +30,8 @@ export interface CarDef {
   name: string;
   vehicleType: VehicleType;
   role?: string;
+  /** The real-world vehicle class the speed and acceleration are matched to (documentation only). */
+  realWorld?: string;
   /** Gun mount yaw limit in degrees (25 cars, 360 hauler/APC, 15 bike). */
   turretYawDeg: number;
   /** Bike only: max visual lean in degrees. */
@@ -39,6 +41,7 @@ export interface CarDef {
   collider: { halfExtents: [number, number, number]; center: [number, number, number] };
   wheels: WheelDef[];
   gunMount: [number, number, number];
+  /** Real-world top speed of the vehicle class this car is modelled on (km/h). */
   topSpeedKmh: number;
   accel: number;
   handling: number;
@@ -49,6 +52,9 @@ export interface CarDef {
   nitroBoost: number;
   nitroBarSec: number;
   ramDamageMul: number;
+  /** Pulse MG damage per hit and heat per shot, relative to weapons.json (fast cars shoot weak, slow ones hit hard). */
+  gunDamageMul: number;
+  gunHeatMul: number;
   /** Open-wheel racer (Fulmine FX): speed-squared downforce, high-speed grip, fragile wheels. */
   openWheel?: boolean;
   /** Downforce coefficient (see handling.json `openWheel`). */
@@ -82,6 +88,8 @@ export function validateCars(data: unknown): string[] {
       'nitroBoost',
       'nitroBarSec',
       'ramDamageMul',
+      'gunDamageMul',
+      'gunHeatMul',
     ]) {
       if (!isNum(c[k]) || (c[k] as number) <= 0) errors.push(`${at}.${k} must be a positive number`);
     }

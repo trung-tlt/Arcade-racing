@@ -25,7 +25,7 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
   rhino_x4: {
     role: 'HEAVY · BRAWLER',
     blurb: 'Armored muscle coupe. Wins every collision, ram damage ×2.',
-    weapon: 'Heavy twin cannon · same MG stats, ram ×2',
+    weapon: 'Heavy twin cannon · hits harder, ram ×2',
   },
   wisp_r: {
     role: 'LIGHT · HYPER',
@@ -77,11 +77,24 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
   },
 };
 
+const ARMOR_SCALE = Math.max(...CARS.map((c) => c.hp));
+/** The fastest car fills the top-speed bar. */
+const TOP_SPEED_SCALE = Math.max(...CARS.map((c) => c.topSpeedKmh));
+
+/** Gun strength: damage per hit, discounted by how fast the gun overheats. */
+const firepower = (c: CarDef): number => c.gunDamageMul / c.gunHeatMul;
+const FIREPOWER_SCALE = Math.max(...CARS.map(firepower));
+
 const STATS: { label: string; pct: (c: CarDef) => number; value: (c: CarDef) => string }[] = [
-  { label: 'Top speed', pct: (c) => Math.min(1, c.topSpeedKmh / 340), value: (c) => String(c.topSpeedKmh) },
+  { label: 'Top speed', pct: (c) => Math.min(1, c.topSpeedKmh / TOP_SPEED_SCALE), value: (c) => String(c.topSpeedKmh) },
   { label: 'Accel', pct: (c) => c.accel / 10, value: (c) => String(c.accel) },
   { label: 'Handling', pct: (c) => c.handling / 10, value: (c) => String(c.handling) },
-  { label: 'Armor', pct: (c) => c.hp / 260, value: (c) => String(c.hp) },
+  {
+    label: 'Firepower',
+    pct: (c) => firepower(c) / FIREPOWER_SCALE,
+    value: (c) => `${Math.round(c.gunDamageMul * 100)}%`,
+  },
+  { label: 'Armor', pct: (c) => c.hp / ARMOR_SCALE, value: (c) => String(c.hp) },
 ];
 
 /** Paint colours can be near-black (police car); text uses a light fallback for those. */

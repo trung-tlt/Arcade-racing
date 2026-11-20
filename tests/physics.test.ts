@@ -36,7 +36,7 @@ describe('CarPhysics (headless)', () => {
     const { car, run } = makeSim();
     run(1, {});
     run(4, { throttle: 1 });
-    expect(car.forwardSpeed).toBeGreaterThan(30);
+    expect(car.forwardSpeed).toBeGreaterThan(22);
     expect(car.curr.p.z).toBeGreaterThan(20);
     run(30, { throttle: 1 });
     expect(car.forwardSpeed).toBeLessThan((290 / 3.6) * 1.02);
@@ -52,7 +52,7 @@ describe('CarPhysics (headless)', () => {
   it('drifting builds slip and charges nitro without flipping', () => {
     const { car, run } = makeSim();
     run(1, {});
-    run(5, { throttle: 1 });
+    run(8, { throttle: 1 });
     run(3, { throttle: 1, steer: 1, drift: true });
     expect(car.slipDeg).toBeGreaterThan(9);
     expect(car.nitro.bars).toBeGreaterThan(0);

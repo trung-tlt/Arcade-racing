@@ -185,7 +185,7 @@ export class CombatSystem {
       this.d.particles.burst('spark', endPt, 3, 6, 0.25);
       const victim = this.byCollider.get(hit.collider.handle);
       if (victim && victim !== car) {
-        this.applyDamage(victim, cfg.damage, car.id);
+        this.applyDamage(victim, cfg.damage * car.def.gunDamageMul, car.id);
         car.physics.nitro.add(cfg.nitroGainOnHit);
       }
     }
