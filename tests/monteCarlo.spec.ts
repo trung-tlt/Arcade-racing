@@ -59,7 +59,9 @@ test('Monte-Carlo Harbour builds its world, keeps under 350 draw calls and darke
 
   // Inside the tunnel the exposure drops by about 1.5 EV and the reverb amount rises.
   await page.evaluate(() => (window as unknown as Dbg).__voltline.debugTeleport(0.52));
-  await page.waitForTimeout(3_000);
+  // Software GL with MSAA is slow, so wait for the tunnel to register instead of a fixed time.
+  await expect.poll(async () => (await page.evaluate(probe)).tunnel, { timeout: 60_000 }).toBeGreaterThan(0.9);
+  await page.waitForTimeout(1_500);
   const dark = await page.evaluate(probe);
   expect(dark.tunnel).toBeGreaterThan(0.9);
   expect(dark.exposure).toBeLessThan(bright * 0.45);

@@ -69,8 +69,8 @@
     "minBarsToFire": 0.05
   },
   "camera": {
-    "distance": 7.5,
-    "height": 3.1,
+    "distance": 6.4,
+    "height": 2.8,
     "lookAheadM": 6,
     "lookHeight": 1.2,
     "positionLagPerSec": 7,

@@ -8,12 +8,14 @@ export interface QualityPreset {
   shadowMapSize: number;
   bloom: boolean;
   particleScale: number;
+  /** MSAA samples of the post-processing buffer (0 = off). */
+  msaa: number;
 }
 
 export const QUALITY_PRESETS: Record<QualityName, QualityPreset> = {
-  low: { pixelRatio: 1, shadows: false, shadowMapSize: 1024, bloom: false, particleScale: 0.4 },
-  med: { pixelRatio: 1.5, shadows: true, shadowMapSize: 1024, bloom: true, particleScale: 0.7 },
-  high: { pixelRatio: 2, shadows: true, shadowMapSize: 2048, bloom: true, particleScale: 1 },
+  low: { pixelRatio: 1, shadows: false, shadowMapSize: 1024, bloom: false, particleScale: 0.4, msaa: 0 },
+  med: { pixelRatio: 1.5, shadows: true, shadowMapSize: 1024, bloom: true, particleScale: 0.7, msaa: 4 },
+  high: { pixelRatio: 2, shadows: true, shadowMapSize: 2048, bloom: true, particleScale: 1, msaa: 4 },
 };
 
 /** What the player chose in the settings screen (persisted). */
@@ -50,6 +52,7 @@ export interface RuntimeSettings {
   bloom: boolean;
   shadowMapSize: number;
   particleScale: number;
+  msaa: number;
   aimAssist: boolean;
   cameraShake: boolean;
   fovKick: boolean;
@@ -98,6 +101,7 @@ export const settings: RuntimeSettings = {
   bloom: true,
   shadowMapSize: QUALITY_PRESETS.med.shadowMapSize,
   particleScale: QUALITY_PRESETS.med.particleScale,
+  msaa: QUALITY_PRESETS.med.msaa,
   aimAssist: true,
   cameraShake: true,
   fovKick: true,
@@ -155,6 +159,7 @@ function recompute(): void {
   settings.bloom = u.bloom;
   settings.shadowMapSize = p.shadowMapSize;
   settings.particleScale = p.particleScale;
+  settings.msaa = p.msaa;
   settings.aimAssist = u.aimAssist;
   settings.cameraShake = u.cameraShake;
   settings.fovKick = u.fovKick;

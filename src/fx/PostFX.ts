@@ -1,6 +1,7 @@
 import { lightingScale } from '../world/Lighting';
 import * as THREE from 'three';
 import { LIGHTING, type TrackDef } from '../core/Data';
+import { settings } from '../core/Settings';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -25,7 +26,9 @@ export class PostFX {
     this.baseExposure =
       (track.daylight?.toneMappingExposure ?? LIGHTING.exposure) * lightingScale(track.timeOfDay).exposureMul;
     renderer.toneMappingExposure = this.baseExposure;
-    this.composer = new EffectComposer(renderer);
+    // The composer's own buffers are what the player sees, so the canvas's `antialias` flag does nothing: MSAA lives here.
+    const target = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: settings.msaa });
+    this.composer = new EffectComposer(renderer, target);
     const renderPass = new RenderPass(scene, camera);
     const baseRender = renderPass.render.bind(renderPass);
     renderPass.render = (...args: Parameters<RenderPass['render']>): void => {
@@ -67,6 +70,15 @@ export class PostFX {
 
   setOverlayVisible(on: boolean): void {
     if (this.overlay) this.overlay.enabled = on;
+  }
+
+  /** Changes MSAA samples on the fly (quality preset switched mid-race). */
+  setSamples(n: number): void {
+    for (const rt of [this.composer.renderTarget1, this.composer.renderTarget2]) {
+      if (rt.samples === n) continue;
+      rt.samples = n;
+      rt.dispose();
+    }
   }
 
   setSize(w: number, h: number): void {

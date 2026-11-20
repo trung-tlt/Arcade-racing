@@ -894,6 +894,7 @@ export class Game {
     this.renderer.shadowMap.enabled = settings.shadows;
     this.lighting.setShadows(settings.shadows);
     this.postfx.setBloom(settings.bloom);
+    this.postfx.setSamples(settings.msaa);
     this.resize();
     this.audio.setVolumes(
       userSettings.volumeMaster / 100,
