@@ -231,6 +231,69 @@ export function footprintPoints(f: Footprint): [number, number][] {
   return pts;
 }
 
+export interface StandRules {
+  /** Nearest allowed distance from any part of the stand to the road centre line. */
+  clearanceM: number;
+  /** Footprint in the model's local frame: behind (-x) and in front of (+x) its origin, half its length along z. */
+  backM: number;
+  frontM: number;
+  halfLengthM: number;
+  maxShiftM: number;
+}
+
+/**
+ * Pushes grandstands that crowd the road (a 40 m stand on a bend swings its ends over the tarmac) straight away from
+ * it until the whole footprint clears. A stand that can't clear within `maxShiftM` is dropped.
+ */
+export function clearStandSites(
+  sites: readonly [number, number, number][],
+  index: RoadIndex,
+  rules: StandRules,
+  stepM = 2,
+): [number, number, number][] {
+  const out: [number, number, number][] = [];
+  const clearAt = (x: number, z: number): { ok: boolean; away: [number, number] } => {
+    const { i } = index.nearest(x, z, 300);
+    const th = yawForX(index.xs[i] - x, index.zs[i] - z);
+    const c = Math.cos(th);
+    const s = Math.sin(th);
+    let ok = true;
+    // Sample the footprint edge to edge (corners included).
+    const nx = Math.ceil((rules.backM + rules.frontM) / 1.5);
+    const nz = Math.ceil((2 * rules.halfLengthM) / 2);
+    for (let a = 0; a <= nx && ok; a++) {
+      const lx = -rules.backM + ((rules.backM + rules.frontM) * a) / nx;
+      for (let b = 0; b <= nz; b++) {
+        const lz = -rules.halfLengthM + (2 * rules.halfLengthM * b) / nz;
+        if (index.nearest(x + lx * c + lz * s, z - lx * s + lz * c, 300).d < rules.clearanceM) {
+          ok = false;
+          break;
+        }
+      }
+    }
+    const dx = x - index.xs[i];
+    const dz = z - index.zs[i];
+    const dl = Math.hypot(dx, dz) || 1;
+    return { ok, away: [dx / dl, dz / dl] };
+  };
+  for (const p of sites) {
+    const first = clearAt(p[0], p[2]);
+    if (first.ok) {
+      out.push(p);
+      continue;
+    }
+    for (let shift = stepM; shift <= rules.maxShiftM; shift += stepM) {
+      const x = p[0] + first.away[0] * shift;
+      const z = p[2] + first.away[1] * shift;
+      if (clearAt(x, z).ok) {
+        out.push([x, p[1], z]);
+        break;
+      }
+    }
+  }
+  return out;
+}
+
 /** Uniform-grid index of road samples: nearest-distance queries in O(1). */
 export class RoadIndex {
   private readonly cell = 40;

@@ -4,7 +4,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import { Water } from 'three/examples/jsm/objects/Water.js';
 import type { Assets } from '../core/Assets';
-import { LIGHTING, type TrackDef } from '../core/Data';
+import { LIGHTING, RACE, type TrackDef } from '../core/Data';
 import { mergePropMaterials } from '../vehicle/MergeMaterials';
 import { seededRng } from './CongHoaDressing';
 import {
@@ -22,6 +22,7 @@ import {
   planKerbs,
   planTowers,
   tunnelRange,
+  clearStandSites,
   yawForX,
   yawForZ,
   type TerrainField,
@@ -468,7 +469,11 @@ export class MonteCarlo {
     };
 
     // Footprints the other dressing keeps clear of.
-    const standSites = raw.grandstands.flatMap((g) => g.segments.map((s) => s.position));
+    const standSites = clearStandSites(
+      raw.grandstands.flatMap((g) => g.segments.map((s) => s.position)),
+      new RoadIndex(path, 2),
+      RACE.track.stand,
+    );
     const stands: Obstacle[] = standSites.map((p) => ({ x: p[0], z: p[2], r: 26 }));
     const pitSites = raw.pits.building.segments.map((s) => s.position);
     const blocked: Obstacle[] = [

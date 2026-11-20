@@ -721,7 +721,7 @@
     "role": "RETRO SCOOTER · NIMBLE",
     "vehicleType": "bike",
     "turretYawDeg": 12,
-    "topSpeedKmh": 95,
+    "topSpeedKmh": 150,
     "accel": 2,
     "handling": 10,
     "hp": 100,

@@ -8,6 +8,7 @@ import { relaxTightBends } from '../src/world/relaxBends';
 import {
   RoadIndex,
   alongSide,
+  clearStandSites,
   curvatureAt,
   footprintPoints,
   footprintsOverlap,
@@ -254,5 +255,30 @@ describe('Monte-Carlo terrain and dressing', () => {
     expect(palms.length).toBeLessThan(75);
     const blocked = [{ x: palms[5].x, z: palms[5].z, r: 5 }];
     expect(alongSide(path, 0.585, 0.865, 14, 1, 9.6, blocked, seededRng(1), 2).length).toBeLessThan(palms.length);
+  });
+
+  it('keeps every grandstand clear of the road, pushing crowded ones outward (Sainte Devote, Tabac)', () => {
+    const raws = (raw.grandstands as { segments: { position: number[] }[] }[]).flatMap((g) =>
+      g.segments.map((s) => s.position as [number, number, number]),
+    );
+    const r = RACE.track.stand;
+    const sites = clearStandSites(raws, fine, r);
+    expect(sites.length).toBeGreaterThanOrEqual(raws.length - 2);
+    // Whatever stays has its whole footprint at least `clearanceM` from the centre line.
+    const again = clearStandSites(sites, fine, r);
+    expect(again).toEqual(sites);
+    for (const p of sites) {
+      const { i } = fine.nearest(p[0], p[2], 300);
+      const th = yawForX(fine.xs[i] - p[0], fine.zs[i] - p[2]);
+      for (const lx of [-r.backM, r.frontM]) {
+        for (const lz of [-r.halfLengthM, 0, r.halfLengthM]) {
+          const x = p[0] + lx * Math.cos(th) + lz * Math.sin(th);
+          const z = p[2] - lx * Math.sin(th) + lz * Math.cos(th);
+          expect(fine.nearest(x, z, 300).d).toBeGreaterThanOrEqual(r.clearanceM - 0.01);
+        }
+      }
+    }
+    // The two Sainte Devote stands used to sit on the tarmac.
+    expect(sites.filter((p) => !raws.includes(p)).length).toBeGreaterThanOrEqual(2);
   });
 });

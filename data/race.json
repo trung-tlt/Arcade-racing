@@ -24,7 +24,8 @@
     "roadTextureRepeatM": 18,
     "gridSlotCount": 6,
     "rampLeadInM": 1.6,
-    "minTurnRadiusM": 8
+    "minTurnRadiusM": 8,
+    "stand": { "clearanceM": 9, "backM": 12.6, "frontM": 1.3, "halfLengthM": 20.5, "maxShiftM": 40 }
   },
   "fall": {
     "belowGroundM": 2.5,
