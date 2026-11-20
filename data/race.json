@@ -28,7 +28,8 @@
   },
   "fall": {
     "belowGroundM": 2.5,
-    "sunkBelowRoadM": 1,
+    "belowRoadM": 6,
+    "sunkBelowRoadM": 0.5,
     "sunkRayAboveM": 2.5,
     "sunkSlowBelowMps": 10
   },

@@ -901,8 +901,15 @@ export class Game {
       this.resetPlayer();
       return;
     }
-    if (c.physics.speedMps > RACE.fall.sunkSlowBelowMps) return;
     const t = this.carTs.get(c.id) ?? 0;
+    // Off a raised road (Map 5's Casino climb is 40 m up) the ground is far below it: back onto the track.
+    if (def.groundY > -1 && p.y < this.path.pointAt(t).y - RACE.fall.belowRoadM) {
+      if (this.devStats && this.fallLog.length < 40)
+        this.fallLog.push(`off @${p.x.toFixed(0)},${p.y.toFixed(1)},${p.z.toFixed(0)}`);
+      this.resetPlayer();
+      return;
+    }
+    if (c.physics.speedMps > RACE.fall.sunkSlowBelowMps) return;
     // Cheap pre-check: a sunk car is also well below the road height at its place along the track.
     if (p.y > this.path.pointAt(t).y - RACE.fall.sunkBelowRoadM / 2) return;
     // The road's real height comes from a ray onto the fixed collider just above the car. Both tests must agree, so a
