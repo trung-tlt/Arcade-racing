@@ -30,10 +30,10 @@ export function hasChord(e: { ctrlKey?: boolean; metaKey?: boolean; altKey?: boo
   return !!(e.ctrlKey || e.metaKey || e.altKey);
 }
 
-/** Digit 1–9 → zero-based index 0–8, and 0 → the tenth (index 9); null when no such vehicle. */
+/** Digit 1–9 → zero-based index 0–8, 0 → the tenth (index 9) and `-` → the eleventh (index 10); null when no such vehicle. */
 export function digitIndex(token: string, max: number): number | null {
-  if (!/^[0-9]$/.test(token)) return null;
-  const i = token === '0' ? 9 : Number(token) - 1;
+  if (!/^[0-9-]$/.test(token)) return null;
+  const i = token === '-' ? 10 : token === '0' ? 9 : Number(token) - 1;
   return i < max ? i : null;
 }
 

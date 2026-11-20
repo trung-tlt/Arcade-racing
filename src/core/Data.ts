@@ -11,6 +11,7 @@ import congHoaJson from '../../data/tracks/cong_hoa.json';
 import catLaiJson from '../../data/tracks/cat_lai.json';
 import phamVanDongJson from '../../data/tracks/pham_van_dong.json';
 import xaLoJson from '../../data/tracks/xa_lo_ha_noi.json';
+import monteCarloJson from '../../data/tracks/monte_carlo.json';
 
 export type VehicleType = 'car' | 'apc8x8' | 'bike';
 
@@ -48,6 +49,12 @@ export interface CarDef {
   nitroBoost: number;
   nitroBarSec: number;
   ramDamageMul: number;
+  /** Open-wheel racer (Fulmine FX): speed-squared downforce, high-speed grip, fragile wheels. */
+  openWheel?: boolean;
+  /** Downforce coefficient (see handling.json `openWheel`). */
+  downforce?: number;
+  /** Driver first-person view placement (data only; the camera is not built yet). */
+  fpv?: { mode: 'cockpit' | 'helmet'; eye: [number, number, number]; fovDeg: number };
 }
 
 export type HandlingDef = typeof handlingJson;
@@ -81,6 +88,16 @@ export function validateCars(data: unknown): string[] {
     const col = c.collider as { halfExtents?: unknown; center?: unknown } | undefined;
     if (!col || !isVec3(col.halfExtents) || !isVec3(col.center)) errors.push(`${at}.collider invalid`);
     if (!isVec3(c.gunMount)) errors.push(`${at}.gunMount must be vec3`);
+    if (c.openWheel !== undefined && typeof c.openWheel !== 'boolean') errors.push(`${at}.openWheel must be a boolean`);
+    if (c.downforce !== undefined && (!isNum(c.downforce) || c.downforce <= 0))
+      errors.push(`${at}.downforce must be a positive number`);
+    if (c.openWheel === true && c.downforce === undefined) errors.push(`${at}.downforce required for openWheel`);
+    const fpv = c.fpv as { mode?: unknown; eye?: unknown; fovDeg?: unknown } | undefined;
+    if (
+      fpv !== undefined &&
+      (!['cockpit', 'helmet'].includes(String(fpv.mode)) || !isVec3(fpv.eye) || !isNum(fpv.fovDeg))
+    )
+      errors.push(`${at}.fpv needs mode cockpit | helmet, eye vec3 and fovDeg`);
     const wheels = c.wheels as Record<string, unknown>[] | undefined;
     const type = c.vehicleType;
     const expected: Record<string, string[]> = {
@@ -133,13 +150,16 @@ export function validateTrack(data: unknown): string[] {
   const pts = (t.spline as { points?: unknown[] } | undefined)?.points;
   if (!Array.isArray(pts) || pts.length < 4 || !pts.every(isVec3)) errors.push('spline.points invalid');
   const cps = t.checkpoints as { id: number; t: number }[] | undefined;
-  if (!Array.isArray(cps) || cps.length !== 8) errors.push('track needs exactly 8 checkpoints');
+  if (!Array.isArray(cps) || cps.length < 8 || cps.length > 9)
+    errors.push('track needs 8 checkpoints (9 on Maps 4 and 5)');
   else if (cps.some((c, i) => i > 0 && c.t <= cps[i - 1].t)) errors.push('checkpoint t must increase');
   const layout = t.roadLayout as
     | { carriagewayWidthM?: unknown; mainCarriageway?: { widthM?: unknown }; truckRoad?: { widthM?: unknown } }
     | undefined;
+  const streetW = (t.road as { widthM?: unknown } | undefined)?.widthM;
   const layoutW = layout?.carriagewayWidthM ?? layout?.mainCarriageway?.widthM ?? layout?.truckRoad?.widthM;
-  if (!isNum(t.laps) || !(isNum(t.roadWidthM) || isNum(layoutW))) errors.push('laps and a road width must be numbers');
+  if (!isNum(t.laps) || !(isNum(t.roadWidthM) || isNum(layoutW) || isNum(streetW)))
+    errors.push('laps and a road width must be numbers');
   const grid = (t.startLine as { grid?: unknown[] } | undefined)?.grid;
   if (!Array.isArray(grid) || grid.length !== 6) errors.push('startLine.grid needs 6 slots');
   return errors;
@@ -157,6 +177,22 @@ export interface DayLighting {
   toneMappingExposure: number;
   /** Wet maps: the road material's look (low roughness so lamps and lights streak on it). */
   road?: { roughness: number; metalness: number };
+  /** Map 5: sun glitter on the harbour water. */
+  water?: { sunGlint: boolean };
+}
+
+/** A stretch where weapons can't fire (Map 5's tunnel and chicane). `fromT` < `toT`, both in [0, 1). */
+export interface NoFireZone {
+  name: string;
+  fromT: number;
+  toT: number;
+}
+
+/** Map 5's gantry start: 5 red lamps, one per second, then a random hold, then all out = GO. */
+export interface StartLightsDef {
+  model: string;
+  position: [number, number, number];
+  sfx: string;
 }
 
 /** Map 4's storm (`weather` in its JSON). Every other map has none. */
@@ -218,6 +254,10 @@ export interface TrackDef {
   daylight: DayLighting | null;
   /** Rain, puddles, flood and lightning: Map 4 only. */
   weather: WeatherDef | null;
+  /** Stretches where weapons are locked (empty on maps without any). */
+  noFireZones: NoFireZone[];
+  /** Light-sequence start (replaces the 3-2-1 countdown); null = the classic countdown. */
+  startLights: StartLightsDef | null;
   /** The untouched JSON, for map-specific dressing (sections, dressing, flyover, traffic...). */
   raw: Record<string, unknown>;
 }
@@ -229,6 +269,8 @@ interface RawTrack {
   laps: number;
   lapLengthM: number;
   roadWidthM?: number;
+  /** Map 5: a single-carriageway street circuit. */
+  road?: { widthM: number; texture: string };
   roadLayout?: {
     carriagewayWidthM?: number;
     lanesPerDirection?: number;
@@ -244,7 +286,8 @@ interface RawTrack {
   sections?: { id: string; name: string; fromT: number; toT: number }[];
   laneOffsetsM?: number[];
   spline: { points: [number, number, number][] };
-  startLine: { grid: [number, number][] };
+  startLine: { grid: [number, number][]; lights?: StartLightsDef };
+  noFireZones?: NoFireZone[];
   checkpoints: { id: number; t: number }[];
   ramps?: TrackDef['ramps'];
   pickups: TrackDef['pickups'];
@@ -270,7 +313,7 @@ export function loadTrack(json: unknown): TrackDef {
           texture: carLanes.texture ?? '',
         }
       : undefined);
-  const width = main?.widthM ?? r.roadLayout?.carriagewayWidthM ?? r.roadWidthM ?? 18;
+  const width = main?.widthM ?? r.roadLayout?.carriagewayWidthM ?? r.road?.widthM ?? r.roadWidthM ?? 18;
   // Lanes across the racing carriageway: the old maps list lanes per direction, Map 3 lists the 4 lanes of its road.
   const lanes = main?.lanes ?? r.roadLayout?.lanesPerDirection ?? 3;
   const laneW = width / lanes;
@@ -325,13 +368,15 @@ export function loadTrack(json: unknown): TrackDef {
     ramps: r.ramps ?? [],
     pickups: r.pickups,
     laneOffsetsM: laneOffsets,
-    roadTexture: main?.texture ?? r.roadLayout?.roadTexture ?? 'textures/road_lanes.png',
-    roadTextureRepeatM: r.roadLayout ? (main ? 16 : 12) : raceJson.track.roadTextureRepeatM,
+    roadTexture: main?.texture ?? r.roadLayout?.roadTexture ?? r.road?.texture ?? 'textures/road_lanes.png',
+    roadTextureRepeatM: r.roadLayout ? (main ? 16 : 12) : r.road ? r.road.widthM : raceJson.track.roadTextureRepeatM,
     hasElevation,
     groundY: minY < -1 ? Math.floor(minY) - 3 : 0,
     widthProfile,
-    daylight: r.dressing?.lighting ?? (r.timeOfDay === 'storm' ? (r.lighting ?? null) : null),
+    daylight: r.dressing?.lighting ?? (r.timeOfDay === 'storm' || r.timeOfDay === 'day' ? (r.lighting ?? null) : null),
     weather: r.weather ?? null,
+    noFireZones: r.noFireZones ?? [],
+    startLights: r.startLine.lights ?? null,
     raw: json as Record<string, unknown>,
   };
 }
@@ -360,7 +405,8 @@ export const CONG_HOA = loadTrack(congHoaJson);
 /** Every map, in menu order. */
 export const XA_LO = loadTrack(xaLoJson);
 export const PHAM_VAN_DONG = loadTrack(phamVanDongJson);
-export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG];
+export const MONTE_CARLO = loadTrack(monteCarloJson);
+export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO];
 
 export function getTrack(id: string): TrackDef {
   const t = TRACKS.find((x) => x.id === id);

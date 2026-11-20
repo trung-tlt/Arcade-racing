@@ -49,10 +49,12 @@ test('the whole game can be played with the keyboard alone: loading → race →
   // Car select: 2 then → picks vehicle 3 (Wisp R); Enter selects
   await expect(page.getByText('Choose your ride')).toBeVisible();
   await expect(keybar(page)).toContainText('Pick');
-  await expect(page.locator('.mn-cars .pick')).toHaveCount(10);
-  // 0 is the tenth vehicle (the Mira scooter); 2 then goes back to the Rhino
+  await expect(page.locator('.mn-cars .pick')).toHaveCount(11);
+  // 0 is the tenth vehicle (the Mira scooter) and - the eleventh (the Fulmine FX); 2 then goes back to the Rhino
   await page.keyboard.press('0');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Mira 150');
+  await page.keyboard.press('-');
+  await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Fulmine FX');
   await page.keyboard.press('2');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Rhino X4');
   await page.keyboard.press('ArrowRight');
@@ -61,6 +63,8 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Mantis 650R');
   await page.keyboard.press('ArrowRight'); // the tenth vehicle
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Mira 150');
+  await page.keyboard.press('ArrowRight'); // the eleventh
+  await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Fulmine FX');
   await page.keyboard.press('ArrowRight'); // wraps to the first vehicle
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Kestrel GT');
   await expectRing(page);
@@ -85,8 +89,10 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await expect(page.locator('.mn-setup .tname')).toHaveText('Hanoi Highway');
   await page.keyboard.press('t'); // → Pham Van Dong (a 2-lap storm map: laps follow the map)
   await expect(page.locator('.mn-setup .tname')).toHaveText('Pham Van Dong Boulevard');
-  await expect(page.locator('[data-group="track"] .pill')).toHaveCount(4);
+  await expect(page.locator('[data-group="track"] .pill')).toHaveCount(5);
   await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('2 laps');
+  await page.keyboard.press('t'); // → Monte-Carlo (3 laps)
+  await expect(page.locator('.mn-setup .tname')).toHaveText('Monte-Carlo Harbour');
   await page.keyboard.press('t'); // wrapped around to Cat Lai
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
   await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('3 laps');

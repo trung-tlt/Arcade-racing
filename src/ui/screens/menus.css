@@ -435,10 +435,41 @@
   font-size: 13px;
   color: var(--mn-dim);
 }
-.mn-setup .track-card svg {
+.mn-setup .track-card .preview {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #0a0d12;
+}
+.mn-setup .track-card .shot {
+  display: block;
   width: 100%;
   height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  user-select: none;
+  pointer-events: none;
+}
+.mn-setup .track-card .shot[hidden] {
+  display: none;
+}
+/* the lap outline is a small inset over the render */
+.mn-setup .track-card .outline {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  width: 22%;
+  height: auto;
+  padding: 4px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, 0.72);
+}
+.mn-setup .track-card .preview.no-shot .outline {
+  position: static;
+  width: 100%;
   max-height: 46vh;
+  background: none;
 }
 .mn-setup .facts {
   display: grid;
@@ -714,7 +745,7 @@
 }
 .mn-cars .cards {
   display: grid;
-  grid-template-columns: repeat(10, minmax(0, 1fr));
+  grid-template-columns: repeat(11, minmax(0, 1fr));
   gap: 8px;
   padding-top: 6px; /* room for the lifted card */
 }

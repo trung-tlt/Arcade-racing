@@ -1,0 +1,2506 @@
+{
+  "id": "monte_carlo",
+  "name": "Monte-Carlo Harbour",
+  "localName": "Circuit du Port",
+  "timeOfDay": "day",
+  "laps": 3,
+  "lapLengthM": 3339,
+  "inspiration": "Inspired by the Monaco street circuit (3.337 km, 19 corners, clockwise, ~42 m climb from the harbour to Casino Square, the tunnel and the harbour-front chicanes). Corner names are the real place names; layout, buildings, yachts and branding are original and stylized for racing. No real event, series, team or sponsor branding.",
+  "coords": "World X = east, Y = up (elevation is in the spline), Z = -north. Clockwise. Track 12 m wide (the narrowest track in the game) with Armco + catch fence on both sides almost everywhere.",
+  "spline": {
+    "type": "catmullrom",
+    "closed": true,
+    "tension": 0.5,
+    "points": [
+      [
+        0,
+        3,
+        0
+      ],
+      [
+        13.4,
+        2.98,
+        -16
+      ],
+      [
+        26.9,
+        2.94,
+        -31.9
+      ],
+      [
+        40.3,
+        2.87,
+        -47.9
+      ],
+      [
+        53.8,
+        2.78,
+        -63.8
+      ],
+      [
+        67.2,
+        2.68,
+        -79.8
+      ],
+      [
+        80.6,
+        2.57,
+        -95.8
+      ],
+      [
+        94.1,
+        2.46,
+        -111.7
+      ],
+      [
+        107.5,
+        2.35,
+        -127.7
+      ],
+      [
+        120.9,
+        2.24,
+        -143.7
+      ],
+      [
+        134.4,
+        2.15,
+        -159.6
+      ],
+      [
+        147.8,
+        2.08,
+        -175.6
+      ],
+      [
+        161.3,
+        2.02,
+        -191.5
+      ],
+      [
+        180.4,
+        2,
+        -195.3
+      ],
+      [
+        196.2,
+        2.2,
+        -181.8
+      ],
+      [
+        211.8,
+        2.95,
+        -167.8
+      ],
+      [
+        227.3,
+        4.09,
+        -153.8
+      ],
+      [
+        242.8,
+        5.42,
+        -139.8
+      ],
+      [
+        258.4,
+        6.76,
+        -125.8
+      ],
+      [
+        273.9,
+        7.93,
+        -111.8
+      ],
+      [
+        289.4,
+        8.74,
+        -97.9
+      ],
+      [
+        305,
+        9,
+        -83.9
+      ],
+      [
+        321.9,
+        9.2,
+        -71.7
+      ],
+      [
+        340.3,
+        9.69,
+        -61.7
+      ],
+      [
+        358.8,
+        10.45,
+        -51.9
+      ],
+      [
+        377.2,
+        11.45,
+        -42.1
+      ],
+      [
+        395.7,
+        12.67,
+        -32.3
+      ],
+      [
+        414.1,
+        14.07,
+        -22.4
+      ],
+      [
+        432.6,
+        15.62,
+        -12.6
+      ],
+      [
+        451,
+        17.3,
+        -2.8
+      ],
+      [
+        469.5,
+        19.07,
+        7
+      ],
+      [
+        487.9,
+        20.92,
+        16.8
+      ],
+      [
+        506.4,
+        22.8,
+        26.7
+      ],
+      [
+        524.8,
+        24.69,
+        36.5
+      ],
+      [
+        543.3,
+        26.57,
+        46.3
+      ],
+      [
+        561.7,
+        28.4,
+        56.1
+      ],
+      [
+        580.2,
+        30.15,
+        65.9
+      ],
+      [
+        598.6,
+        31.8,
+        75.8
+      ],
+      [
+        617.1,
+        33.31,
+        85.6
+      ],
+      [
+        635.5,
+        34.67,
+        95.4
+      ],
+      [
+        654,
+        35.83,
+        105.2
+      ],
+      [
+        672.4,
+        36.77,
+        115
+      ],
+      [
+        690.9,
+        37.47,
+        124.9
+      ],
+      [
+        709.3,
+        37.88,
+        134.7
+      ],
+      [
+        727.8,
+        38.04,
+        144.4
+      ],
+      [
+        748.2,
+        39.46,
+        148.2
+      ],
+      [
+        768.1,
+        40.94,
+        142.6
+      ],
+      [
+        787.6,
+        41.54,
+        136.7
+      ],
+      [
+        805.3,
+        41.99,
+        147
+      ],
+      [
+        820.3,
+        41.81,
+        161.5
+      ],
+      [
+        835.3,
+        41.5,
+        176
+      ],
+      [
+        850.4,
+        41.19,
+        190.5
+      ],
+      [
+        865.4,
+        41.01,
+        205.1
+      ],
+      [
+        873.8,
+        39.16,
+        222.8
+      ],
+      [
+        859,
+        37.78,
+        236.6
+      ],
+      [
+        841.2,
+        36.14,
+        247.4
+      ],
+      [
+        823.3,
+        33.62,
+        258.1
+      ],
+      [
+        805.4,
+        31.06,
+        268.9
+      ],
+      [
+        787.6,
+        29.31,
+        279.7
+      ],
+      [
+        773.2,
+        28.49,
+        293.3
+      ],
+      [
+        788.4,
+        26.99,
+        300.3
+      ],
+      [
+        806.7,
+        25.93,
+        290.2
+      ],
+      [
+        825,
+        23.8,
+        280.1
+      ],
+      [
+        843.2,
+        21.55,
+        270
+      ],
+      [
+        862.8,
+        20.13,
+        267.7
+      ],
+      [
+        875,
+        19.59,
+        284.4
+      ],
+      [
+        885.7,
+        17.69,
+        302.3
+      ],
+      [
+        896.5,
+        14.98,
+        320.2
+      ],
+      [
+        907.3,
+        12.27,
+        338.1
+      ],
+      [
+        918,
+        10.39,
+        356
+      ],
+      [
+        927.2,
+        9.4,
+        374.6
+      ],
+      [
+        917.4,
+        7,
+        391.6
+      ],
+      [
+        899.2,
+        6.7,
+        401.7
+      ],
+      [
+        880.9,
+        6.5,
+        411.8
+      ],
+      [
+        862.4,
+        6.48,
+        421.3
+      ],
+      [
+        843.3,
+        6.44,
+        429.6
+      ],
+      [
+        823.8,
+        6.38,
+        437
+      ],
+      [
+        803.9,
+        6.31,
+        443.3
+      ],
+      [
+        783.7,
+        6.21,
+        448.6
+      ],
+      [
+        763.3,
+        6.11,
+        452.8
+      ],
+      [
+        742.7,
+        6,
+        455.6
+      ],
+      [
+        721.9,
+        5.88,
+        457.4
+      ],
+      [
+        701.1,
+        5.76,
+        458.1
+      ],
+      [
+        680.3,
+        5.64,
+        457.6
+      ],
+      [
+        659.5,
+        5.52,
+        456.1
+      ],
+      [
+        638.8,
+        5.4,
+        453.3
+      ],
+      [
+        618.4,
+        5.3,
+        449.4
+      ],
+      [
+        598.2,
+        5.21,
+        444.3
+      ],
+      [
+        578.2,
+        5.13,
+        438.3
+      ],
+      [
+        558.7,
+        5.06,
+        431.2
+      ],
+      [
+        539.5,
+        5.02,
+        423
+      ],
+      [
+        520.9,
+        5,
+        413.6
+      ],
+      [
+        502.6,
+        4.98,
+        403.7
+      ],
+      [
+        484.4,
+        4.87,
+        393.6
+      ],
+      [
+        466.1,
+        4.7,
+        383.5
+      ],
+      [
+        447.9,
+        4.47,
+        373.4
+      ],
+      [
+        429.7,
+        4.22,
+        363.3
+      ],
+      [
+        411.5,
+        3.95,
+        353.2
+      ],
+      [
+        393.2,
+        3.68,
+        343.1
+      ],
+      [
+        375,
+        3.43,
+        333
+      ],
+      [
+        356.8,
+        3.23,
+        322.9
+      ],
+      [
+        338.6,
+        3.08,
+        312.8
+      ],
+      [
+        320.3,
+        3,
+        302.7
+      ],
+      [
+        300.6,
+        2.55,
+        298.4
+      ],
+      [
+        282.2,
+        2.49,
+        288.7
+      ],
+      [
+        264,
+        2.44,
+        278.6
+      ],
+      [
+        245.8,
+        2.36,
+        268.5
+      ],
+      [
+        227.6,
+        2.28,
+        258.4
+      ],
+      [
+        209.3,
+        2.19,
+        248.3
+      ],
+      [
+        191.1,
+        2.1,
+        238.2
+      ],
+      [
+        172.1,
+        2.04,
+        229.9
+      ],
+      [
+        151.5,
+        2,
+        230.9
+      ],
+      [
+        132.9,
+        2,
+        240.2
+      ],
+      [
+        114.6,
+        2,
+        250.4
+      ],
+      [
+        96.4,
+        2,
+        260.5
+      ],
+      [
+        78.2,
+        2,
+        270.7
+      ],
+      [
+        60,
+        2,
+        280.8
+      ],
+      [
+        41.7,
+        2,
+        290.9
+      ],
+      [
+        23.5,
+        2,
+        301.1
+      ],
+      [
+        7.5,
+        2,
+        314.2
+      ],
+      [
+        -8.2,
+        2,
+        327.6
+      ],
+      [
+        -26.4,
+        2,
+        337.8
+      ],
+      [
+        -44.7,
+        2,
+        347.9
+      ],
+      [
+        -62.9,
+        2,
+        358.1
+      ],
+      [
+        -81.1,
+        2,
+        368.2
+      ],
+      [
+        -99.3,
+        2,
+        378.3
+      ],
+      [
+        -118.6,
+        2,
+        385.4
+      ],
+      [
+        -137.6,
+        2,
+        393.5
+      ],
+      [
+        -155.8,
+        2,
+        403.6
+      ],
+      [
+        -174,
+        2,
+        413.8
+      ],
+      [
+        -192.2,
+        2,
+        423.9
+      ],
+      [
+        -210.5,
+        2,
+        434
+      ],
+      [
+        -228.7,
+        2,
+        444.2
+      ],
+      [
+        -247.5,
+        2,
+        452.7
+      ],
+      [
+        -260.7,
+        2,
+        439.3
+      ],
+      [
+        -264.7,
+        2,
+        418.8
+      ],
+      [
+        -268.6,
+        2,
+        398.3
+      ],
+      [
+        -272.6,
+        2,
+        377.9
+      ],
+      [
+        -276.5,
+        2,
+        357.4
+      ],
+      [
+        -279.3,
+        2,
+        336.9
+      ],
+      [
+        -268.8,
+        2,
+        319.2
+      ],
+      [
+        -255.3,
+        2,
+        303.3
+      ],
+      [
+        -241.9,
+        2,
+        287.3
+      ],
+      [
+        -228.5,
+        2,
+        271.4
+      ],
+      [
+        -215,
+        2,
+        255.4
+      ],
+      [
+        -201.6,
+        2.02,
+        239.4
+      ],
+      [
+        -188.1,
+        2.05,
+        223.5
+      ],
+      [
+        -174.7,
+        2.1,
+        207.5
+      ],
+      [
+        -161.3,
+        2.17,
+        191.5
+      ],
+      [
+        -147.8,
+        2.24,
+        175.6
+      ],
+      [
+        -134.4,
+        2.33,
+        159.6
+      ],
+      [
+        -120.9,
+        2.42,
+        143.7
+      ],
+      [
+        -107.5,
+        2.51,
+        127.7
+      ],
+      [
+        -94.1,
+        2.6,
+        111.7
+      ],
+      [
+        -80.6,
+        2.69,
+        95.8
+      ],
+      [
+        -67.2,
+        2.77,
+        79.8
+      ],
+      [
+        -53.8,
+        2.85,
+        63.8
+      ],
+      [
+        -40.3,
+        2.91,
+        47.9
+      ],
+      [
+        -26.9,
+        2.96,
+        31.9
+      ],
+      [
+        -13.4,
+        2.99,
+        16
+      ]
+    ],
+    "note": "points[0] = start line on the main straight, heading 40° (NE). Built from the corner list in monaco_track.js."
+  },
+  "elevation": {
+    "minM": 2,
+    "maxM": 42,
+    "note": "Climb from Sainte Dévote to Casino (+40 m), descent through Mirabeau / hairpin / Portier, flat tunnel and harbour."
+  },
+  "startLine": {
+    "t": 0,
+    "grid": [
+      [
+        -1.8,
+        -8
+      ],
+      [
+        1.8,
+        -16
+      ],
+      [
+        -1.8,
+        -24
+      ],
+      [
+        1.8,
+        -32
+      ],
+      [
+        -1.8,
+        -40
+      ],
+      [
+        1.8,
+        -48
+      ]
+    ],
+    "gridNote": "staggered 2-wide grid, 8 m apart: [lateral m, metres behind the line]",
+    "lights": {
+      "model": "models/props_monaco/start_gantry.glb",
+      "position": [
+        0,
+        3,
+        0
+      ],
+      "sequence": "5 red lights, one per second (start_light_1..5), random 0.2-3 s hold, all out = GO",
+      "sfx": "sfx/monaco/start_lights.wav"
+    }
+  },
+  "corners": [
+    {
+      "id": "T1",
+      "name": "Sainte Dévote",
+      "t": 0.0788,
+      "dir": "right",
+      "note": "Heavy braking at the end of the main straight, first-lap crash magnet",
+      "position": [
+        172.3,
+        2.01,
+        -196.9
+      ],
+      "elevationM": 2
+    },
+    {
+      "id": "T2",
+      "name": "Beau Rivage",
+      "t": 0.1348,
+      "dir": "left kink",
+      "note": "Flat out uphill between Belle Époque façades",
+      "position": [
+        314.3,
+        9.07,
+        -76.6
+      ],
+      "elevationM": 9.1
+    },
+    {
+      "id": "T3",
+      "name": "Massenet",
+      "t": 0.2815,
+      "dir": "left",
+      "note": "Long, blind uphill left; the barrier is your apex",
+      "position": [
+        749.1,
+        39.55,
+        148.2
+      ],
+      "elevationM": 39.5
+    },
+    {
+      "id": "T4",
+      "name": "Casino",
+      "t": 0.2935,
+      "dir": "right",
+      "note": "Crest past the Grand Casino and the gardens — the car goes light",
+      "position": [
+        786.8,
+        41.5,
+        136.6
+      ],
+      "elevationM": 41.5
+    },
+    {
+      "id": "T5",
+      "name": "Mirabeau Haute",
+      "t": 0.3307,
+      "dir": "right",
+      "note": "Downhill braking into a tight right",
+      "position": [
+        874.1,
+        39.5,
+        220.9
+      ],
+      "elevationM": 39.5
+    },
+    {
+      "id": "T6",
+      "name": "Grand Hotel Hairpin",
+      "t": 0.3702,
+      "dir": "left hairpin",
+      "note": "Slowest corner in the game (≈ 50 km/h), full lock",
+      "position": [
+        774.4,
+        28,
+        297.9
+      ],
+      "elevationM": 28
+    },
+    {
+      "id": "T7–8",
+      "name": "Mirabeau Bas",
+      "t": 0.3986,
+      "dir": "right",
+      "note": "Short downhill right",
+      "position": [
+        858.6,
+        20.32,
+        266
+      ],
+      "elevationM": 20.3
+    },
+    {
+      "id": "T9",
+      "name": "Portier",
+      "t": 0.4391,
+      "dir": "right",
+      "note": "Exit onto the seafront — traction is everything before the tunnel",
+      "position": [
+        926.9,
+        8.58,
+        379.8
+      ],
+      "elevationM": 8.6
+    },
+    {
+      "id": "T10",
+      "name": "Tunnel",
+      "t": 0.5122,
+      "dir": "fast right curve",
+      "note": "Flat out in the tunnel under the hotel; light-to-dark-to-light",
+      "position": [
+        702.2,
+        5.76,
+        458
+      ],
+      "elevationM": 5.8
+    },
+    {
+      "id": "T11–12",
+      "name": "Nouvelle Chicane",
+      "t": 0.6421,
+      "dir": "left-right",
+      "note": "Hardest braking zone, from top speed, harbour on your left",
+      "position": [
+        306,
+        2.75,
+        298.4
+      ],
+      "elevationM": 2.7
+    },
+    {
+      "id": "T13",
+      "name": "Tabac",
+      "t": 0.6901,
+      "dir": "left",
+      "note": "Fast left along the quay",
+      "position": [
+        163.6,
+        2.02,
+        229.1
+      ],
+      "elevationM": 2
+    },
+    {
+      "id": "T14–15",
+      "name": "Piscine",
+      "t": 0.744,
+      "dir": "left-right",
+      "note": "Quick flick past the swimming pool",
+      "position": [
+        7,
+        2,
+        314.7
+      ],
+      "elevationM": 2
+    },
+    {
+      "id": "T16–17",
+      "name": "Piscine exit",
+      "t": 0.7871,
+      "dir": "right-left",
+      "note": "Slower second pool chicane",
+      "position": [
+        -117.3,
+        2,
+        385.4
+      ],
+      "elevationM": 2
+    },
+    {
+      "id": "T18",
+      "name": "La Rascasse",
+      "t": 0.8344,
+      "dir": "right",
+      "note": "Tight right around the harbour-front restaurant",
+      "position": [
+        -256.9,
+        2,
+        448.6
+      ],
+      "elevationM": 2
+    },
+    {
+      "id": "T19",
+      "name": "Anthony Noghès",
+      "t": 0.8695,
+      "dir": "right",
+      "note": "Last corner onto the main straight",
+      "position": [
+        -278.8,
+        2,
+        334.5
+      ],
+      "elevationM": 2
+    }
+  ],
+  "sections": [
+    {
+      "id": "A",
+      "name": "Harbour straight + Sainte Dévote",
+      "fromT": 0,
+      "toT": 0.0899
+    },
+    {
+      "id": "B",
+      "name": "Beau Rivage climb",
+      "fromT": 0.0899,
+      "toT": 0.2785
+    },
+    {
+      "id": "C",
+      "name": "Casino Square",
+      "fromT": 0.2785,
+      "toT": 0.3295
+    },
+    {
+      "id": "D",
+      "name": "Mirabeau, hairpin, Portier",
+      "fromT": 0.3295,
+      "toT": 0.4463
+    },
+    {
+      "id": "E",
+      "name": "Tunnel",
+      "fromT": 0.4463,
+      "toT": 0.578
+    },
+    {
+      "id": "F",
+      "name": "Harbour chicane + Tabac",
+      "fromT": 0.578,
+      "toT": 0.6978
+    },
+    {
+      "id": "G",
+      "name": "Swimming pool",
+      "fromT": 0.6978,
+      "toT": 0.8087
+    },
+    {
+      "id": "H",
+      "name": "Rascasse + Noghès",
+      "fromT": 0.8087,
+      "toT": 1
+    }
+  ],
+  "checkpoints": [
+    {
+      "id": 1,
+      "t": 0.0749
+    },
+    {
+      "id": 2,
+      "t": 0.2097
+    },
+    {
+      "id": 3,
+      "t": 0.2983
+    },
+    {
+      "id": 4,
+      "t": 0.3744
+    },
+    {
+      "id": 5,
+      "t": 0.4792
+    },
+    {
+      "id": 6,
+      "t": 0.584
+    },
+    {
+      "id": 7,
+      "t": 0.6889
+    },
+    {
+      "id": 8,
+      "t": 0.7847
+    },
+    {
+      "id": 9,
+      "t": 0.8686
+    }
+  ],
+  "pickups": [
+    {
+      "t": 0.0449,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        },
+        {
+          "type": "nitro",
+          "lane": 2
+        }
+      ]
+    },
+    {
+      "t": 0.2097,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "repair",
+          "lane": 1
+        }
+      ]
+    },
+    {
+      "t": 0.4253,
+      "items": [
+        {
+          "type": "nitro",
+          "lane": 0
+        },
+        {
+          "type": "rocket",
+          "lane": 1
+        }
+      ]
+    },
+    {
+      "t": 0.6739,
+      "items": [
+        {
+          "type": "repair",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        }
+      ]
+    },
+    {
+      "t": 0.8087,
+      "items": [
+        {
+          "type": "rocket",
+          "lane": 0
+        },
+        {
+          "type": "nitro",
+          "lane": 1
+        }
+      ]
+    }
+  ],
+  "noFireZones": [
+    {
+      "name": "Tunnel",
+      "fromT": 0.4463,
+      "toT": 0.578
+    },
+    {
+      "name": "Nouvelle Chicane",
+      "fromT": 0.635,
+      "toT": 0.6499
+    }
+  ],
+  "road": {
+    "widthM": 12,
+    "texture": "textures/mc_road.png",
+    "kerbs": {
+      "model": "models/props_monaco/kerb_4m.glb",
+      "where": "inside of every corner from turn-in to apex, outside at exits"
+    },
+    "surface": "fresh street asphalt, grip ×1.0; painted lines and kerbs grip ×0.85"
+  },
+  "barriers": {
+    "armco": {
+      "model": "models/props_monaco/armco_4m.glb",
+      "adModels": [
+        "models/props_monaco/armco_ad_emesoft.glb",
+        "models/props_monaco/armco_ad_capturemann.glb",
+        "models/props_monaco/armco_ad_craftmann.glb",
+        "models/props_monaco/armco_ad_voltline.glb"
+      ],
+      "lateralM": 6.6,
+      "both": true,
+      "adEvery": 3,
+      "note": "Instance every 4 m on both sides for the whole lap, except the tunnel (use tunnel walls) and the pit-lane opening; every 3rd segment uses an ad panel, cycling the 4 sponsors"
+    },
+    "catchFence": {
+      "model": "models/props_monaco/catch_fence_4m.glb",
+      "lateralM": 6.75,
+      "where": "behind the Armco except along grandstands"
+    },
+    "tyreWalls": [
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 263,
+        "t": 0.0788,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 1104,
+        "t": 0.3307,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 1236,
+        "t": 0.3702,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 1331,
+        "t": 0.3986,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 1466,
+        "t": 0.4391,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 2144,
+        "t": 0.6421,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 2786,
+        "t": 0.8344,
+        "side": "outside",
+        "count": 6
+      },
+      {
+        "model": "models/props_monaco/tyre_wall_4m.glb",
+        "s": 2903,
+        "t": 0.8695,
+        "side": "outside",
+        "count": 6
+      }
+    ]
+  },
+  "pits": {
+    "building": {
+      "model": "models/props_monaco/pit_building_60m.glb",
+      "segments": [
+        {
+          "model": "models/props_monaco/pit_building_60m.glb",
+          "position": [
+            -107.4,
+            2.37,
+            171
+          ],
+          "yawDeg": -130.1
+        },
+        {
+          "model": "models/props_monaco/pit_building_60m.glb",
+          "position": [
+            -68.7,
+            2.63,
+            125.1
+          ],
+          "yawDeg": -130.1
+        },
+        {
+          "model": "models/props_monaco/pit_building_60m.glb",
+          "position": [
+            -30.1,
+            2.86,
+            79.2
+          ],
+          "yawDeg": -130.1
+        },
+        {
+          "model": "models/props_monaco/pit_building_60m.glb",
+          "position": [
+            8.5,
+            2.99,
+            33.3
+          ],
+          "yawDeg": -130.1
+        },
+        {
+          "model": "models/props_monaco/pit_building_60m.glb",
+          "position": [
+            47.2,
+            2.94,
+            -12.6
+          ],
+          "yawDeg": -130.1
+        }
+      ]
+    },
+    "laneM": {
+      "lateral": 14,
+      "entryT": 0.9221,
+      "exitT": 0.0359
+    },
+    "note": "Pit lane inside the main straight (right side); pit wall + garages"
+  },
+  "grandstands": [
+    {
+      "note": "main straight, harbour side",
+      "segments": [
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            29.5,
+            2.88,
+            -53.6
+          ],
+          "yawDeg": 49.9
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            55.2,
+            2.7,
+            -84.2
+          ],
+          "yawDeg": 49.9
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            81,
+            2.49,
+            -114.8
+          ],
+          "yawDeg": 49.9
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            106.7,
+            2.28,
+            -145.4
+          ],
+          "yawDeg": 49.9
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            132.5,
+            2.11,
+            -176
+          ],
+          "yawDeg": 49.9
+        }
+      ]
+    },
+    {
+      "note": "Tabac / harbour quay",
+      "segments": [
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            173.4,
+            2.05,
+            242.7
+          ],
+          "yawDeg": 160.7
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            145,
+            2,
+            247.2
+          ],
+          "yawDeg": 209.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            110.1,
+            2,
+            266.7
+          ],
+          "yawDeg": 209.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            75.1,
+            2,
+            286.1
+          ],
+          "yawDeg": 209.1
+        }
+      ]
+    },
+    {
+      "note": "Piscine",
+      "segments": [
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            48.9,
+            2,
+            300.7
+          ],
+          "yawDeg": 209.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            18.4,
+            2,
+            319.8
+          ],
+          "yawDeg": 227.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            -16.2,
+            2,
+            345.8
+          ],
+          "yawDeg": 209.1
+        }
+      ]
+    },
+    {
+      "note": "La Rascasse",
+      "segments": [
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            -210.2,
+            2,
+            447.6
+          ],
+          "yawDeg": 209.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            -256.3,
+            2,
+            463.1
+          ],
+          "yawDeg": 159
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            -277,
+            2,
+            418.3
+          ],
+          "yawDeg": 100.9
+        }
+      ]
+    },
+    {
+      "note": "Sainte Dévote",
+      "segments": [
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            163.7,
+            2.05,
+            -175.9
+          ],
+          "yawDeg": -130.1
+        },
+        {
+          "model": "models/props_monaco/grandstand_40m.glb",
+          "position": [
+            179.2,
+            2.01,
+            -181
+          ],
+          "yawDeg": -222
+        }
+      ]
+    }
+  ],
+  "marshals": [
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        57.9,
+        2.7,
+        -82
+      ],
+      "yawDeg": 49.9
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        252.4,
+        5.76,
+        -142.6
+      ],
+      "yawDeg": -42
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        468.1,
+        18.55,
+        -3.3
+      ],
+      "yawDeg": -28
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        698,
+        37.56,
+        119
+      ],
+      "yawDeg": -28
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        852.2,
+        36.89,
+        250.6
+      ],
+      "yawDeg": 211.1
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        904.7,
+        14.73,
+        317.4
+      ],
+      "yawDeg": -59
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        753.1,
+        6.05,
+        462.8
+      ],
+      "yawDeg": 187.8
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        498.3,
+        4.98,
+        411
+      ],
+      "yawDeg": 151
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        269.6,
+        2.47,
+        291.4
+      ],
+      "yawDeg": 151
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        47.2,
+        2,
+        297.6
+      ],
+      "yawDeg": 209.1
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        -176.9,
+        2,
+        425.1
+      ],
+      "yawDeg": 209.1
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        -250.5,
+        2,
+        284.3
+      ],
+      "yawDeg": 49.9
+    },
+    {
+      "model": "models/props_monaco/marshal_post.glb",
+      "position": [
+        -83,
+        2.72,
+        85.4
+      ],
+      "yawDeg": 49.9
+    }
+  ],
+  "tunnel": {
+    "fromT": 0.4463,
+    "toT": 0.578,
+    "segmentModel": "models/props_monaco/tunnel_segment_20m.glb",
+    "hotel": {
+      "model": "models/props_monaco/hotel_over_tunnel.glb",
+      "position": [
+        712.2,
+        5.82,
+        458
+      ],
+      "note": "curved hotel block on top of the tunnel, sea-facing side is outside the curve"
+    },
+    "audio": "route all car audio through a ConvolverNode with sfx/monaco/tunnel_ir.wav while inside; exposure -1.5 EV inside, bloom flare at the exit"
+  },
+  "buildings": {
+    "belleEpoque": {
+      "models": [
+        "models/props_monaco/belle_epoque_a.glb",
+        "models/props_monaco/belle_epoque_b.glb",
+        "models/props_monaco/belle_epoque_c.glb",
+        "models/props_monaco/belle_epoque_d.glb"
+      ],
+      "rows": [
+        {
+          "fromT": 0.0899,
+          "toT": 0.2785,
+          "side": "both",
+          "setbackM": 16,
+          "gapM": 2
+        },
+        {
+          "fromT": 0.3295,
+          "toT": 0.4373,
+          "side": "both",
+          "setbackM": 16,
+          "gapM": 2
+        },
+        {
+          "fromT": 0.8686,
+          "toT": 0.9884,
+          "side": "right",
+          "setbackM": 16,
+          "gapM": 2
+        }
+      ],
+      "note": "continuous terraces, random model, front faces the road"
+    },
+    "casino": {
+      "model": "models/props_monaco/grand_casino.glb",
+      "position": [
+        790.6,
+        41.5,
+        66.7
+      ],
+      "yawDeg": -3.1,
+      "gardens": {
+        "flowerBeds": 6,
+        "fountain": [
+          829.1,
+          41.99,
+          119.9
+        ],
+        "palms": 16
+      }
+    },
+    "towers": {
+      "models": [
+        "models/props_monaco/modern_tower_a.glb",
+        "models/props_monaco/modern_tower_b.glb"
+      ],
+      "area": "inside the loop north of the main straight and up the hill behind Beau Rivage",
+      "count": 18,
+      "note": "scatter on terraces at y = 10–80 m; never closer than 40 m to the track"
+    },
+    "palms": {
+      "models": [
+        "models/props_monaco/palm_a.glb",
+        "models/props_monaco/palm_b.glb"
+      ],
+      "along": "harbour quay (left of Tabac → Rascasse) every 14 m, main straight median every 18 m, Casino gardens"
+    }
+  },
+  "harbour": {
+    "water": {
+      "texture": "textures/mc_sea.png",
+      "y": 0,
+      "note": "Water plane at y = 0 everywhere left of the Tunnel exit → Rascasse legs and beyond the tunnel seawall; scroll UV 0.02 m/s, roughness 0.08"
+    },
+    "pool": {
+      "model": "models/props_monaco/swimming_pool.glb",
+      "position": [
+        -44.4,
+        2,
+        377.5
+      ],
+      "yawDeg": 119.1
+    },
+    "yachts": [
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          238.8,
+          0,
+          305.8
+        ],
+        "yawDeg": 146.6
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          208.6,
+          0,
+          289.1
+        ],
+        "yawDeg": 145.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          166.9,
+          0,
+          265.9
+        ],
+        "yawDeg": 154.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          161.1,
+          0,
+          265.8
+        ],
+        "yawDeg": 207.5
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          114.2,
+          0,
+          291.8
+        ],
+        "yawDeg": 211
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          85.5,
+          0,
+          307.8
+        ],
+        "yawDeg": 211.2
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          46.4,
+          0,
+          329.6
+        ],
+        "yawDeg": 204.9
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          29.5,
+          0,
+          343.7
+        ],
+        "yawDeg": 225.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          -18.6,
+          0,
+          374.6
+        ],
+        "yawDeg": 210
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -46.6,
+          0,
+          390.2
+        ],
+        "yawDeg": 203.5
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          -102.3,
+          0,
+          419.4
+        ],
+        "yawDeg": 198.2
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -127,
+          0,
+          428.8
+        ],
+        "yawDeg": 211.2
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          -159.1,
+          0,
+          446.7
+        ],
+        "yawDeg": 206
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          -192.1,
+          0,
+          465
+        ],
+        "yawDeg": 203.4
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -261.6,
+          0,
+          486.6
+        ],
+        "yawDeg": 157.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          218.5,
+          0,
+          342.5
+        ],
+        "yawDeg": 152.7
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          189.6,
+          0,
+          326.5
+        ],
+        "yawDeg": 152.3
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          162.9,
+          0,
+          311.8
+        ],
+        "yawDeg": 148.7
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          159.4,
+          0,
+          306.8
+        ],
+        "yawDeg": 176.2
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          168.9,
+          0,
+          309.4
+        ],
+        "yawDeg": 203.2
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          128.3,
+          0,
+          332.1
+        ],
+        "yawDeg": 213.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          85.6,
+          0,
+          355.8
+        ],
+        "yawDeg": 214.7
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          61,
+          0,
+          369.5
+        ],
+        "yawDeg": 216.9
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          15.8,
+          0,
+          403.6
+        ],
+        "yawDeg": 209.7
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -23.1,
+          0,
+          425.2
+        ],
+        "yawDeg": 207.5
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          -66.5,
+          0,
+          449.4
+        ],
+        "yawDeg": 208.6
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          -113.2,
+          0,
+          469.2
+        ],
+        "yawDeg": 206.8
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          -155.6,
+          0,
+          492.8
+        ],
+        "yawDeg": 205.8
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          -182.1,
+          0,
+          507.5
+        ],
+        "yawDeg": 208.8
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          -334.4,
+          0,
+          466.4
+        ],
+        "yawDeg": 112.5
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          198.1,
+          0,
+          379.3
+        ],
+        "yawDeg": 152.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          171.3,
+          0,
+          364.4
+        ],
+        "yawDeg": 151.2
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          142,
+          0,
+          348.2
+        ],
+        "yawDeg": 154.6
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          179.3,
+          0,
+          347.6
+        ],
+        "yawDeg": 190.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          185.8,
+          0,
+          348.1
+        ],
+        "yawDeg": 211.9
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          141.3,
+          0,
+          372.9
+        ],
+        "yawDeg": 212.5
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          103.2,
+          0,
+          394.1
+        ],
+        "yawDeg": 207.7
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          101.7,
+          0,
+          388.5
+        ],
+        "yawDeg": 233.5
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          30.4,
+          0,
+          443.5
+        ],
+        "yawDeg": 213.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -2.4,
+          0,
+          461.7
+        ],
+        "yawDeg": 203.5
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          -29.5,
+          0,
+          476.8
+        ],
+        "yawDeg": 204.8
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          -102.7,
+          0,
+          504.3
+        ],
+        "yawDeg": 183.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          -103,
+          0,
+          511.6
+        ],
+        "yawDeg": 208.8
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          -149.5,
+          0,
+          537.5
+        ],
+        "yawDeg": 206.7
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          -180.3,
+          0,
+          554.6
+        ],
+        "yawDeg": 208.7
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          177.8,
+          0,
+          416
+        ],
+        "yawDeg": 150.8
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          143.7,
+          0,
+          397.1
+        ],
+        "yawDeg": 146.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          107.9,
+          0,
+          377.3
+        ],
+        "yawDeg": 154.9
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          211.9,
+          0,
+          381
+        ],
+        "yawDeg": 203
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          180.2,
+          0,
+          399.3
+        ],
+        "yawDeg": 208.1
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          140.6,
+          0,
+          421.3
+        ],
+        "yawDeg": 203.1
+      },
+      {
+        "model": "models/props_monaco/superyacht_navy.glb",
+        "position": [
+          103.9,
+          0,
+          441.7
+        ],
+        "yawDeg": 212.1
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_a.glb",
+        "position": [
+          67.6,
+          0,
+          470.8
+        ],
+        "yawDeg": 204.8
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          22.5,
+          0,
+          495.9
+        ],
+        "yawDeg": 204.1
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          -18.7,
+          0,
+          518.8
+        ],
+        "yawDeg": 210.9
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          -50.7,
+          0,
+          530.5
+        ],
+        "yawDeg": 213.2
+      },
+      {
+        "model": "models/props_monaco/sail_yacht_b.glb",
+        "position": [
+          -97.3,
+          0,
+          556.5
+        ],
+        "yawDeg": 210.2
+      },
+      {
+        "model": "models/props_monaco/superyacht_white.glb",
+        "position": [
+          -125.7,
+          0,
+          572.3
+        ],
+        "yawDeg": 204.3
+      },
+      {
+        "model": "models/props_monaco/superyacht_grey.glb",
+        "position": [
+          -167.6,
+          0,
+          595.5
+        ],
+        "yawDeg": 202.7
+      }
+    ],
+    "pontoons": [
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          229.1,
+          2.33,
+          282.1
+        ],
+        "yawDeg": 151
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          176.7,
+          2.08,
+          253.1
+        ],
+        "yawDeg": 151
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          140.1,
+          2,
+          259.1
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          87.7,
+          2,
+          288.2
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          35.3,
+          2,
+          317.4
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          -12.3,
+          2,
+          352.8
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          -64.8,
+          2,
+          382
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          -118.9,
+          2,
+          406
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          -171.3,
+          2,
+          435.2
+        ],
+        "yawDeg": 209.1
+      },
+      {
+        "model": "models/props_monaco/pontoon_40m.glb",
+        "position": [
+          -223.7,
+          2,
+          464.3
+        ],
+        "yawDeg": 209.1
+      }
+    ],
+    "lights": [
+      {
+        "model": "models/props_monaco/harbour_light.glb",
+        "position": [
+          248.1,
+          2,
+          473.7
+        ]
+      },
+      {
+        "model": "models/props_monaco/harbour_light.glb",
+        "position": [
+          -25.6,
+          2,
+          594.4
+        ]
+      }
+    ]
+  },
+  "backdrop": {
+    "rock": {
+      "model": "models/props_monaco/rock_headland.glb",
+      "position": [
+        -402.2,
+        2,
+        844.1
+      ],
+      "note": "the old-town headland across the harbour"
+    },
+    "mountains": {
+      "model": "models/props_monaco/mountain_backdrop.glb",
+      "position": [
+        300,
+        0,
+        -900
+      ],
+      "note": "cliff wall north of the city, 420 m high"
+    },
+    "sky": "textures/mc_sky_gradient.png"
+  },
+  "helicopter": {
+    "model": "models/props_monaco/tv_helicopter.glb",
+    "follow": "race leader, 60 m up, 40 m behind and 30 m to the harbour side; rotor spin 6 rev/s",
+    "sfx": "sfx/monaco/helicopter_loop.wav"
+  },
+  "audio": {
+    "ambience": [
+      {
+        "sfx": "sfx/monaco/harbour_ambience_loop.wav",
+        "where": "harbour sections F–H + main straight",
+        "volume": 0.55
+      },
+      {
+        "sfx": "sfx/monaco/crowd_loop.wav",
+        "where": "within 60 m of any grandstand",
+        "volume": 0.6
+      }
+    ],
+    "events": [
+      {
+        "sfx": "sfx/monaco/crowd_cheer.wav",
+        "when": "overtake or takedown within 80 m of a grandstand"
+      },
+      {
+        "sfx": "sfx/monaco/yacht_horn.wav",
+        "when": "random every 25–60 s from a yacht; also when you cross the line in P1"
+      },
+      {
+        "sfx": "sfx/monaco/passby_openwheel.wav",
+        "when": "AI open-wheel car passes the camera within 6 m"
+      }
+    ],
+    "tunnelReverb": "sfx/monaco/tunnel_ir.wav",
+    "music": {
+      "menu": "music/monaco_riviera_loop.wav",
+      "note": "plays on track select / pre-race for this map, ducks to 0 at the start lights"
+    }
+  },
+  "lighting": {
+    "sun": {
+      "dir": [
+        -0.45,
+        -0.75,
+        0.48
+      ],
+      "color": "#FFF4E0",
+      "intensity": 3.2,
+      "note": "late-morning Riviera sun from the south, crisp shadows"
+    },
+    "hemi": {
+      "sky": "#8EC5F0",
+      "ground": "#C9B79A",
+      "intensity": 1.1
+    },
+    "fog": {
+      "color": "#CFE3F2",
+      "density": 0.0012
+    },
+    "sky": "textures/mc_sky_gradient.png",
+    "bloom": {
+      "strength": 0.3,
+      "threshold": 0.9
+    },
+    "toneMappingExposure": 1.05,
+    "water": {
+      "sunGlint": true
+    }
+  }
+}

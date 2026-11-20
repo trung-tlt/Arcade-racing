@@ -11,8 +11,9 @@ const BUCKETS: Record<Bucket, { metalness: number; roughness: number }> = {
 };
 
 const sharedMats = new Map<Bucket, THREE.MeshStandardMaterial>();
-/** Merged geometry per source geometry + bucket, shared by every car of the same model. */
-const mergedGeos = new WeakMap<THREE.BufferGeometry, Map<Bucket, THREE.BufferGeometry>>();
+/** Merged geometry per source geometry + bucket (+ livery), shared by every car of the same model and livery. */
+const mergedGeos = new WeakMap<THREE.BufferGeometry, Map<string, THREE.BufferGeometry>>();
+const colourScratch = new THREE.Color();
 
 function sharedMaterial(b: Bucket): THREE.MeshStandardMaterial {
   let m = sharedMats.get(b);
@@ -28,7 +29,10 @@ function sharedMaterial(b: Bucket): THREE.MeshStandardMaterial {
 const isStdMesh = (c: THREE.Object3D): c is THREE.Mesh & { material: THREE.MeshStandardMaterial } =>
   c instanceof THREE.Mesh && c.material instanceof THREE.MeshStandardMaterial;
 const isKept = (m: THREE.MeshStandardMaterial): boolean =>
-  KEEP.has(m.name) || !!m.map || (m.emissiveIntensity > 0 && m.emissive.getHex() !== 0);
+  KEEP.has(m.name) ||
+  m.userData.keepSeparate === true ||
+  !!m.map ||
+  (m.emissiveIntensity > 0 && m.emissive.getHex() !== 0);
 
 /**
  * Cuts a car's draw calls. GLTFLoader gives a multi-material part as a node with one child Mesh per material; here
@@ -36,7 +40,17 @@ const isKept = (m: THREE.MeshStandardMaterial): boolean =>
  * (metal / matte). `singleBucket(node)` (wheels) forces one material. Geometry is cached, so all cars of one model
  * share it; the two merged materials are shared too (flagged `userData.shared`, never disposed per car).
  */
-export function mergeCarMaterials(root: THREE.Object3D, singleBucket: (node: THREE.Object3D) => boolean): void {
+export function mergeCarMaterials(
+  root: THREE.Object3D,
+  singleBucket: (node: THREE.Object3D) => boolean,
+  /** Livery: material name → hex colour baked into the merged vertex colours (a different livery = its own geometry). */
+  recolor?: Readonly<Record<string, string>>,
+): void {
+  const liveryKey = recolor
+    ? Object.entries(recolor)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(',')
+    : '';
   const nodes: THREE.Object3D[] = [];
   root.traverse((o) => {
     if (o.children.filter(isStdMesh).length >= 2) nodes.push(o);
@@ -57,7 +71,8 @@ export function mergeCarMaterials(root: THREE.Object3D, singleBucket: (node: THR
         perBucket = new Map();
         mergedGeos.set(key, perBucket);
       }
-      let merged = perBucket.get(b);
+      const cacheKey = `${b}|${liveryKey}`;
+      let merged = perBucket.get(cacheKey);
       if (!merged) {
         const parts = group.map((m) => {
           const g = m.geometry.clone();
@@ -66,7 +81,8 @@ export function mergeCarMaterials(root: THREE.Object3D, singleBucket: (node: THR
             if (name !== 'position' && name !== 'normal') g.deleteAttribute(name);
           const n = g.getAttribute('position').count;
           const col = new Float32Array(n * 3);
-          const c = m.material.color;
+          const hex = recolor?.[m.material.name];
+          const c = hex ? colourScratch.set(hex) : m.material.color;
           for (let i = 0; i < n; i++) {
             col[i * 3] = c.r;
             col[i * 3 + 1] = c.g;
@@ -77,7 +93,7 @@ export function mergeCarMaterials(root: THREE.Object3D, singleBucket: (node: THR
         });
         merged = mergeGeometries(parts, false) ?? parts[0];
         parts.forEach((g) => g !== merged && g.dispose());
-        perBucket.set(b, merged);
+        perBucket.set(cacheKey, merged);
       }
       const mesh = new THREE.Mesh(merged, sharedMaterial(b));
       mesh.name = `${node.name || 'part'}_${b}`;

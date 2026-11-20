@@ -1,3 +1,11 @@
+/** Paint scheme override for one car (Fulmine FX liveries): body, accent stripes and underglow, as hex colours. */
+export interface Livery {
+  name?: string;
+  paint: string;
+  accent: string;
+  glow: string;
+}
+
 /** One AI opponent: who they are (random each race) and how they drive (fixed per grid slot in data/ai.json). */
 export interface Rival {
   id: string;
@@ -5,6 +13,8 @@ export interface Rival {
   car: string;
   laneOffsetM: number;
   skill: number;
+  /** Set on maps with a track roster (Map 5's open-wheel grid). */
+  livery?: Livery;
 }
 
 /** Fisher-Yates shuffle of a copy. */
@@ -36,4 +46,25 @@ export function rollRoster(
     name: (pickNames[i % pickNames.length] ?? s.name).toLocaleUpperCase('vi'),
     car: pickCars[i % pickCars.length] ?? s.car,
   }));
+}
+
+export interface TrackRoster {
+  car: string;
+  liveries: readonly Livery[];
+}
+
+/**
+ * Maps with an entry in `ai.json` `trackRosters` field their own grid: every rival drives that car, each in a different
+ * livery (shuffled, so who wears which changes per race). Other maps keep the random roster untouched.
+ */
+export function applyTrackRoster(
+  rivals: readonly Rival[],
+  trackId: string,
+  rosters: Readonly<Record<string, TrackRoster>>,
+  rnd: () => number = Math.random,
+): Rival[] {
+  const t = rosters[trackId];
+  if (!t || t.liveries.length === 0) return rivals.map((r) => ({ ...r }));
+  const pool = shuffled(t.liveries, rnd);
+  return rivals.map((r, i) => ({ ...r, car: t.car, livery: pool[i % pool.length] }));
 }

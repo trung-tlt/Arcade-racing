@@ -59,7 +59,7 @@ export function sponsorPlacements(track: TrackDef): SponsorPlacement[] {
 }
 
 /** Identity of a draw: merged vertex-colour materials by name, textured ones by texture name + size (each GLB embeds its own copy). */
-function materialKey(m: THREE.Material): string {
+export function materialKey(m: THREE.Material): string {
   if (m.userData.shared) return m.name;
   const s = m as THREE.MeshStandardMaterial;
   const img = s.map?.image as { width?: number; height?: number } | null | undefined;

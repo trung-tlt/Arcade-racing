@@ -8,6 +8,7 @@ import { PulseGun } from '../combat/PulseMG';
 import { RocketAmmo } from '../combat/Rockets';
 import { CarPhysics, IDLE_CONTROLS, type CarControls } from './CarPhysics';
 import { CarVisual, type TurretAim } from './CarVisual';
+import type { Livery } from '../ai/Roster';
 
 export interface CarController {
   read(): CarControls;
@@ -29,6 +30,8 @@ export interface CarOptions {
   scene: THREE.Scene;
   /** Underglow colour override (rivals / dummies). */
   tint?: string;
+  /** Paint scheme for this car (rival Fulmine FX liveries). */
+  livery?: Livery;
 }
 
 /** Player and AI cars are the same class; only the controller differs. */
@@ -46,6 +49,8 @@ export class Car {
   readonly aim: TurretAim = { yawRad: 0, holdSec: 0 };
   score = 0;
   takedowns = 0;
+  /** True inside a no-fire zone: the trigger does nothing (set by the game from the track's `noFireZones`). */
+  weaponsLocked = false;
   /** Controls actually applied this step (idle while wrecked). */
   controls: CarControls = { ...IDLE_CONTROLS };
   private nitroWhole = 0;
@@ -59,7 +64,7 @@ export class Car {
     this.controller = o.controller;
     this.events = o.events;
     this.physics = new CarPhysics(o.R, o.world, o.def, o.handling, o.spawn);
-    this.visual = new CarVisual(o.assets, o.def, this.physics, o.tint, this.aim);
+    this.visual = new CarVisual(o.assets, o.def, this.physics, o.tint, this.aim, o.livery);
     this.hullCfg = {
       maxHp: o.def.hp,
       respawnDelaySec: WEAPONS.wreck.respawnDelaySec,
@@ -78,8 +83,8 @@ export class Car {
       this.controls = { ...IDLE_CONTROLS };
       return;
     }
-    this.controls = c;
-    this.physics.preStep(dt, c);
+    this.controls = this.weaponsLocked ? { ...c, fire: false, fireSecondary: false } : c;
+    this.physics.preStep(dt, this.controls);
   }
 
   postStep(): void {

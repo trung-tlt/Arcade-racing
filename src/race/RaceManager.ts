@@ -1,6 +1,7 @@
 import type { EventBus } from '../core/Events';
 import { LapTracker } from './Laps';
 import { crossed } from './Positions';
+import type { StartLights } from './StartLights';
 
 export type RacePhase = 'countdown' | 'racing' | 'finished';
 
@@ -12,6 +13,13 @@ export interface RaceConfig {
   countdownSteps: number;
   countdownStepSec: number;
   goHoldSec: number;
+  /**
+   * Tracks with a light-sequence start: it replaces the 3-2-1 steps (the countdown ends when the lights go out). One
+   * instance is shared by every car's manager; the game restarts and updates it once per step.
+   */
+  startLights?: StartLights;
+  /** Seconds added to the finish time of a jump start. */
+  jumpStartPenaltySec?: number;
 }
 
 /** Pure race state machine for one car: countdown → racing → finished. No rendering or physics. */
@@ -23,6 +31,8 @@ export class RaceManager {
   private countdownElapsed = 0;
   private sinceGo = 0;
   private lastT = 0;
+  /** Seconds added to this car's finish time (jump start). */
+  penaltySec = 0;
 
   constructor(
     private readonly cfg: RaceConfig,
@@ -37,7 +47,26 @@ export class RaceManager {
     this.countdownElapsed = 0;
     this.sinceGo = 0;
     this.lastT = startT;
+    this.penaltySec = 0;
     this.laps.start(0);
+  }
+
+  /** True for a light-sequence start (the HUD shows the lamps instead of 3-2-1). */
+  get usesStartLights(): boolean {
+    return !!this.cfg.startLights;
+  }
+
+  /** Lamps lit right now, or null when this race has no light-sequence start. */
+  get startLightsLit(): number | null {
+    return this.cfg.startLights ? this.cfg.startLights.lit : null;
+  }
+
+  /** Jump start: throttle before the lights go out adds the penalty (once). Returns true when it was applied. */
+  jumpStart(throttle: number): boolean {
+    const sl = this.cfg.startLights;
+    if (!sl || this.penaltySec > 0 || this.phase !== 'countdown' || !sl.isJumpStart(throttle)) return false;
+    this.penaltySec = this.cfg.jumpStartPenaltySec ?? 0;
+    return this.penaltySec > 0;
   }
 
   /** Along-track position at the last update. */
@@ -47,7 +76,8 @@ export class RaceManager {
 
   /** Race time at which the car finished, or null. */
   get finishTimeSec(): number | null {
-    return this.laps.totalTimeSec;
+    const t = this.laps.totalTimeSec;
+    return t === null ? null : t + this.penaltySec;
   }
 
   /** t of the next gate the car must pass (a checkpoint, else the start/finish line at 0). */
@@ -59,6 +89,7 @@ export class RaceManager {
 
   /** 3, 2, 1 while counting down; 0 from GO until the banner expires; null afterwards. */
   get countdownValue(): number | null {
+    if (this.phase === 'countdown' && this.cfg.startLights) return 1; // the lamps, not a number
     if (this.phase === 'countdown') {
       const step = Math.floor(this.countdownElapsed / this.cfg.countdownStepSec);
       return Math.max(1, this.cfg.countdownSteps - step);
@@ -80,7 +111,9 @@ export class RaceManager {
   update(dt: number, carT: number): void {
     if (this.phase === 'countdown') {
       this.countdownElapsed += dt;
-      if (this.countdownElapsed >= this.cfg.countdownSteps * this.cfg.countdownStepSec) {
+      const sl = this.cfg.startLights;
+      const done = sl ? sl.released : this.countdownElapsed >= this.cfg.countdownSteps * this.cfg.countdownStepSec;
+      if (done) {
         this.phase = 'racing';
         this.sinceGo = 0;
       }

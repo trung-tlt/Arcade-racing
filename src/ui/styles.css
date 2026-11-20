@@ -188,6 +188,29 @@ body {
   color: #e8ecf2;
   text-shadow: 0 4px 24px rgba(14, 17, 22, 0.9);
 }
+.race-lamps {
+  display: inline-flex;
+  gap: 18px;
+  padding: 16px 26px;
+  border-radius: 14px;
+  background: rgba(14, 17, 22, 0.8);
+}
+.race-lamps i {
+  display: block;
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  background: #1b222d;
+  border: 2px solid #2a3240;
+}
+.race-lamps i.on {
+  background: #ff3d6e;
+  border-color: #ff8fab;
+  box-shadow: 0 0 22px 4px rgba(255, 61, 110, 0.7);
+}
+.race-banner.lamps {
+  font-size: 16px;
+}
 .race-banner.go {
   color: var(--pickup);
 }
@@ -312,6 +335,35 @@ body {
   font-weight: 700;
   font-size: 18px;
   letter-spacing: 1px;
+}
+.cb-lock {
+  position: fixed;
+  left: 50%;
+  top: 78px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--enemy, #ff3d6e);
+  background: rgba(14, 17, 22, 0.78);
+  color: var(--enemy, #ff3d6e);
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 2px;
+}
+.cb-lock[hidden] {
+  display: none;
+}
+.cb-lock small {
+  display: block;
+  font-family: Inter, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  color: #b4bdcb;
 }
 .cb-feed {
   font-size: 12px;

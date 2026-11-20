@@ -22,5 +22,16 @@
     "exposureMul": 1.25,
     "fogMul": 0.55,
     "landColor": "#3E454B"
+  },
+  "monteCarlo": {
+    "envIntensity": 0.08,
+    "sky": {
+      "turbidity": 3.5,
+      "rayleigh": 1.4,
+      "mieCoefficient": 0.004,
+      "mieDirectionalG": 0.82,
+      "gain": 0.22
+    },
+    "tunnelFill": 4.5
   }
 }

@@ -3,7 +3,12 @@
     "steps": 3,
     "stepSec": 1,
     "goHoldSec": 1.2,
-    "lampsLit": [2, 3, 4, 5],
+    "lampsLit": [
+      2,
+      3,
+      4,
+      5
+    ],
     "lampOnIntensity": 4,
     "stopColor": "#FF3D6E",
     "goColor": "#C6FF3D"
@@ -35,5 +40,15 @@
     "dnfAfterPlayerFinishSec": 10,
     "holdFireSec": 5,
     "laneReferenceWidthM": 18
+  },
+  "startLights": {
+    "lamps": 5,
+    "stepSec": 1,
+    "holdMinSec": 0.2,
+    "holdMaxSec": 3,
+    "goHoldSec": 1.2,
+    "jumpStartPenaltySec": 3,
+    "jumpStartThrottle": 0.1,
+    "lampOnIntensity": 4
   }
 }

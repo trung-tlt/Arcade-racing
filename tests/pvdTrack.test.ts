@@ -17,7 +17,7 @@ function assetPaths(v: unknown, out = new Set<string>()): Set<string> {
 
 describe('Pham Van Dong Boulevard track data', () => {
   it('is the 4th map, a storm, with 2 laps and elevation', () => {
-    expect(TRACKS.map((t) => t.id)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong']);
+    expect(TRACKS.map((t) => t.id).slice(0, 4)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong']);
     expect(getTrack('pham_van_dong')).toBe(PVD);
     expect(PVD.timeOfDay).toBe('storm');
     expect(PVD.laps).toBe(2);

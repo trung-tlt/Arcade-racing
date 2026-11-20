@@ -13,8 +13,9 @@ type Dbg = {
 // Every map must be finishable: with the rivals' guns off (so wrecks don't muddy the result) all five complete
 // 3 laps in simulated time, and none spends the race wedged against scenery.
 // Map 4's wet road, flood dip and two U-turns cost the rivals more recoveries than the dry maps.
-const MAX_RECOVERIES: Record<string, number> = { pham_van_dong: 16 };
-for (const track of ['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong']) {
+// Map 5's 12 m street between Armco walls costs the rivals about as many.
+const MAX_RECOVERIES: Record<string, number> = { pham_van_dong: 16, monte_carlo: 16 };
+for (const track of ['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong', 'monte_carlo']) {
   test(`all rivals finish 3 laps on ${track} without being blocked`, async ({ page }) => {
     test.setTimeout(300_000);
     await page.goto(`/?quick=1&mode=race&roster=data&track=${track}`);

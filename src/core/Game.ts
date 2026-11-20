@@ -2,10 +2,14 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { AudioBus } from '../audio/AudioBus';
 import { EngineSound } from '../audio/EngineSound';
-import { bindSfx, playCountdown, sfxFiles } from '../audio/Sfx';
+import { MonteCarloAudio, trackAudioFiles } from '../audio/MonteCarloAudio';
+import { bindSfx, playCountdown, playStartGo, playStartLamp, sfxFiles } from '../audio/Sfx';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
 import { RacingLine } from '../ai/RacingLine';
-import { type Rival, rollRoster } from '../ai/Roster';
+import { type Rival, applyTrackRoster, rollRoster } from '../ai/Roster';
+import { contactDamage, isSideHit, wallHit } from '../combat/Contact';
+import { noFireZoneAt } from '../race/NoFire';
+import { StartLights } from '../race/StartLights';
 import { CombatSystem } from '../combat/CombatSystem';
 import { expandPickups } from '../combat/Pickups';
 import { PickupVisuals } from '../combat/PickupVisuals';
@@ -28,6 +32,7 @@ import { CatLaiYard } from '../world/CatLaiYard';
 import { PvdDressing } from '../world/PvdDressing';
 import { PvdStructures, pvdTerrainHoles } from '../world/PvdStructures';
 import { PvdTraffic } from '../world/PvdTraffic';
+import { MonteCarlo } from '../world/MonteCarlo';
 import { Sponsors } from '../world/Sponsors';
 import { WeatherSystem } from '../weather/WeatherSystem';
 import { XaLoDressing } from '../world/XaLoDressing';
@@ -57,6 +62,7 @@ import {
   getTrack,
   roadWidthAt,
   XA_LO,
+  MONTE_CARLO,
   PHAM_VAN_DONG,
   type TrackDef,
 } from './Data';
@@ -143,6 +149,9 @@ export class Game {
     traffic: PvdTraffic;
   } | null = null;
   private weather: WeatherSystem | null = null;
+  /** Map 5 (Monte-Carlo Harbour): terrain, circuit furniture, city, harbour, sky and the helicopter. */
+  private monte: MonteCarlo | null = null;
+  private monteAudio: MonteCarloAudio | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
   private catLai: { yard: CatLaiYard; quay: CatLaiQuay } | null = null;
@@ -187,6 +196,12 @@ export class Game {
   private unbindSfx: (() => void) | null = null;
   private lastCountdown: number | null = null;
   private lastControls = { throttle: 0, brake: 0 };
+  /** Light-sequence start (Map 5); null on the maps with the 3-2-1 countdown. One instance for every car. */
+  private startLights: StartLights | null = null;
+  /** Seconds before a car can take another wall / contact hit (stops one scrape counting every step). */
+  private readonly hitCooldown = new Map<string, number>();
+  private readonly passbyCooldown = new Map<string, number>();
+  private readonly sparkPos = new THREE.Vector3();
   private dev: Awaited<ReturnType<typeof setupDevTools>> | null = null;
   private readonly carPos = new THREE.Vector3();
   private readonly onResize = (): void => this.resize();
@@ -199,14 +214,18 @@ export class Game {
   ) {
     this.carId = cfg.carId;
     this.mode = cfg.mode;
-    this.rivals =
+    // Maps with their own grid (Map 5's open-wheel field) override the rolled cars and give each a livery.
+    this.rivals = applyTrackRoster(
       cfg.rivals ??
-      rollRoster(
-        AI.rivals,
-        AI.rosterNames,
-        CARS.map((c) => c.id),
-        cfg.carId,
-      );
+        rollRoster(
+          AI.rivals,
+          AI.rosterNames,
+          CARS.map((c) => c.id),
+          cfg.carId,
+        ),
+      cfg.trackId,
+      AI.trackRosters,
+    );
     this.trackDef = getTrack(cfg.trackId);
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(settings.pixelRatio);
@@ -233,8 +252,9 @@ export class Game {
   static async create(canvas: HTMLCanvasElement, assets: Assets, cfg: GameConfig, hooks: GameHooks): Promise<Game> {
     await RAPIER.init();
     const g = new Game(canvas, assets, cfg, hooks);
-    g.audio = await AudioBus.load(sfxFiles());
-    g.engineSound = new EngineSound(g.audio);
+    const mapDef = getTrack(cfg.trackId);
+    g.audio = await AudioBus.load(sfxFiles(mapDef.id === MONTE_CARLO.id ? trackAudioFiles(mapDef) : []));
+    g.engineSound = new EngineSound(g.audio, g.carId);
     g.unbindSfx = bindSfx(g.audio, g.events, () => g.carPos);
     g.buildWorld();
     g.engineSound.setPitchMul(AUDIO.vehiclePitch[g.car.def.vehicleType]);
@@ -308,6 +328,24 @@ export class Game {
         lighting: this.lighting,
         getCars: () => this.cars,
       });
+    } else if (this.trackDef.id === MONTE_CARLO.id) {
+      this.monte = new MonteCarlo(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path, {
+        renderer: this.renderer,
+        camera: this.chase.camera,
+        reflections: userSettings.preset !== 'low',
+        hooks: {
+          setExposureMul: (k) => this.postfx.setExposureMul(k),
+          setBloomBoost: (v) => this.postfx.setBloomBoost(v),
+          setFill: (v) => this.lighting.setHemiBoost(v),
+        },
+      });
+      this.monteAudio = new MonteCarloAudio(
+        this.audio,
+        this.trackDef,
+        this.events,
+        () => this.places.get('player') ?? 1,
+        () => this.car.physics.curr.p,
+      );
     } else {
       this.dressing = new CongHoaDressing(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
@@ -355,6 +393,7 @@ export class Game {
           spawn: { x: pose.x, y: pose.y + 0.4, z: pose.z, yaw: pose.yaw },
           scene: this.scene,
           tint: COMBAT.enemyTint,
+          livery: r.livery,
         });
         const driver = new AIDriver({
           carId: r.id,
@@ -451,12 +490,19 @@ export class Game {
       pickupVisuals: new PickupVisuals(this.scene, this.assets, pickupDefs, this.path, this.trackDef),
     });
     this.bindHudEvents();
+    if (this.trackDef.startLights) {
+      this.startLights = new StartLights(RACE.startLights);
+      this.startLights.onLit(() => playStartLamp(this.audio));
+      this.startLights.onGo(() => playStartGo(this.audio));
+    }
     for (const c of this.cars) {
       this.races.set(
         c.id,
         new RaceManager(
           {
             carId: c.id,
+            startLights: this.startLights ?? undefined,
+            jumpStartPenaltySec: RACE.startLights.jumpStartPenaltySec,
             totalLaps: this.cfg.laps,
             checkpointTs: this.trackDef.checkpoints.map((k) => k.t),
             countdownSteps: RACE.countdown.steps,
@@ -522,7 +568,10 @@ export class Game {
         this.banner = { text: `TAKEDOWN +${WEAPONS.wreck.takedownScore} · +${nitro} NITRO`, left: 2 };
       }
       this.feed.push({
-        text: `<b>${this.nameOf(e.attackerId ?? '')}</b> wrecked <b>${this.nameOf(e.carId)}</b>`,
+        text:
+          e.attackerId === null
+            ? `<b>${this.nameOf(e.carId)}</b> hit the wall`
+            : `<b>${this.nameOf(e.attackerId)}</b> wrecked <b>${this.nameOf(e.carId)}</b>`,
         left: 4,
       });
       if (this.feed.length > 3) this.feed.shift();
@@ -605,6 +654,8 @@ export class Game {
       this.carTs.set(c.id, t);
       this.races.get(c.id)?.restart(t);
     }
+    this.startLights?.restart();
+    this.hitCooldown.clear();
     this.chase.snap();
     this.lastCountdown = null;
     this.skidmarks?.clear();
@@ -1082,6 +1133,11 @@ export class Game {
     this.chase.snap();
   }
 
+  /** The light-sequence start on maps that have one (the gantry visual reads `lit`), else null. */
+  get startLightsState(): StartLights | null {
+    return this.startLights;
+  }
+
   start(): void {
     this.loop.start();
   }
@@ -1099,9 +1155,17 @@ export class Game {
     if (this.input.wasPressed('restart')) this.restartRace();
     if (this.input.wasPressed('reset')) this.resetPlayer();
     this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
+    this.updateMonteCarlo(dt);
+    this.startLights?.update(dt);
+    this.updateWeaponLocks();
     for (const c of this.cars) c.preStep(dt);
+    if (this.startLights && this.race.jumpStart(this.lastControls.throttle)) {
+      this.banner = { text: `JUMP START · +${RACE.startLights.jumpStartPenaltySec} s`, left: 3 };
+    }
     this.world.step();
     for (const c of this.cars) c.postStep();
+    this.applyHitRules(dt);
+    this.openWheelPassby(dt);
     this.combat.update(dt);
     if (this.devStats) this.collectDevStats(dt);
     this.recoverFallen();
@@ -1184,7 +1248,107 @@ export class Game {
     }
   }
 
+  /** No-fire zones from the track JSON: the trigger does nothing for any car inside one. */
+  private updateWeaponLocks(): void {
+    const zones = this.trackDef.noFireZones;
+    if (zones.length === 0) return;
+    for (const c of this.cars) c.weaponsLocked = noFireZoneAt(zones, this.carTs.get(c.id) ?? 0) !== null;
+  }
+
+  /**
+   * Hits that aren't weapons. A car that loses speed to a wall (maps whose JSON has `barriers.armco`) takes hull damage,
+   * loses speed on a head-on hit and throws sparks on a scrape. Open-wheel cars (Fulmine FX) also take extra damage from
+   * contact with another car, and clipping a car from the side makes it hop. Numbers: data/combat.json `wall` / `contact`.
+   */
+  private applyHitRules(dt: number): void {
+    const W = COMBAT.wall;
+    const C = COMBAT.contact;
+    const walls = !!(this.trackDef.raw.barriers as { armco?: unknown } | undefined)?.armco;
+    for (const [id, left] of this.hitCooldown) {
+      if (left <= dt) this.hitCooldown.delete(id);
+      else this.hitCooldown.set(id, left - dt);
+    }
+    for (const car of this.cars) {
+      const p = car.physics;
+      if (car.hull.wrecked || p.airborne || p.impactStrength < Math.min(W.minGlancingImpactMps, C.minImpactMps))
+        continue;
+      if (this.hitCooldown.has(car.id)) continue;
+      let other: Car | null = null;
+      let best = C.radiusM;
+      for (const o of this.cars) {
+        if (o === car || o.hull.wrecked) continue;
+        const d = Math.hypot(o.physics.curr.p.x - p.curr.p.x, o.physics.curr.p.z - p.curr.p.z);
+        if (d < best) {
+          best = d;
+          other = o;
+        }
+      }
+      if (other) {
+        const open = !!car.def.openWheel;
+        const dmg = open ? contactDamage(p.impactStrength, true, C) : 0;
+        if (dmg > 0) this.combat.damageCar(car, dmg, other.id);
+        const op = other.physics.curr.p;
+        if (
+          open &&
+          p.impactStrength >= C.minImpactMps &&
+          isSideHit(other.physics.yaw, p.curr.p.x - op.x, p.curr.p.z - op.z, C)
+        ) {
+          other.physics.hop(C.sideLaunchMps);
+        }
+        if (dmg > 0 || open) this.hitCooldown.set(car.id, C.cooldownSec);
+      } else if (walls) {
+        const hit = wallHit(p.velBefore, p.velAfter, W);
+        if (!hit) continue;
+        this.combat.damageCar(car, hit.hull, null);
+        if (hit.speedMul < 1) p.scaleHorizontalVelocity(hit.speedMul);
+        this.sparkPos.set(p.curr.p.x, p.curr.p.y + 0.5, p.curr.p.z);
+        this.particles.burst('spark', this.sparkPos, W.sparkCount, W.sparkSpeed, W.sparkLifeSec);
+        this.hitCooldown.set(car.id, W.cooldownSec);
+      }
+    }
+  }
+
+  /** Doppler pass-by for a rival open-wheel car passing within a few metres of the player. */
+  private openWheelPassby(dt: number): void {
+    const P = AUDIO.passby;
+    for (const [id, left] of this.passbyCooldown) {
+      if (left <= dt) this.passbyCooldown.delete(id);
+      else this.passbyCooldown.set(id, left - dt);
+    }
+    const me = this.car.physics.curr.p;
+    for (const c of this.cars) {
+      if (c === this.car || !c.def.openWheel || c.hull.wrecked || this.passbyCooldown.has(c.id)) continue;
+      const q = c.physics.curr.p;
+      if (Math.hypot(q.x - me.x, q.y - me.y, q.z - me.z) > P.withinM || c.physics.speedMps < P.minSpeedMps) continue;
+      this.audio.play(P, 0.96 + Math.random() * 0.08);
+      this.passbyCooldown.set(c.id, P.cooldownSec);
+    }
+  }
+
+  /** Map 5: tunnel light, the TV helicopter over the race leader and the gantry's lamp sequence. */
+  private updateMonteCarlo(dt: number): void {
+    const mc = this.monte;
+    if (!mc) return;
+    const lead = this.cars.find((c) => this.places.get(c.id) === 1 && !c.hull.wrecked) ?? this.car;
+    const p = lead.physics.curr.p;
+    mc.update(dt, this.carTs.get('player') ?? 0, { x: p.x, y: p.y, z: p.z, yaw: lead.physics.yaw });
+    const sl = this.startLights;
+    mc.gantry.setLamps(sl && !sl.released ? sl.lit : 0);
+    const pp = this.car.physics;
+    this.monteAudio?.update(dt, {
+      t: this.carTs.get('player') ?? 0,
+      x: pp.curr.p.x,
+      y: pp.curr.p.y,
+      z: pp.curr.p.z,
+      yaw: pp.yaw,
+      place: this.places.get('player') ?? 1,
+      tunnel: mc.tunnelAmount,
+      helicopter: mc.helicopterPosition,
+    });
+  }
+
   private updateLamps(): void {
+    if (this.startLights) return; // the gantry's five lamps follow the light sequence instead
     const v = this.race.countdownValue;
     const cd = RACE.countdown;
     let lit = 0;
@@ -1244,6 +1408,8 @@ export class Game {
     this.raceHud.update({
       phase: this.race.phase,
       countdown: this.race.countdownValue,
+      startLights: this.startLights && this.race.phase === 'countdown' ? this.startLights.lit : null,
+      startLightsTotal: RACE.startLights.lamps,
       lap: this.race.laps.lap,
       totalLaps: this.cfg.laps,
       timeSec: this.race.timeSec,
@@ -1254,11 +1420,11 @@ export class Game {
     });
     const cd = this.race.countdownValue;
     if (cd !== this.lastCountdown) {
-      if (cd !== null) playCountdown(this.audio, cd);
+      if (cd !== null && !this.startLights) playCountdown(this.audio, cd);
       this.lastCountdown = cd;
     }
     // Underpass: the car's own height is below the trench threshold.
-    this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
+    if (!this.monteAudio) this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
     if (!this.paused)
       this.engineSound.update(dt, {
         forwardSpeed: p.forwardSpeed,
@@ -1285,6 +1451,7 @@ export class Game {
       respawnIn: this.car.hull.respawnIn,
       wreckedBy: this.car.hull.wrecked ? this.nameOf(this.car.hull.lastAttacker ?? '') : '',
       banner: this.banner.left > 0 ? this.banner.text : '',
+      noFire: noFireZoneAt(this.trackDef.noFireZones, this.carTs.get('player') ?? 0)?.name ?? '',
       feed: this.feed.map((f) => f.text),
     });
     this.minimap.update(
@@ -1352,6 +1519,10 @@ export class Game {
     this.landmarks?.dispose();
     this.weather?.dispose();
     this.weather = null;
+    this.monteAudio?.dispose();
+    this.monteAudio = null;
+    this.monte?.dispose();
+    this.monte = null;
     if (this.pvd) for (const m of Object.values(this.pvd)) m.dispose();
     this.pvd = null;
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();

@@ -419,6 +419,17 @@ body.is-touch .hud-drift {
 body.is-touch .race-banner {
   font-size: 56px;
 }
+body.is-touch .race-banner.lamps {
+  font-size: 14px;
+}
+body.is-touch .race-lamps {
+  gap: 10px;
+  padding: 10px 16px;
+}
+body.is-touch .race-lamps i {
+  width: 30px;
+  height: 30px;
+}
 
 /* ---------- Menus on a phone (artboards 26–32) ---------- */
 body.is-touch .mn {
@@ -618,7 +629,7 @@ body.is-touch .mn-setup .track-card {
 body.is-touch .mn-setup .track-card .head b {
   font-size: 18px;
 }
-body.is-touch .mn-setup .track-card svg {
+body.is-touch .mn-setup .track-card .preview.no-shot .outline {
   max-height: 150px;
 }
 body.is-touch .mn-setup .track-card .sections {

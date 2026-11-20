@@ -59,6 +59,20 @@
       1.238,
       -0.263
     ],
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.36,
+        0.963,
+        -0.113
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#FF6A1A",
+        "accent": "#FF6A1A"
+      }
+    },
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -82,12 +96,12 @@
       "halfExtents": [
         1,
         0.627,
-        2.402
+        2.41
       ],
       "center": [
         0,
         0.747,
-        0.061
+        0.054
       ]
     },
     "wheels": [
@@ -133,6 +147,20 @@
       1.375,
       -0.231
     ],
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.379,
+        1.108,
+        0.196
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#2EC5FF",
+        "accent": "#FFB37A"
+      }
+    },
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -156,12 +184,12 @@
       "halfExtents": [
         0.975,
         0.568,
-        2.328
+        2.374
       ],
       "center": [
         0,
         0.688,
-        0
+        -0.046
       ]
     },
     "wheels": [
@@ -207,6 +235,20 @@
       1.033,
       -0.222
     ],
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.369,
+        0.812,
+        -0.107
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#C6FF3D",
+        "accent": "#2EC5FF"
+      }
+    },
     "role": null,
     "vehicleType": "car",
     "turretYawDeg": 25,
@@ -281,7 +323,21 @@
       1.193,
       -0.596
     ],
-    "role": "PURSUIT · RAMMER",
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.369,
+        0.949,
+        -0.065
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#14171D",
+        "accent": "#2E6BFF"
+      }
+    },
+    "role": "PURSUIT \u00b7 RAMMER",
     "vehicleType": "car",
     "turretYawDeg": 25,
     "topSpeedKmh": 300,
@@ -355,7 +411,21 @@
       1.519,
       -0.53
     ],
-    "role": "ARMORED · TANK",
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.407,
+        1.174,
+        0.556
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#4B5A3A",
+        "accent": "#FFB37A"
+      }
+    },
+    "role": "ARMORED \u00b7 TANK",
     "vehicleType": "car",
     "turretYawDeg": 25,
     "topSpeedKmh": 230,
@@ -429,7 +499,21 @@
       1.287,
       -0.608
     ],
-    "role": "AGILE · DRIFTER",
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.351,
+        1.015,
+        -0.342
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#8B5CF6",
+        "accent": "#2EC5FF"
+      }
+    },
+    "role": "AGILE \u00b7 DRIFTER",
     "vehicleType": "car",
     "turretYawDeg": 25,
     "topSpeedKmh": 275,
@@ -503,7 +587,21 @@
       1.228,
       -1.623
     ],
-    "role": "UTILITY · BED TURRET",
+    "fpv": {
+      "mode": "cockpit",
+      "rig": "models/cars/cockpit_rig.glb",
+      "eye": [
+        0.379,
+        1.127,
+        0.231
+      ],
+      "fovDeg": 64,
+      "tint": {
+        "paint": "#2FBF9F",
+        "accent": "#2FBF9F"
+      }
+    },
+    "role": "UTILITY \u00b7 BED TURRET",
     "vehicleType": "car",
     "turretYawDeg": 360,
     "topSpeedKmh": 250,
@@ -613,7 +711,16 @@
       1.937,
       -0.297
     ],
-    "role": "APC · 8x8 FORTRESS",
+    "fpv": {
+      "mode": "helmet",
+      "eye": [
+        0,
+        2.487,
+        0.003
+      ],
+      "fovDeg": 70
+    },
+    "role": "APC \u00b7 8x8 FORTRESS",
     "vehicleType": "apc8x8",
     "turretYawDeg": 360,
     "topSpeedKmh": 210,
@@ -635,13 +742,13 @@
     "collider": {
       "halfExtents": [
         0.21,
-        0.555,
-        1.151
+        0.558,
+        1.15
       ],
       "center": [
         0,
-        0.675,
-        0.06
+        0.678,
+        0.062
       ]
     },
     "wheels": [
@@ -669,7 +776,16 @@
       0.7,
       0.417
     ],
-    "role": "SPORT BIKE · GLASS CANNON",
+    "fpv": {
+      "mode": "helmet",
+      "eye": [
+        0,
+        1.387,
+        0.296
+      ],
+      "fovDeg": 70
+    },
+    "role": "SPORT BIKE \u00b7 GLASS CANNON",
     "vehicleType": "bike",
     "turretYawDeg": 15,
     "topSpeedKmh": 310,
@@ -726,7 +842,16 @@
       0.72,
       0.4
     ],
-    "role": "RETRO SCOOTER · NIMBLE",
+    "fpv": {
+      "mode": "helmet",
+      "eye": [
+        0,
+        1.56,
+        -0.16
+      ],
+      "fovDeg": 70
+    },
+    "role": "RETRO SCOOTER \u00b7 NIMBLE",
     "vehicleType": "bike",
     "turretYawDeg": 12,
     "topSpeedKmh": 215,
@@ -740,5 +865,90 @@
     "nitroBarSec": 1.8,
     "ramDamageMul": 0.3,
     "maxLeanDeg": 38
+  },
+  {
+    "id": "fulmine_fx",
+    "name": "Fulmine FX",
+    "file": "models/cars/fulmine_fx.glb",
+    "paint": "#F4F6F8",
+    "collider": {
+      "halfExtents": [
+        0.99,
+        0.439,
+        2.9
+      ],
+      "center": [
+        0,
+        0.559,
+        0.19
+      ]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.82,
+        "y": 0.36,
+        "z": 2.35,
+        "radius": 0.36,
+        "width": 0.36,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.82,
+        "y": 0.36,
+        "z": 2.35,
+        "radius": 0.36,
+        "width": 0.36,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.79,
+        "y": 0.36,
+        "z": -1.25,
+        "radius": 0.36,
+        "width": 0.42,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.79,
+        "y": 0.36,
+        "z": -1.25,
+        "radius": 0.36,
+        "width": 0.42,
+        "steer": false
+      }
+    ],
+    "gunMount": [
+      0,
+      0.92,
+      -0.47
+    ],
+    "fpv": {
+      "mode": "helmet",
+      "eye": [
+        0,
+        0.86,
+        0.13
+      ],
+      "fovDeg": 70
+    },
+    "role": "OPEN-WHEEL \u00b7 DOWNFORCE",
+    "vehicleType": "car",
+    "turretYawDeg": 10,
+    "topSpeedKmh": 340,
+    "accel": 9,
+    "handling": 10,
+    "hp": 70,
+    "massKg": 800,
+    "grip": 1.35,
+    "drift": 0.35,
+    "nitroBoost": 0.3,
+    "nitroBarSec": 2,
+    "ramDamageMul": 0.3,
+    "openWheel": true,
+    "downforce": 2.6
   }
 ]

@@ -64,6 +64,12 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: '650-class sport bike. Fastest launch, fits any gap, very fragile.',
     weapon: 'Twin fairing guns · ±15°',
   },
+  fulmine_fx: {
+    role: 'OPEN-WHEEL · DOWNFORCE',
+    blurb:
+      'Open-wheel hybrid racer. Highest top speed and grip in the garage, but the thinnest hull: wheel contact hurts.',
+    weapon: 'Compact Pulse MG on the roll hoop · ±10°',
+  },
   mira_150: {
     role: 'RETRO SCOOTER · NIMBLE',
     blurb: 'Retro step-through scooter. Tightest turning circle, slips through traffic, very fragile.',
@@ -72,7 +78,7 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
 };
 
 const STATS: { label: string; pct: (c: CarDef) => number; value: (c: CarDef) => string }[] = [
-  { label: 'Top speed', pct: (c) => c.topSpeedKmh / 320, value: (c) => String(c.topSpeedKmh) },
+  { label: 'Top speed', pct: (c) => Math.min(1, c.topSpeedKmh / 340), value: (c) => String(c.topSpeedKmh) },
   { label: 'Accel', pct: (c) => c.accel / 10, value: (c) => String(c.accel) },
   { label: 'Handling', pct: (c) => c.handling / 10, value: (c) => String(c.handling) },
   { label: 'Armor', pct: (c) => c.hp / 260, value: (c) => String(c.hp) },
@@ -108,7 +114,7 @@ export class CarSelectScreen implements Screen {
       <div class="mn-page">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
           <div><div class="mn-eyebrow">STEP 1 OF 2 · GARAGE</div><h2>Choose your ride</h2></div>
-          <div class="cs-hint">${kc('←')} ${kc('→')} or ${kc('1')}–${kc('0')} to switch</div>
+          <div class="cs-hint">${kc('←')} ${kc('→')} or ${kc('1')}–${kc('0')} ${kc('-')} to switch</div>
         </div>
         <div class="body">
           <div class="stage">
@@ -133,7 +139,7 @@ export class CarSelectScreen implements Screen {
         ${keyBar(
           [
             { keys: ['←', '→'], label: 'Switch' },
-            { keys: ['1-0'], label: 'Pick' },
+            { keys: ['1-0', '-'], label: 'Pick' },
             { keys: ['Enter'], label: 'Select' },
             { keys: ['Esc'], label: 'Back' },
           ],
@@ -153,7 +159,7 @@ export class CarSelectScreen implements Screen {
       b.style.setProperty('--card-bg', sel.bg);
       b.style.setProperty('--card-fg', sel.fg);
       b.style.setProperty('--card-bd', sel.border);
-      b.innerHTML = `<span class="pk-img"><img alt="" aria-hidden="true" draggable="false" />${idx < 9 ? kc(String(idx + 1)) : ''}</span><span class="pk-name"></span>`;
+      b.innerHTML = `<span class="pk-img"><img alt="" aria-hidden="true" draggable="false" />${idx < 11 ? kc(idx < 9 ? String(idx + 1) : idx === 9 ? '0' : '-') : ''}</span><span class="pk-name"></span>`;
       (b.querySelector('.pk-name') as HTMLElement).textContent = c.name;
       b.addEventListener('click', () => this.setSelected(c.id));
       cards.appendChild(b);
@@ -219,7 +225,7 @@ export class CarSelectScreen implements Screen {
     this.setSelected(CARS[wrapStep(i, dir, CARS.length)].id);
   }
 
-  /** ←/→/A/D/↑/↓ cycle (wrapping), 1–9 and 0 jump straight to vehicle N, Enter selects. */
+  /** ←/→/A/D/↑/↓ cycle (wrapping), 1–9, 0 and - jump straight to vehicle N, Enter selects. */
   private handleKey(token: string): boolean {
     if (token === 'arrowright' || token === 'd' || token === 'arrowdown') this.step(1);
     else if (token === 'arrowleft' || token === 'a' || token === 'arrowup') this.step(-1);
@@ -227,7 +233,7 @@ export class CarSelectScreen implements Screen {
     else {
       const i = digitIndex(token, CARS.length);
       if (i === null) {
-        if (/^[0-9]$/.test(token)) {
+        if (/^[0-9-]$/.test(token)) {
           uiAudio.play('blocked'); // a number with no vehicle behind it
           return true;
         }

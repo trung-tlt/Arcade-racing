@@ -1,7 +1,7 @@
 # VOLTLINE
 
 Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro, shoot to clear the
-line, finish first. Pick one of 10 vehicles and one of 4 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
+line, finish first. Pick one of 11 vehicles and one of 5 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
 and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
 
 ## Maps
@@ -12,6 +12,7 @@ and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
 | Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
 | Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
 | Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps. 12-lane boulevard with a tree median: out on the car lanes, back on the motorbike lanes with poncho scooters. Binh Loi bridge, a small hop at Go Dua, ring-road overpass, a U-turn flyover and a flooded dip. Weather: heavy rain (easing on lap 2), wet grip, 13 puddles, tyre spray, lightning and thunder |
+| Monte-Carlo Harbour | Day | 3.3 km, 3 laps. Harbour street circuit, 12 m wide between Armco and catch fences: Sainte Dévote, the climb to Casino Square (+42 m), the hairpin, the tunnel, the harbour chicane and La Rascasse. Five-light start, no-fire zones in the tunnel and the chicane, yachts on a reflective harbour and the Fulmine FX open-wheel racer |
 
 Built with Vite + TypeScript (strict), three.js, Rapier (`DynamicRayCastVehicleController`), the Web Audio API and a
 plain HTML/CSS overlay for the HUD and menus.

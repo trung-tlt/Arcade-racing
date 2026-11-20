@@ -37,6 +37,32 @@ export class Assets {
     return new Assets(models, textures);
   }
 
+  /** Loads more files into this store (a map's own props, fetched when that map is chosen). Already-loaded paths are skipped. */
+  async extend(
+    paths: { models: string[]; textures: string[] },
+    onProgress: (fraction: number) => void = () => undefined,
+  ): Promise<void> {
+    const models = paths.models.filter((p) => !this.models.has(p));
+    const textures = paths.textures.filter((p) => !this.textures.has(p));
+    const total = models.length + textures.length;
+    let done = 0;
+    const tick = (): void => onProgress(total === 0 ? 1 : ++done / total);
+    const gltf = new GLTFLoader();
+    const texLoader = new THREE.TextureLoader();
+    await Promise.all([
+      ...models.map(async (p) => {
+        this.models.set(p, (await gltf.loadAsync(BASE + p)).scene);
+        tick();
+      }),
+      ...textures.map(async (p) => {
+        const t = await texLoader.loadAsync(BASE + p);
+        t.colorSpace = THREE.SRGBColorSpace;
+        this.textures.set(p, t);
+        tick();
+      }),
+    ]);
+  }
+
   /** Deep clone; geometry is shared, materials are cloned per call. */
   cloneModel(path: string): THREE.Group {
     const src = this.models.get(path);

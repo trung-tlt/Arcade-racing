@@ -10,7 +10,7 @@ import './menus.css';
 export interface RaceSetupDeps {
   getCarId(): string;
   /** The five rivals for the coming race (random names and cars), so the grid preview matches the race. */
-  getRoster(): Rival[];
+  getRoster(trackId: string): Rival[];
   /** Best-lap text for one map (records are per map). */
   bestLapText(trackId: string): string;
   onBack(): void;
@@ -34,7 +34,11 @@ const MOBILE_NAMES: Record<string, string> = {
   cong_hoa: 'Cong Hoa',
   xa_lo_ha_noi: 'Hanoi Hwy',
   pham_van_dong: 'P.V. Đồng',
+  monte_carlo: 'Monaco',
 };
+
+/** In-game renders of each map (from the design canvas), shown on the track card. */
+const previewUrl = (t: TrackDef): string => `/assets/ui/previews/${t.id}.jpg`;
 const kmText = (t: TrackDef): string => `${(t.lapLengthM / 1000).toFixed(1)} km`;
 
 interface Section {
@@ -62,6 +66,11 @@ const NOTES: Record<string, { sub: string; note: string; feature: { v: string; l
     sub: 'Storm · Gò Vấp to Thủ Đức, HCMC',
     note: 'Storm · wet grip · puddles, flooded dip + lightning',
     feature: { v: '12 lanes', l: '+ flooded dip' },
+  },
+  monte_carlo: {
+    sub: 'Day · Circuit du Port',
+    note: 'Day · harbour street circuit · tunnel, 12 m wide, no-fire zones',
+    feature: { v: '+42 m', l: 'Casino climb' },
   },
 };
 
@@ -103,7 +112,10 @@ export class RaceSetupScreen implements Screen {
         <div class="body">
           <div class="track-card">
             <div class="head"><b class="tname"></b><span class="tsub"></span></div>
-            <svg class="outline" viewBox="0 0 760 740" role="img"></svg>
+            <div class="preview">
+              <img class="shot" alt="" width="960" height="540" draggable="false" />
+              <svg class="outline" viewBox="0 0 760 740" role="img"></svg>
+            </div>
             <div class="sections" aria-label="Sections"></div>
             <div class="facts">
               <div><b class="tlen"></b>lap</div>
@@ -147,7 +159,10 @@ export class RaceSetupScreen implements Screen {
         )}
       </div>`;
     root.appendChild(this.el);
-    this.el.querySelector('[data-back]')?.addEventListener('click', deps.onBack);
+    this.el.querySelector('[data-back]')?.addEventListener('click', () => {
+      uiAudio.setMusicForTrack(null);
+      deps.onBack();
+    });
     this.el.querySelector('[data-start]')?.addEventListener('click', () => this.start());
     this.disposeNav = enableMenuNav(this.el, {
       horizontal: false,
@@ -155,6 +170,8 @@ export class RaceSetupScreen implements Screen {
       onKey: (token, e) => this.handleKey(token, e),
       onPad: (btn) => this.handlePad(btn),
     });
+    // Warm the cache so switching maps never shows an empty frame.
+    for (const t of TRACKS) new Image().src = previewUrl(t);
     this.render();
   }
 
@@ -278,6 +295,18 @@ export class RaceSetupScreen implements Screen {
     (this.el.querySelector('.tfeat') as HTMLElement).textContent = copy.feature.v;
     (this.el.querySelector('.tfeatl') as HTMLElement).textContent = copy.feature.l;
 
+    const shot = this.el.querySelector('.shot') as HTMLImageElement;
+    shot.hidden = false;
+    shot.alt = `${t.name} preview`;
+    const frame = this.el.querySelector('.preview') as HTMLElement;
+    frame.classList.remove('no-shot');
+    shot.onerror = () => {
+      // no render for this map: the outline alone remains
+      shot.hidden = true;
+      frame.classList.add('no-shot');
+    };
+    if (!shot.src.endsWith(previewUrl(t))) shot.src = previewUrl(t);
+
     const o = buildOutline(t.spline.points);
     const asphalt = Math.max(6, Math.min(34, t.roadWidthM * o.scale * 1.8));
     const line = asphalt > 20 ? 4 : 2.5;
@@ -314,6 +343,7 @@ export class RaceSetupScreen implements Screen {
       (v) => this.setTrack(v),
     );
     this.renderTrack(TRACKS[this.trackIndex]);
+    if (!this.el.hidden) uiAudio.setMusicForTrack(TRACKS[this.trackIndex].id); // maps with their own menu loop
     this.pills(
       'laps',
       lapOptions(TRACKS[this.trackIndex]).map((v) => ({ v, label: `${v} ${v === 1 ? 'lap' : 'laps'}` })),
@@ -340,7 +370,7 @@ export class RaceSetupScreen implements Screen {
       d.append(b, document.createElement('br'), s);
       return d;
     };
-    const rivals = this.deps.getRoster();
+    const rivals = this.deps.getRoster(TRACKS[this.trackIndex].id);
     const slots = rivals.map((r, i) => slot(i + 1, r.name, carName(r.car), false));
     slots.push(slot(rivals.length + 1, 'YOU', carName(this.deps.getCarId()), true));
     grid.replaceChildren(...slots);

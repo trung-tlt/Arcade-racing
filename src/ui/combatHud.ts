@@ -9,6 +9,8 @@ export interface CombatHudState {
   respawnIn: number;
   wreckedBy: string;
   banner: string;
+  /** Name of the no-fire zone the player is in ('' = weapons free). */
+  noFire: string;
   feed: readonly string[];
 }
 
@@ -16,7 +18,7 @@ export interface CombatHudState {
 export class CombatHud {
   private readonly el = document.createElement('div');
   private readonly q: Record<
-    'hull' | 'hullTxt' | 'heat' | 'heatLbl' | 'rockets' | 'banner' | 'feed' | 'wreck',
+    'hull' | 'hullTxt' | 'heat' | 'heatLbl' | 'rockets' | 'banner' | 'feed' | 'wreck' | 'lock',
     HTMLElement
   >;
   private last: Record<string, string> = {};
@@ -31,6 +33,7 @@ export class CombatHud {
         <div class="cb-row"><span class="race-label">ROCKETS</span><span class="cb-rockets"></span><span class="cb-key">K / LB</span></div>
       </div>
       <div class="cb-top"><div class="cb-banner" hidden></div><div class="cb-feed"></div></div>
+      <div class="cb-lock" hidden></div>
       <div class="cb-wreck" hidden></div>`;
     root.appendChild(this.el);
     const g = (s: string): HTMLElement => this.el.querySelector(s) as HTMLElement;
@@ -43,6 +46,7 @@ export class CombatHud {
       banner: g('.cb-banner'),
       feed: g('.cb-feed'),
       wreck: g('.cb-wreck'),
+      lock: g('.cb-lock'),
     };
   }
 
@@ -75,6 +79,13 @@ export class CombatHud {
     this.set('banner', s.banner, () => {
       this.q.banner.hidden = s.banner === '';
       this.q.banner.textContent = s.banner;
+    });
+    this.set('lock', s.noFire, () => {
+      this.q.lock.hidden = s.noFire === '';
+      this.q.lock.innerHTML =
+        s.noFire === ''
+          ? ''
+          : `<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3h1.5a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1h-13a1 1 0 0 1-1-1v-8a1 1 0 0 1 1-1H7zm2 0h6V8a3 3 0 0 0-6 0v3z" fill="currentColor"/></svg><span>NO-FIRE ZONE<small>${s.noFire}</small></span>`;
     });
     this.set('feed', s.feed.join('|'), () => {
       this.q.feed.innerHTML = s.feed.map((f) => `<div>${f}</div>`).join('');

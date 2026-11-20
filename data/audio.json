@@ -141,6 +141,22 @@
     "pickup": {
       "file": "sfx/pickup.wav",
       "gain": 0.7
+    },
+    "startLamp": {
+      "file": "sfx/monaco/start_lights.wav",
+      "gain": 0.7,
+      "start": 0.3,
+      "dur": 0.8,
+      "fadeIn": 0.005,
+      "fadeOut": 0.3
+    },
+    "startGo": {
+      "file": "sfx/monaco/start_lights.wav",
+      "gain": 0.8,
+      "start": 5.8,
+      "dur": 1.4,
+      "fadeIn": 0.005,
+      "fadeOut": 0.5
     }
   },
   "thresholds": {
@@ -185,5 +201,20 @@
     "overpassHalfXM": 34,
     "overpassHalfZM": 16,
     "overpassDeckHeightM": 8
+  },
+  "engines": {
+    "fulmine_fx": {
+      "file": "sfx/engine_openwheel_loop.wav",
+      "gain": 0.5,
+      "rateBase": 0.55,
+      "rateRpm": 1.6
+    }
+  },
+  "passby": {
+    "file": "sfx/monaco/passby_openwheel.wav",
+    "gain": 0.8,
+    "withinM": 6,
+    "cooldownSec": 3,
+    "minSpeedMps": 25
   }
 }

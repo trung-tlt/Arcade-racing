@@ -31,6 +31,15 @@ export class Track {
   readonly roadMaterials: THREE.MeshStandardMaterial[] = [];
   private readonly body: RAPIER.RigidBody;
   private gates: InstancedModel | null = null;
+  /**
+   * Rapier handles (`collider.handle`) of the invisible side walls. Contact events are enabled on them, so a car that
+   * hits a wall can be told apart from one that hits another car or the road (Map 5 charges hull damage for it).
+   */
+  readonly wallHandles = new Set<number>();
+  /** A street circuit (Map 5) lists its own barriers (`barriers` in the JSON): no sidewalk strip, gates or generic gantry. */
+  private readonly circuit: boolean;
+  /** How far the wall collider sits inside the carriageway edge: it stops cars at the Armco's face. */
+  private readonly wallInsetM: number;
   /** Half the carriageway width at each path sample (varies on maps with a narrower stretch). */
   private readonly half: Float32Array;
   /** Per sample, the most the left / right edge may sit from the centre line: a hairpin tighter than the road is wide
@@ -47,6 +56,9 @@ export class Track {
     readonly path: TrackPath,
   ) {
     this.group.name = 'track';
+    const armco = (def.raw.barriers as { armco?: { lateralM: number } } | undefined)?.armco;
+    this.circuit = !!armco;
+    this.wallInsetM = armco ? armco.lateralM - 0.2 - roadWidthAt(def, 0) / 2 : 0;
     this.half = new Float32Array(path.count);
     for (let i = 0; i < path.count; i++) this.half[i] = roadWidthAt(def, i / path.count) / 2;
     this.limitL = new Float32Array(path.count).fill(Infinity);
@@ -64,9 +76,9 @@ export class Track {
     }
     this.group.add(this.buildRoad(assets));
     if (def.timeOfDay === 'night') this.buildBarriers(assets);
-    else this.group.add(this.buildKerbs());
+    else if (!this.circuit) this.group.add(this.buildKerbs());
     this.body = this.buildWalls(R);
-    this.buildGates(assets);
+    if (!this.circuit) this.buildGates(assets);
     this.buildRamps(assets);
     scene.add(this.group);
   }
@@ -267,7 +279,7 @@ export class Track {
       const verts = new Float32Array(n * 4 * 3);
       for (let i = 0; i < n; i++) {
         this.left(i, l);
-        const inner0 = this.edge(i, s);
+        const inner0 = this.edge(i, s) + this.wallInsetM;
         const outer0 = inner0 + RACE.track.wallColliderThicknessM;
         const y0 = path.py[i];
         const ring: [number, number][] = [
@@ -296,10 +308,14 @@ export class Track {
           idx.push(a + r, b + r, b + r2, a + r, b + r2, a + r2);
         }
       }
-      this.world.createCollider(
-        R.ColliderDesc.trimesh(verts, new Uint32Array(idx)).setFriction(0.2).setRestitution(0.2),
+      const wall = this.world.createCollider(
+        R.ColliderDesc.trimesh(verts, new Uint32Array(idx))
+          .setFriction(0.2)
+          .setRestitution(0.2)
+          .setActiveEvents(R.ActiveEvents.COLLISION_EVENTS | R.ActiveEvents.CONTACT_FORCE_EVENTS),
         body,
       );
+      this.wallHandles.add(wall.handle);
     }
     if (def.hasElevation) this.buildRoadCollider(R, body);
     return body;

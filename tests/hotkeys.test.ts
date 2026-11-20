@@ -43,6 +43,8 @@ describe('chords and steps', () => {
     expect(digitIndex('9', 3)).toBeNull();
     expect(digitIndex('0', 9)).toBeNull(); // no tenth vehicle
     expect(digitIndex('0', 10)).toBe(9);
+    expect(digitIndex('-', 11)).toBe(10); // the eleventh vehicle (Fulmine FX)
+    expect(digitIndex('-', 10)).toBeNull();
     expect(digitIndex('a', 9)).toBeNull();
   });
   it('wraps and clamps', () => {

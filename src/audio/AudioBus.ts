@@ -19,6 +19,7 @@ export class AudioBus {
   readonly engine: GainNode;
   /** Wet send for tunnels and underpasses; silent until `setReverb` raises it. */
   private readonly wet: GainNode;
+  private readonly conv: ConvolverNode;
   private readonly buffers = new Map<string, AudioBuffer>();
   private readonly onGesture = (): void => {
     void this.ctx.resume();
@@ -40,13 +41,13 @@ export class AudioBus {
       const d = ir.getChannelData(c);
       for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
     }
-    const conv = this.ctx.createConvolver();
-    conv.buffer = ir;
+    this.conv = this.ctx.createConvolver();
+    this.conv.buffer = ir;
     this.wet = this.ctx.createGain();
     this.wet.gain.value = 0;
-    this.sfx.connect(conv);
-    this.engine.connect(conv);
-    conv.connect(this.wet).connect(this.master);
+    this.sfx.connect(this.conv);
+    this.engine.connect(this.conv);
+    this.conv.connect(this.wet).connect(this.master);
     for (const ev of ['keydown', 'pointerdown', 'mousedown']) window.addEventListener(ev, this.onGesture);
   }
 
@@ -73,6 +74,14 @@ export class AudioBus {
     this.master.gain.setTargetAtTime(AUDIO.master * master, t, 0.03);
     this.sfx.gain.setTargetAtTime(effects, t, 0.03);
     this.engine.gain.setTargetAtTime(engine, t, 0.03);
+  }
+
+  /** Use a loaded clip as the reverb's impulse response (Map 5's tunnel). False if it did not load. */
+  useImpulse(file: string): boolean {
+    const buf = this.buffers.get(file);
+    if (!buf) return false;
+    this.conv.buffer = buf;
+    return true;
   }
 
   /** 0 = dry, 1 = full tunnel reverb. */

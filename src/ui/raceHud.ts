@@ -5,6 +5,9 @@ export interface RaceHudState {
   phase: RacePhase;
   /** 3,2,1 → number; 0 → GO; null → hide. */
   countdown: number | null;
+  /** Light-sequence start: lamps lit so far (null = classic 3-2-1 or no countdown). */
+  startLights?: number | null;
+  startLightsTotal?: number;
   lap: number;
   totalLaps: number;
   timeSec: number;
@@ -66,6 +69,20 @@ export class RaceHud {
       this.best.textContent = best;
     }
 
+    if (s.startLights !== undefined && s.startLights !== null) {
+      // Five lamps instead of 3-2-1: red ones are lit; they all go out for GO.
+      const total = s.startLightsTotal ?? 5;
+      const key = `lamps${s.startLights}`;
+      if (key !== this.last.banner) {
+        this.last.banner = key;
+        this.banner.hidden = false;
+        this.banner.classList.remove('go');
+        this.banner.classList.add('lamps');
+        this.banner.innerHTML = `<span class="race-lamps" role="img" aria-label="${s.startLights} of ${total} start lights">${Array.from({ length: total }, (_, i) => `<i class="${i < (s.startLights ?? 0) ? 'on' : ''}"></i>`).join('')}</span><span class="race-banner-hint">WAIT FOR LIGHTS OUT</span>`;
+      }
+      return;
+    }
+    this.banner.classList.remove('lamps');
     const banner = s.countdown === null ? '' : s.countdown === 0 ? 'GO!' : String(s.countdown);
     if (banner !== this.last.banner) {
       this.last.banner = banner;

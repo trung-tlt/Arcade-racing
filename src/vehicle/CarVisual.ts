@@ -4,6 +4,7 @@ import { COMBAT, type CarDef } from '../core/Data';
 import type { CarPhysics } from './CarPhysics';
 import { DistanceCull } from '../world/Windowed';
 import { mergeCarMaterials } from './MergeMaterials';
+import type { Livery } from '../ai/Roster';
 import { approachAngle } from './Turret';
 
 const FLAME_TEX = 'textures/fx_nitro_flame.png';
@@ -47,9 +48,15 @@ export class CarVisual {
     private readonly physics: CarPhysics,
     tint?: string,
     private readonly aim?: TurretAim,
+    livery?: Livery,
   ) {
     this.root = assets.cloneModel(def.file);
-    mergeCarMaterials(this.root, (m) => m.name.startsWith('wheel_'));
+    // A livery recolours the body and its accent parts (baked into the merged geometry, so it costs no extra draws).
+    mergeCarMaterials(
+      this.root,
+      (m) => m.name.startsWith('wheel_'),
+      livery ? { Paint: livery.paint, Paint_Accent: livery.accent, Caliper: livery.accent } : undefined,
+    );
     this.root.traverse((o) => {
       if (o instanceof THREE.Mesh) {
         o.castShadow = true;
@@ -84,7 +91,7 @@ export class CarVisual {
       if (!(o instanceof THREE.Mesh)) return;
       for (const m of Array.isArray(o.material) ? o.material : [o.material]) {
         if (!(m instanceof THREE.MeshStandardMaterial)) continue;
-        if (m.name === 'Underglow') m.emissive.set(tint ?? def.paint);
+        if (m.name === 'Underglow') m.emissive.set(livery?.glow ?? tint ?? def.paint);
         if (m.name === 'Light_Tail') this.tail = m;
         if (m.name === 'Light_Siren_Red') this.sirenRed = m;
         if (m.name === 'Light_Siren_Blue') this.sirenBlue = m;

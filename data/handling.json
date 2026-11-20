@@ -11,7 +11,7 @@
     "chassisClearanceBoostM": 0.04,
     "impactClampMinMps": 4,
     "maxUpAfterImpactMps": 5,
-      "maxDownAfterImpactMps": 6,
+    "maxDownAfterImpactMps": 6,
     "maxSpinAfterImpactRadS": 9
   },
   "surface": {
@@ -122,5 +122,12 @@
     "gain": 300,
     "damp": 30,
     "maxAccel": 200
+  },
+  "openWheel": {
+    "downforceCoef": 0.25,
+    "maxDownforceWeightMul": 3,
+    "gripBoostAboveKmh": 150,
+    "gripBoostMul": 1.25,
+    "gripBoostBlendKmh": 20
   }
 }

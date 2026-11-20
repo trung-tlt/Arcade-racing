@@ -41,7 +41,7 @@ const MENU_ROWS: { action: string; keys: string[] }[] = [
   { action: 'Select', keys: ['Enter', 'Space'] },
   { action: 'Back', keys: ['Esc', 'Backspace'] },
   { action: 'Button hotkey', keys: ['letter on chip'] },
-  { action: 'Pick vehicle', keys: ['1', '…', '9', '0'] },
+  { action: 'Pick vehicle', keys: ['1', '…', '9', '0', '-'] },
 ];
 
 /** Touch-controls panel (design artboard 32): three steering styles plus auto-gas, vibration and the mirrored layout. */

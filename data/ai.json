@@ -137,5 +137,48 @@
     "Bảo",
     "Minh",
     "Phúc"
-  ]
+  ],
+  "trackRosters": {
+    "monte_carlo": {
+      "car": "fulmine_fx",
+      "liveries": [
+        {
+          "name": "Polar",
+          "paint": "#F4F6F8",
+          "accent": "#FF6A1A",
+          "glow": "#FF6A1A"
+        },
+        {
+          "name": "Harbour",
+          "paint": "#2EC5FF",
+          "accent": "#0E1116",
+          "glow": "#2EC5FF"
+        },
+        {
+          "name": "Rosso",
+          "paint": "#FF3D6E",
+          "accent": "#F4F6F8",
+          "glow": "#FF3D6E"
+        },
+        {
+          "name": "Citrus",
+          "paint": "#C6FF3D",
+          "accent": "#0E1116",
+          "glow": "#C6FF3D"
+        },
+        {
+          "name": "Midnight",
+          "paint": "#1B2A4A",
+          "accent": "#FFB37A",
+          "glow": "#FFB37A"
+        },
+        {
+          "name": "Sand",
+          "paint": "#FFB37A",
+          "accent": "#1B2A4A",
+          "glow": "#FFB37A"
+        }
+      ]
+    }
+  }
 }

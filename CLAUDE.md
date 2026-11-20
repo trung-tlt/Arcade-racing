@@ -75,19 +75,19 @@ tests/           *.test.ts, smoke.spec.ts
 `chassis`, `wheel_*` (names and steer flags in cars.json; cars use `wheel_FL/FR/RL/RR`) (spin around local X, front wheels steer around Y), `gun_mount`
 (yaw around Y) › `gun` › `muzzle` (fire origin, +Z), `exhaust_L/R` (nitro flames).
 Take collider half-extents, wheel positions, radius and width from `data/cars.json`.
-10 vehicles: kestrel_gt, rhino_x4, wisp_r, warden_px (police), bastion_m8 (military), sable_rs (rally),
+11 vehicles: kestrel_gt, rhino_x4, wisp_r, warden_px (police), bastion_m8 (military), sable_rs (rally),
 hauler_ht (pickup), truongson_av8 (8x8 APC, 8 wheels `wheel_1L…4R`), mantis_650r (sport bike + `rider`,
-wheels `wheel_F/R`), mira_150 (retro scooter + `rider`, `wheel_F/R`, vehicleType bike). Car select keys 1–9 and 0. Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
+wheels `wheel_F/R`), mira_150 (retro scooter + `rider`, `wheel_F/R`, vehicleType bike), fulmine_fx (open-wheel racer, `openWheel: true`, `downforce`). Car select keys 1–9, 0 and - (minus). Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
 the bike uses 4 virtual raycast wheels plus visual lean. Turret yaw limit = `turretYawDeg` in cars.json.
 Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (player colour),
 `Light_Siren_Red/Blue` (warden_px, alternate at ~2 Hz),
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 ## Game rules (numbers live in data/)
-- Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk) and `pham_van_dong.json` (monsoon storm).
-  Xa lộ and Phạm Văn Đồng have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
+- Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk), `pham_van_dong.json` (monsoon storm) and `monte_carlo.json` (Riviera daylight street circuit).
+  Xa lộ, Phạm Văn Đồng and Monte-Carlo have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
   road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay` and the optional `weather` block.
-- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway or Pham Van Dong Boulevard), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 10-vehicle garage), grid from `cat_lai.json`, 3-2-1-GO countdown.
+- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway Pham Van Dong Boulevard or Monte-Carlo Harbour), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 11-vehicle garage; on Monte-Carlo AI prefer fulmine_fx in different liveries), grid from `cat_lai.json`, 3-2-1-GO countdown.
 - Nitro: up to 3 bars. Bars are earned by drifting, near-misses, MG hits (+2% per hit), takedowns
   (+1 bar) and nitro pickups.
 - Pulse MG: hitscan, 10 shots/s, 4 damage, 8° soft auto-aim cone, 120 m range. Heat locks the gun
@@ -144,6 +144,24 @@ All bindings go through one action map in `Input.ts`.
 - **Lightning:** a timer of `lightning.everySec` triggers a hemi-light boost (double flash), a bolt sprite on the skyline, then `sfx/thunder.wav` after a delay.
 - **Audio:** `sfx/rain_loop.wav` loops, with volume taken from rain intensity. Halve it under the bridge and the overpass.
 - **Performance:** on the Low preset, no spray sprites and 1500 rain particles. Puddles stay, because they matter for gameplay.
+
+## Monte-Carlo Harbour (Map 5)
+- **Width 12 m**, Armco + catch fence both sides: wall hits cost hull −8 and speed ×0.6; glancing scrapes (< 15°) −2 with sparks.
+- **No-fire zones:** `noFireZones` (tunnel, Nouvelle Chicane). Weapons can't fire there; show a lock icon on the HUD. Make this a generic track-JSON feature.
+- **Start:** `startLine.lights` — light `start_light_1..5` one per second, random 0.2–3 s hold, all out = GO (replaces 3-2-1 on this map). Jump start = 3 s penalty.
+- **Tunnel:** exposure −1.5 EV inside, bloom flare at the exit, all car audio through a ConvolverNode with `sfx/monaco/tunnel_ir.wav`.
+- **Water:** `three/addons/objects/Water.js` (planar reflection, 512² on Medium, off on Low → plain MeshStandardMaterial with `mc_sea`). Sky: `three/addons/objects/Sky.js`, also PMREM'd for the environment map.
+- **Instancing:** Armco/fence/kerb/palms/yachts/buildings are InstancedMesh per model; the whole map must stay inside the 350 draw-call budget.
+- **Audio:** ambience/crowd zones and events from `audio`; the helicopter follows the leader; yacht horn when P1 crosses the line.
+
+## Driver FPV (cockpit view)
+- Camera cycle with **V**: chase → hood → cockpit. **H** cycles HUD full / minimal / off. **C** looks back.
+- `cars.json[*].fpv`: `mode` is `cockpit` (7 cars) or `helmet` (Mantis, Mira, AV8, Fulmine — open cockpit, so the halo stays visible); `eye` = camera position in car space; `fovDeg`; `tint` = paint/accent for the rig.
+- Cockpit mode: load `models/cars/cockpit_rig.glb` once, clone per player car, set `Cockpit_Paint`/`Cockpit_Accent` colours from `fpv.tint`, parent it to the car at `fpv.eye`, hide the car's own meshes. Rotate `steering_wheel` by steer × 2.4 rad (hands are children).
+- Mirror: render a 512×128 camera at `rear_mirror_cam` (looking −Z) into a WebGLRenderTarget, map it (flipped on X) onto `Mirror_Glass`. 30 fps; 15 fps 256×64 on Low.
+- `Dash_Screen`: replace its texture with a CanvasTexture you redraw at 10 Hz (speed, gear, RPM arc, nitro bars).
+- Render the cockpit on its own layer after the world, near plane 0.03 m. Tracers in FPV start at `muzzle_fpv`.
+- Visor HUD layout, colours and camera feel (FOV +6° on nitro, head lag, lean, look-to-apex, shake): canvas boards 36–37.
 
 ## Game branding (VOLTLINE identity)
 `branding/` holds the game's own logo, app icon and favicons (designed for VOLTLINE, safe to use anywhere).

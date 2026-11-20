@@ -9,6 +9,8 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 export class PostFX {
   private readonly composer: EffectComposer;
   private readonly bloom: UnrealBloomPass;
+  private readonly baseExposure: number;
+  private readonly baseBloom: number;
   /** Draw calls of the scene render (shadow map + main pass), excluding the full-screen post passes. */
   sceneCalls = 0;
 
@@ -19,8 +21,9 @@ export class PostFX {
     track: TrackDef,
   ) {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure =
+    this.baseExposure =
       (track.daylight?.toneMappingExposure ?? LIGHTING.exposure) * lightingScale(track.timeOfDay).exposureMul;
+    renderer.toneMappingExposure = this.baseExposure;
     this.composer = new EffectComposer(renderer);
     const renderPass = new RenderPass(scene, camera);
     const baseRender = renderPass.render.bind(renderPass);
@@ -37,6 +40,7 @@ export class PostFX {
       0.4,
       track.daylight?.bloom.threshold ?? 0.6,
     );
+    this.baseBloom = this.bloom.strength;
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
   }
@@ -48,6 +52,16 @@ export class PostFX {
 
   render(dt: number): void {
     this.composer.render(dt);
+  }
+
+  /** Scales the map's exposure (Map 5's tunnel is -1.5 EV). 1 = normal. */
+  setExposureMul(k: number): void {
+    this.renderer.toneMappingExposure = this.baseExposure * k;
+  }
+
+  /** Adds to the bloom strength for a moment (Map 5's tunnel-exit flare). 0 = normal. */
+  setBloomBoost(v: number): void {
+    this.bloom.strength = this.baseBloom + v;
   }
 
   setBloom(on: boolean): void {

@@ -45,9 +45,22 @@ export function playCountdown(bus: AudioBus, value: number): void {
   }
 }
 
-export function sfxFiles(): string[] {
+/** Start-light clunk for lamp 1..5, and the lights-out sound (Map 5's light-sequence start). */
+export function playStartLamp(bus: AudioBus): void {
+  bus.play(AUDIO.oneShots.startLamp);
+}
+
+export function playStartGo(bus: AudioBus): void {
+  bus.play(AUDIO.oneShots.startGo);
+  bus.play(AUDIO.oneShots.launch);
+}
+
+export function sfxFiles(extra: readonly string[] = []): string[] {
   return [
+    ...extra,
     AUDIO.engine.file,
+    ...Object.values(AUDIO.engines).map((e) => e.file),
+    AUDIO.passby.file,
     AUDIO.skid.file,
     ...Object.values(AUDIO.layers).map((l) => l.file),
     ...Object.values(AUDIO.oneShots).map((o) => o.file),

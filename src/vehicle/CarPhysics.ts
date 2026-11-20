@@ -1,6 +1,7 @@
 import type RAPIER from '@dimforge/rapier3d-compat';
 import type { CarDef, HandlingDef } from '../core/Data';
 import { NitroTank, slipAngleDeg } from './Nitro';
+import { downforceN, openWheelGripMul } from './OpenWheel';
 
 type Rapier = typeof RAPIER;
 
@@ -141,6 +142,11 @@ export class CarPhysics {
   /** Yaw rate (rad/s) added at the next step, then cleared: puddle twitches. */
   private pendingYawKick = 0;
   private lastHSpeed = 0;
+  private lastVx = 0;
+  private lastVz = 0;
+  /** Horizontal velocity at the end of the previous step and of this one (m/s): the hit rules compare them. */
+  readonly velBefore = { x: 0, z: 0 };
+  readonly velAfter = { x: 0, z: 0 };
   /** Bike only: visual lean about the local +Z axis in radians; positive = leaning to the right. 0 for other vehicles. */
   get leanRad(): number {
     return this.lean;
@@ -336,7 +342,8 @@ export class CarPhysics {
 
     // --- grip (front/rear split lets the tail swing out while drifting) ---
     this.gripMix = approach(this.gripMix, this.drifting ? 1 : 0, h.grip.gripBlendPerSec * dt);
-    const baseSlip = h.grip.frictionSlip * def.grip * this.tp.frictionMul * this.surfaceGripMul;
+    const baseSlip =
+      h.grip.frictionSlip * def.grip * this.tp.frictionMul * this.surfaceGripMul * openWheelGripMul(def, speed, h);
     const rearMul = 1 - h.grip.driftRearGripDrop * def.drift * this.gripMix;
     const frontMul = 1 + (h.grip.driftFrontGripBoost - 1) * this.gripMix;
 
@@ -365,7 +372,16 @@ export class CarPhysics {
     // --- extra forces: downforce for stability, yaw assist so drifts rotate the car ---
     this.body.resetForces(true);
     this.body.resetTorques(true);
-    this.body.addForce({ x: 0, y: -h.body.downforcePerSpeedSq * this.tp.downforceMul * speed * speed, z: 0 }, true);
+    this.body.addForce(
+      {
+        x: 0,
+        y:
+          -h.body.downforcePerSpeedSq * this.tp.downforceMul * speed * speed -
+          downforceN(def, speed, h, Math.abs(h.world.gravity)),
+        z: 0,
+      },
+      true,
+    );
     if (this.brakeDistanceMul !== 1 && this.braking && fwd > 1) {
       // The brakes saturate on the tyres, so neither brake force nor friction changes the stopping distance; instead
       // push back along the heading by the share of the (measured) braking deceleration that has to go: 1 - 1/mul.
@@ -469,8 +485,30 @@ export class CarPhysics {
         this.body.setAngvel({ x: w.x * k, y: w.y * k, z: w.z * k }, true);
       }
     }
+    this.velBefore.x = this.lastVx;
+    this.velBefore.z = this.lastVz;
+    const v2 = this.body.linvel();
+    this.velAfter.x = v2.x;
+    this.velAfter.z = v2.z;
+    this.lastVx = v2.x;
+    this.lastVz = v2.z;
     this.lastHSpeed = hs;
     this.readPose(this.curr);
+  }
+
+  /** Scale the horizontal velocity (wall hits: the car keeps `k` of its speed). Vertical velocity is untouched. */
+  scaleHorizontalVelocity(k: number): void {
+    const v = this.body.linvel();
+    this.body.setLinvel({ x: v.x * k, y: v.y, z: v.z * k }, true);
+    this.lastVx *= k;
+    this.lastVz *= k;
+    this.lastHSpeed *= k;
+  }
+
+  /** Add to the vertical velocity (m/s): the small hop when a wheel is clipped from the side. */
+  hop(dvy: number): void {
+    const v = this.body.linvel();
+    this.body.setLinvel({ x: v.x, y: v.y + dvy, z: v.z }, true);
   }
 
   get suspensionRest(): number {
@@ -492,6 +530,8 @@ export class CarPhysics {
     this.steerAngle = 0;
     this.lean = 0;
     this.lastHSpeed = 0;
+    this.lastVx = 0;
+    this.lastVz = 0;
     this.readPose(this.curr);
     this.prev.copy(this.curr);
   }

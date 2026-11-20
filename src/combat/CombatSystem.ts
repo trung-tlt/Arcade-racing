@@ -248,21 +248,26 @@ export class CombatSystem {
     }
   }
 
-  private applyDamage(victim: Car, amount: number, attackerId: string): void {
+  /** Damage that isn't a weapon hit: a wall, or another car's bodywork. `attackerId` is null for scenery. */
+  damageCar(victim: Car, amount: number, attackerId: string | null): void {
+    this.applyDamage(victim, amount, attackerId);
+  }
+
+  private applyDamage(victim: Car, amount: number, attackerId: string | null): void {
     const r = victim.hull.damage(amount, attackerId);
     if (r.applied <= 0) return;
     this.d.events.emit('carHit', { carId: victim.id, attackerId, damage: r.applied });
     if (r.wrecked) this.wreck(victim, attackerId);
   }
 
-  private wreck(victim: Car, attackerId: string): void {
+  private wreck(victim: Car, attackerId: string | null): void {
     const p = victim.physics.curr.p;
     tmpV.set(p.x, p.y + 0.8, p.z);
     this.d.particles.explosion(tmpV, 5);
     this.d.events.emit('explosion', { pos: { x: tmpV.x, y: tmpV.y, z: tmpV.z }, radius: 6 });
     this.d.events.emit('carWrecked', { carId: victim.id, attackerId });
     victim.freeze();
-    const atk = this.d.cars().find((c) => c.id === attackerId);
+    const atk = attackerId === null ? undefined : this.d.cars().find((c) => c.id === attackerId);
     if (!atk || atk === victim) return;
     atk.score += WEAPONS.wreck.takedownScore;
     atk.takedowns++;

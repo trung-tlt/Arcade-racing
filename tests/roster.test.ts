@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { AI, CARS } from '../src/core/Data';
-import { rollRoster } from '../src/ai/Roster';
+import { applyTrackRoster, rollRoster } from '../src/ai/Roster';
 
 const ids = CARS.map((c) => c.id);
 const seeded = (seed: number) => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32;
@@ -34,5 +34,27 @@ describe('rival roster', () => {
   it('still works with a tiny garage or name list', () => {
     const r = rollRoster(AI.rivals, ['Vy'], ['wisp_r'], 'wisp_r', seeded(3));
     expect(r.every((x) => x.name === 'VY' && x.car === 'wisp_r')).toBe(true);
+  });
+});
+
+describe('track rosters (Map 5 open-wheel grid)', () => {
+  const rosters = AI.trackRosters as Record<string, import('../src/ai/Roster').TrackRoster>;
+  it('data: monte_carlo fields fulmine_fx with at least as many liveries as rivals', () => {
+    expect(rosters.monte_carlo.car).toBe('fulmine_fx');
+    expect(rosters.monte_carlo.liveries.length).toBeGreaterThanOrEqual(AI.rivals.length);
+    for (const l of rosters.monte_carlo.liveries) {
+      for (const c of [l.paint, l.accent, l.glow]) expect(c).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+  it('gives every rival the car in a different livery, keeping names and driving traits', () => {
+    const base = rollRoster(AI.rivals, AI.rosterNames, ids, 'kestrel_gt', seeded(7));
+    const r = applyTrackRoster(base, 'monte_carlo', rosters, seeded(9));
+    expect(r.every((x) => x.car === 'fulmine_fx')).toBe(true);
+    expect(new Set(r.map((x) => x.livery?.paint)).size).toBe(r.length);
+    r.forEach((x, i) => expect([x.id, x.name, x.skill]).toEqual([base[i].id, base[i].name, base[i].skill]));
+  });
+  it('leaves other maps alone', () => {
+    const base = rollRoster(AI.rivals, AI.rosterNames, ids, 'kestrel_gt', seeded(7));
+    expect(applyTrackRoster(base, 'cat_lai', rosters)).toEqual(base);
   });
 });

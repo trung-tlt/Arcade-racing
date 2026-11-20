@@ -1,4 +1,4 @@
-import { UI_SOUNDS } from '../core/Data';
+import { UI_SOUNDS, getTrack } from '../core/Data';
 import { onSettingsChange, settings } from '../core/Settings';
 
 /**
@@ -96,12 +96,29 @@ const MUSIC = UI_SOUNDS.music.menu;
 /** Fraction of the title sting that plays before the music comes in. */
 const STING_OVERLAP = 0.85;
 
+/** The menu loop for a map: its JSON's `audio.music.menu` (OGG first, the listed WAV as fallback), else the default loop. */
+export function trackMusic(trackId: string | null): { file: string; fallback: string } {
+  if (trackId) {
+    try {
+      const own = (getTrack(trackId).raw.audio as { music?: { menu?: string } } | undefined)?.music?.menu;
+      if (own) return { file: own.replace(/\.wav$/, '.ogg'), fallback: own };
+    } catch {
+      /* unknown track: the default loop */
+    }
+  }
+  return { file: MUSIC.file, fallback: MUSIC.fallback };
+}
+
 class UiAudio {
   private ctx: AudioContext | null = null;
   private uiBus: GainNode | null = null;
   private musicBus: GainNode | null = null;
   private musicFade: GainNode | null = null;
   private musicSrc: AudioBufferSourceNode | null = null;
+  private musicSrcGain: GainNode | null = null;
+  /** The loop now wanted (the default menu loop, or a map's own `audio.music.menu`) and its WAV twin. */
+  private musicFile = MUSIC.file;
+  private readonly fallbacks = new Map<string, string>([[MUSIC.file, MUSIC.fallback]]);
   private stopTimer = 0;
   private introUntil = 0;
   private offSettings: (() => void) | null = null;
@@ -160,7 +177,7 @@ class UiAudio {
     this.removeUnlock?.();
     this.removeUnlock = null;
     for (const def of Object.values(EVENTS)) void this.decode(def.file);
-    void this.decode(MUSIC.file);
+    void this.decode(this.musicFile);
     if (this.musicWanted) this.startMusic(true); // asked for before the first input
   }
 
@@ -219,7 +236,8 @@ class UiAudio {
     };
     const first = await tryDecode(file);
     if (first) return first;
-    return file === MUSIC.file ? tryDecode(MUSIC.fallback) : null;
+    const fb = this.fallbacks.get(file);
+    return fb ? tryDecode(fb) : null;
   }
 
   private log(entry: string): void {
@@ -278,19 +296,53 @@ class UiAudio {
       this.applyMusicLevel(0.8);
       return;
     }
-    void this.decode(MUSIC.file).then((buf) => {
+    void this.decode(this.musicFile).then((buf) => {
       const ctx = this.ctx;
       if (!buf || !ctx || !this.musicFade || !this.musicWanted || this.musicSrc) return;
       const src = ctx.createBufferSource();
       src.buffer = buf;
       src.loop = true; // gapless: the loop is authored to repeat seamlessly
-      src.connect(this.musicFade);
+      const gain = ctx.createGain();
+      src.connect(gain).connect(this.musicFade);
       src.start();
       this.musicSrc = src;
+      this.musicSrcGain = gain;
       if (ctx.state === 'suspended') void ctx.resume();
       this.log('music_start');
       this.applyMusicLevel(0.8);
     });
+  }
+
+  /**
+   * Menu / pre-race music for a map: the track JSON's `audio.music.menu` (Monte-Carlo's bossa loop), else the default
+   * menu loop. Pass null (or a map without its own loop) to go back to the default. If music is already playing it
+   * crossfades; if not, the new file is simply what the next `startMusic` plays.
+   */
+  setMusicForTrack(trackId: string | null): void {
+    const pick = trackMusic(trackId);
+    const file = pick.file;
+    this.fallbacks.set(file, pick.fallback);
+    if (file === this.musicFile) return;
+    this.musicFile = file;
+    this.fetchRaw(file);
+    if (this.ctx) void this.decode(file);
+    const old = this.musicSrc;
+    const oldGain = this.musicSrcGain;
+    if (!old || !oldGain || !this.ctx) return;
+    // Fade the old loop out under the new one.
+    const t = this.ctx.currentTime;
+    oldGain.gain.setTargetAtTime(0, t, 0.12);
+    this.musicSrc = null;
+    this.musicSrcGain = null;
+    window.setTimeout(() => {
+      try {
+        old.stop();
+      } catch {
+        /* already stopped */
+      }
+      old.disconnect();
+    }, 700);
+    if (this.musicWanted) this.startMusic(true);
   }
 
   /** Fade the music out and stop it (a no-op if it is already stopping or stopped). */
@@ -313,6 +365,7 @@ class UiAudio {
         }
         src.disconnect();
         this.musicSrc = null;
+        this.musicSrcGain = null;
       },
       fadeSec * 1000 + 100,
     );
@@ -369,6 +422,7 @@ class UiAudio {
       /* not started */
     }
     this.musicSrc = null;
+    this.musicSrcGain = null;
     void this.ctx?.close();
     this.ctx = null;
     this.uiBus = this.musicBus = this.musicFade = null;

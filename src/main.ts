@@ -1,6 +1,6 @@
 import { Assets } from './core/Assets';
-import { rollRoster, type Rival } from './ai/Roster';
-import { AI, CARS, TRACKS, getTrack } from './core/Data';
+import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
+import { AI, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { bestLapText, loadBestLap } from './core/Records';
 import { applyMobileDefaults, loadSettings, updateSettings } from './core/Settings';
@@ -19,6 +19,7 @@ import { makeThumbnailRenderer } from './ui/carThumbs';
 import { makeShowroomFactory } from './ui/Showroom';
 import { uiAudio } from './ui/uiAudio';
 import type { RaceSetup, Screen } from './ui/types';
+import { MONTE_CARLO_MODELS, MONTE_CARLO_TEXTURES } from './world/MonteCarlo';
 import { TRACK_MODELS, TRACK_TEXTURES } from './world/Track';
 import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
 import { CAT_LAI_TEXTURES, PVD_MODELS, PVD_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
@@ -194,7 +195,7 @@ async function boot(): Promise<void> {
   const raceSetupScreen: RaceSetupScreen = reg(
     new RaceSetupScreen(screensRoot, {
       getCarId: () => setup.carId,
-      getRoster: () => rosterFor(setup.carId),
+      getRoster: (trackId) => applyTrackRoster(rosterFor(setup.carId), trackId, AI.trackRosters),
       bestLapText: (id: string) => bestText(id),
       onBack: () => show('carSelect', carSelect),
       onStart: (s) => void startRace({ ...s, carId: setup.carId }),
@@ -246,6 +247,7 @@ async function boot(): Promise<void> {
     game = null;
     stage.replaceChildren();
     resultsShown = false;
+    uiAudio.setMusicForTrack(null);
     title.setTrackName(getTrack(setup.trackId).name);
     title.refresh();
     show(next, next === 'title' ? title : carSelect);
@@ -258,6 +260,10 @@ async function boot(): Promise<void> {
     touchHud?.setActive(true);
     syncMusic('racing');
     resultsShown = false;
+    // Map 5's props are not in the boot download: fetch them (3 MB) the first time that map is raced.
+    if (s.trackId === MONTE_CARLO.id) {
+      await assets.extend({ models: MONTE_CARLO_MODELS, textures: MONTE_CARLO_TEXTURES });
+    }
     // A fresh canvas per race: a disposed WebGL context can't be reused.
     const canvas = document.createElement('canvas');
     canvas.id = 'game';

@@ -15,6 +15,13 @@ export interface DriveAudioState {
   countdown: boolean;
 }
 
+interface EngineProfile {
+  file: string;
+  gain: number;
+  rateBase: number;
+  rateRpm: number;
+}
+
 const clamp01 = (v: number): number => Math.min(1, Math.max(0, v));
 
 /** Engine, skid and layered boost/ambience sounds driven from the player's car state. */
@@ -22,13 +29,19 @@ export class EngineSound {
   private readonly engine: { src: AudioBufferSourceNode; gain: GainNode } | null;
   private readonly skid: { src: AudioBufferSourceNode; gain: GainNode } | null;
   private readonly layers: Record<keyof typeof AUDIO.layers, CrossfadeLoop>;
+  private readonly profile: EngineProfile;
   private pitchMul = 1;
   private gear = 1;
   private wasNitro = false;
   private wasDrifting = false;
   private cooldown = { shift: 0, screech: 0, squeal: 0 };
 
-  constructor(private readonly bus: AudioBus) {
+  /** `engineId` picks the engine loop and its pitch curve from audio.json `engines` (Fulmine FX), else the default. */
+  constructor(
+    private readonly bus: AudioBus,
+    engineId?: string,
+  ) {
+    this.profile = (engineId ? (AUDIO.engines as Record<string, EngineProfile>)[engineId] : undefined) ?? AUDIO.engine;
     const loop = (file: string): { src: AudioBufferSourceNode; gain: GainNode } | null => {
       const buf = bus.buffer(file);
       if (!buf) return null;
@@ -41,7 +54,7 @@ export class EngineSound {
       src.start();
       return { src, gain };
     };
-    this.engine = loop(AUDIO.engine.file);
+    this.engine = loop(this.profile.file);
     this.skid = loop(AUDIO.skid.file);
     this.layers = {
       idle: new CrossfadeLoop(bus, AUDIO.layers.idle),
@@ -66,11 +79,11 @@ export class EngineSound {
 
     if (this.engine) {
       this.engine.src.playbackRate.setTargetAtTime(
-        (A.engine.rateBase + rpm * A.engine.rateRpm) * this.pitchMul,
+        (this.profile.rateBase + rpm * this.profile.rateRpm) * this.pitchMul,
         now,
         0.05,
       );
-      this.engine.gain.gain.setTargetAtTime(A.engine.gain * (0.45 + 0.55 * s.throttle), now, 0.08);
+      this.engine.gain.gain.setTargetAtTime(this.profile.gain * (0.45 + 0.55 * s.throttle), now, 0.08);
     }
     if (this.skid) {
       const k = clamp01((s.slipDeg - A.skid.minSlipDeg) / (A.skid.fullSlipDeg - A.skid.minSlipDeg));

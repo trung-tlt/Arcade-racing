@@ -1,5 +1,9 @@
 {
-  "muzzleOffset": [0, 0.15, 1.6],
+  "muzzleOffset": [
+    0,
+    0.15,
+    1.6
+  ],
   "aimTargetHeightM": 0.7,
   "pickupRadiusM": 2.6,
   "pickupHeightM": 1.2,
@@ -48,5 +52,26 @@
     "fullTurretDeg": 180,
     "yawRateRadPerSec": 9,
     "holdSec": 0.5
+  },
+  "wall": {
+    "minImpactMps": 3.5,
+    "hullDamage": 8,
+    "glancingHullDamage": 2,
+    "glancingMaxDeg": 15,
+    "speedMul": 0.6,
+    "cooldownSec": 0.5,
+    "sparkCount": 10,
+    "sparkSpeed": 7,
+    "sparkLifeSec": 0.35,
+    "minGlancingImpactMps": 1.0
+  },
+  "contact": {
+    "minImpactMps": 4,
+    "radiusM": 3.8,
+    "damagePerMps": 0.8,
+    "openWheelDamageMul": 1.5,
+    "cooldownSec": 0.5,
+    "sideLaunchMps": 2.4,
+    "sideDotMin": 0.6
   }
 }
