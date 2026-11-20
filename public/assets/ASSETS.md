@@ -25,8 +25,8 @@ code only; it should not need to create or edit any art.
 | sable_rs.glb | car | ~12.9k | rally hatch, purple/white, bumper spotlights, roof wing |
 | hauler_ht.glb | car | ~13.9k | pickup with shielded bed turret (360° yaw) |
 | truongson_av8.glb | apc8x8 | ~26.9k | original 8x8 armored personnel carrier, olive, autocannon turret (360°), antenna. 8 wheels `wheel_1L…wheel_4R`; axles 1–2 steer |
-| mantis_650r.glb | bike | ~13.5k | original 650-class sport bike with rider. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns |
-| mira_150.glb | bike | ~21.6k | original retro step-through scooter (12" wheels), red with tan seat, chrome grab rail, round headlight in the handlebar cover, upright rider. 2 wheels `wheel_F`, `wheel_R`; twin pulse pods on a legshield crash bar (±12°). Smallest turning circle, very fragile |
+| mantis_650r.glb | bike | ~29k | rebuilt original 650-class sport bike: lofted fairing with twin LED eyes, tinted screen, gold USD fork, twin-spar frame, mono-shock, chain drive, carbon end can. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns (±15°). Tucked armoured rider |
+| mira_150.glb | bike | ~30k | original retro step-through scooter (12" wheels), red with tan seat, chrome trim, horn grille, rear rack with an olive ammo can. 2 wheels `wheel_F`, `wheel_R`; twin pulse pods on a legshield crash bar (±12°). Upright armoured rider. Smallest turning circle, very fragile |
 | fulmine_fx.glb | car (openWheel) | ~20k | original open-wheel hybrid racer: halo, sculpted sidepods, multi-element front wing, rear wing with DRS flap, beam wing, diffuser, rain light (`Light_Tail`), exposed wheels with wishbones/pushrods, driver helmet. Compact Pulse MG on the roll hoop (±10°). Livery variants: override `paint` / `accent` / `glow` per AI car |
 
 **Realism pass (all vehicles):** smooth creased-normal body with rounded profile corners, a hood/roof crown and flared wheel haunches; `MeshPhysicalMaterial` clearcoat paint (`KHR_materials_clearcoat`, GLTFLoader reads it) and tinted clearcoat glass; textured LED headlight clusters (projectors + DRL) and tail-light bars; hex-mesh grilles; black window seals and B-pillars; door seams and chrome handles; side mirrors; wipers; front/rear race plates (fictional `VL …`, Warden `POLICE 01`); carbon splitter, side skirts and diffuser on road cars; chrome exhaust tips; shark-fin antenna; rubber arch lips. Wheels: rounded lathe tyres with tread texture (block lugs on off-road/military), dished twin-spoke alloys with lug nuts, brake discs and coloured calipers; Bastion uses beadlock steel wheels, the AV8 military steel wheels. Bike rider now uses capsule limbs and a round helmet. Gun turrets have rounded housings, cooling-jacket rings, ammo box and an optic. Rig names, origins, collider and gun_mount positions are unchanged, so code that loads the old models keeps working.
@@ -34,7 +34,7 @@ code only; it should not need to create or edit any art.
 
 **Sponsor decals (logos supplied by the project owner, used unchanged):**
 - kestrel_gt — Emesoft: white stacked logo on both doors, ink mark on the hood.
-- mantis_650r — Emesoft: red mark on the front fairing, white stacked logo on the engine panel, both sides.
+- mantis_650r — Emesoft: colour mark on both nose flanks, white stacked logo on the belly fairing and the tail, both sides.
 - mira_150 — Emesoft: white stacked logo on both rear side cowls, ink mark on the front of the legshield.
 - rhino_x4 — CaptureMann: patch (0.90 × 0.28 m) on the bolted door armour plate, both sides; on-light mark (0.42 m) on the bonnet.
 - fulmine_fx — Emesoft: colour mark on both sidepods, ink mark on the nose; CaptureMann patch on the engine cover; CraftMann patch on both rear-wing endplates.
@@ -55,6 +55,11 @@ Car_<id>
 ```
 `data/cars.json` has, per vehicle: `vehicleType` (car | apc8x8 | bike), stats, role, collider,
 every wheel (position, radius, width, steer), gun mount, `turretYawDeg`, and `maxLeanDeg` for the bike.
+
+### Bike riders — military kit (mantis_650r, mira_150)
+The `rider` mesh is an armoured operator (original design): digital woodland camo uniform (`Gear_Camo_DigitalWoodland`, one tileable 256² pixel texture, box-projected UVs), ranger-green plate carrier with MOLLE rows, mag pouches, hydration pack and radio with whip antenna (`Gear_Armor_RangerGreen`, `Gear_Webbing`), high-cut ballistic helmet with a camo cover, NVG shroud, side rails, comms ear cups and boom mic, counterweight pouch and strobe; ballistic goggles (`Gear_Goggle_Lens`, faint team-colour glow), scarf, shoulder/elbow/knee armour (`Gear_Pads`), black gloves and coyote boots (`Gear_Boots_Coyote`). The chest marker uses `Underglow`, so the player colour also shows on the rider.
+- Squad recolour: swap only `Gear_Armor_RangerGreen` / `Gear_Webbing` colours; leave the camo texture alone.
+- The rider is about 8–9k of each bike's triangles; both bikes stay under 31k tris and 43 draw calls (clone one template per bike type and share materials).
 
 ### Physics notes for special vehicles
 - **openWheel (fulmine_fx):** normal 4-wheel raycast car, but add downforce = `downforce` × v² × 0.5 (N, v in m/s) pushed through the chassis; grip ×1.25 above 150 km/h. Very light (800 kg) and the lowest hull (70) — wheel-to-wheel contact damages it ×1.5. Wheels are exposed: a wheel hit to the side of another car launches it slightly (small upward impulse).

@@ -636,33 +636,33 @@
     "file": "models/cars/mantis_650r.glb",
     "paint": "#2EC5FF",
     "collider": {
-      "halfExtents": [0.21, 0.558, 1.15],
-      "center": [0, 0.678, 0.062]
+      "halfExtents": [0.21, 0.515, 1.009],
+      "center": [0, 0.635, -0.039]
     },
     "wheels": [
       {
         "name": "wheel_F",
         "x": 0,
-        "y": 0.33,
-        "z": 1.016,
-        "radius": 0.33,
+        "y": 0.31,
+        "z": 0.7,
+        "radius": 0.31,
         "width": 0.12,
         "steer": true
       },
       {
         "name": "wheel_R",
         "x": 0,
-        "y": 0.33,
-        "z": -0.579,
-        "radius": 0.33,
+        "y": 0.31,
+        "z": -0.71,
+        "radius": 0.31,
         "width": 0.18,
         "steer": false
       }
     ],
-    "gunMount": [0, 0.7, 0.417],
+    "gunMount": [0, 0.8, 0.31],
     "fpv": {
       "mode": "helmet",
-      "eye": [0, 1.387, 0.296],
+      "eye": [0, 1.31, 0.21],
       "fovDeg": 70
     },
     "role": "SPORT BIKE · GLASS CANNON",
