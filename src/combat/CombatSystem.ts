@@ -29,6 +29,8 @@ export interface CombatDeps {
   respawnPoseFor: (car: Car) => { x: number; z: number; yaw: number };
   pickupDefs: readonly PickupDef[];
   pickupVisuals: PickupVisuals;
+  /** First-person view: where this car's tracers start instead of its gun muzzle (false = use the muzzle). */
+  tracerOrigin?: (car: Car, out: THREE.Vector3) => boolean;
 }
 
 const PICKUP_TYPES = Object.keys(WEAPONS.pickups) as PickupType[];
@@ -38,6 +40,7 @@ const endPt = new THREE.Vector3();
 const tmpV = new THREE.Vector3();
 const tmpQ = new THREE.Quaternion();
 const aimDir = new THREE.Vector3();
+const tracerFrom = new THREE.Vector3();
 
 /** Glue for guns, rockets, pickups, damage states, wrecks and respawns. Gameplay rules live in the pure modules. */
 export class CombatSystem {
@@ -82,6 +85,11 @@ export class CombatSystem {
       this.hints.push({ x: p.x, z: p.z, type: def.type });
     }
     return this.hints;
+  }
+
+  /** Rockets in flight, for the incoming-rocket warning. */
+  forEachRocket(cb: (owner: string, pos: THREE.Vector3, dir: THREE.Vector3) => void): void {
+    this.rockets.forEachActive(cb);
   }
 
   update(dt: number): void {
@@ -178,7 +186,7 @@ export class CombatSystem {
       const hit = this.d.world.castRay(this.ray, cfg.rangeM, true, undefined, undefined, undefined, car.physics.body);
       const dist = hit ? hit.timeOfImpact : cfg.rangeM;
       endPt.copy(origin).addScaledVector(aimDir, dist);
-      this.d.tracers.fire(origin, endPt);
+      this.d.tracers.fire(this.d.tracerOrigin?.(car, tracerFrom) ? tracerFrom : origin, endPt);
       this.d.tracers.muzzleFlash(origin, aimDir);
       this.d.events.emit('gunFired', { carId: car.id, pos: origin });
       if (!hit) continue;

@@ -33,7 +33,8 @@ export class Hud {
       <div class="hud-drift">DRIFT</div>
       <div class="hud-hint">
         <b>W/S</b> throttle/brake · <b>A/D</b> steer · <b>Space</b> drift · <b>J</b> gun · <b>K</b> rocket<br />
-        <b>Shift</b> nitro · <b>R</b> reset
+        <b>Shift</b> nitro · <b>R</b> reset<br />
+        <b>V</b> camera · <b>H</b> HUD · <b>M</b> mirror · <b>C</b> look back
       </div>`;
     this.root.appendChild(this.el);
     this.speed = this.el.querySelector('.hud-speed-val') as HTMLElement;

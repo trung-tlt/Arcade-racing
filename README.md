@@ -29,7 +29,11 @@ plain HTML/CSS overlay for the HUD and menus.
 | Fire rocket | K or right mouse | LB |
 | Reset to track | R | Y |
 | Pause | Esc | Start |
-| Restart race | Enter | Back |
+| Restart race | Enter | L3 |
+| Camera: chase / hood / cockpit | V | View |
+| HUD: full / minimal / off | H | D-pad down |
+| Rear-view mirror on / off | M | |
+| Look back (hold) | C | R3 |
 
 Every menu works from the keyboard or gamepad (arrows, Enter, Esc, hotkey chips).
 

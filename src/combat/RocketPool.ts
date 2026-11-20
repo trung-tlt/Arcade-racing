@@ -62,6 +62,11 @@ export class RocketPool {
     }
   }
 
+  /** Visit every rocket in flight (HUD warnings): owner, position, heading. */
+  forEachActive(cb: (owner: string, pos: THREE.Vector3, dir: THREE.Vector3) => void): void {
+    for (const r of this.rockets) if (r.active) cb(r.owner, r.pos, r.dir);
+  }
+
   /** Launch from the pool; returns false when every slot is in flight. */
   launch(owner: string, pos: THREE.Vector3, dir: THREE.Vector3, target: string | null): boolean {
     const r = this.rockets.find((x) => !x.active);

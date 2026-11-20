@@ -253,6 +253,14 @@ body.is-touch .kb-only {
   margin-left: calc(var(--tb-pause) / -2);
   font-size: 18px;
 }
+/* reset to track: next to pause, for a car that is stuck */
+#touch-hud .tb-reset {
+  left: calc(50% + var(--tb-pause) / 2 + var(--tb-gap));
+  top: max(10px, env(safe-area-inset-top, 0px));
+  width: var(--tb-pause);
+  height: var(--tb-pause);
+  font-size: 22px;
+}
 /* steering styles */
 #touch-hud .tb-wheel,
 #touch-hud .tb-tilt {

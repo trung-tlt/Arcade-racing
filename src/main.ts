@@ -6,6 +6,7 @@ import { bestLapText, loadBestLap } from './core/Records';
 import { applyMobileDefaults, loadSettings, updateSettings } from './core/Settings';
 import { detectTouch, touchInput } from './core/TouchInput';
 import { PICKUP_MODELS } from './combat/PickupVisuals';
+import { COCKPIT_RIG } from './vehicle/CockpitView';
 import { ROCKET_MODEL } from './combat/RocketPool';
 import { CarSelectScreen } from './ui/screens/carSelect';
 import { ControlsScreen } from './ui/screens/controls';
@@ -88,6 +89,7 @@ async function boot(): Promise<void> {
           ...XALO_TRAFFIC_MODELS,
         ]),
         ...PICKUP_MODELS,
+        COCKPIT_RIG,
         ROCKET_MODEL,
       ],
       textures: [

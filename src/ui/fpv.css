@@ -1,0 +1,472 @@
+/* Driver first-person HUD: a helmet visor layer over the hood and cockpit views (design canvas board 37). */
+:root {
+  /* 1 design pixel at 1280×720, scaled to whatever the window is */
+  --u: min(calc(100vw / 1280), calc(100vh / 720));
+}
+
+.fpv {
+  position: fixed;
+  inset: 0;
+  display: none;
+  pointer-events: none;
+  font-family: Inter, system-ui, sans-serif;
+  color: #e8ecf2;
+}
+body.view-hood .fpv,
+body.view-cockpit .fpv {
+  display: block;
+}
+body.hud-off .fpv {
+  display: none;
+}
+body.hud-min .fpv .fpv-full {
+  display: none;
+}
+.fpv [hidden] {
+  display: none;
+}
+
+.fpv-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 70% at 50% 46%, rgba(0, 0, 0, 0) 62%, rgba(4, 8, 14, 0.55) 100%);
+}
+.fpv-arcs {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: #2ec5ff;
+  stroke-opacity: 0.4;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.fpv-arcs path {
+  vector-effect: non-scaling-stroke;
+}
+.fpv-cracks {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: none;
+  stroke: rgba(232, 236, 242, 0.7);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  opacity: var(--crack, 0);
+}
+.fpv-cracks path {
+  vector-effect: non-scaling-stroke;
+}
+
+/* position + lap (roof liner, top-left) */
+.fpv-pos {
+  position: absolute;
+  left: calc(34 * var(--u));
+  top: calc(14 * var(--u));
+  display: flex;
+  align-items: baseline;
+  gap: calc(14 * var(--u));
+  text-shadow: 0 2px 8px rgba(8, 12, 18, 0.8);
+}
+.fpv-pos .p {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(44 * var(--u));
+  font-weight: 700;
+  line-height: 1;
+}
+.fpv-pos .p small {
+  font-size: calc(22 * var(--u));
+  color: #9aa4b5;
+}
+.fpv-pos .meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(12 * var(--u));
+  color: #c9d1dd;
+}
+.fpv-pos .dim {
+  color: #9aa4b5;
+}
+
+/* reticle with heat ring, hit marks and threat arc */
+.fpv-reticle {
+  position: absolute;
+  left: 50%;
+  top: 42%;
+  width: calc(160 * var(--u));
+  height: calc(160 * var(--u));
+  transform: translate(-50%, -50%);
+  fill: none;
+  overflow: visible;
+}
+.fpv-reticle .ring {
+  stroke: #e8ecf2;
+  stroke-opacity: 0.85;
+  stroke-width: 2;
+}
+.fpv-reticle .dot {
+  fill: #e8ecf2;
+}
+.fpv-reticle .heat-track {
+  stroke: #2a3240;
+  stroke-opacity: 0.8;
+  stroke-width: 4;
+}
+.fpv-reticle .heat {
+  stroke-width: 4;
+  transition: stroke 0.1s;
+}
+.fpv-reticle .heat.over {
+  stroke: #ff3d6e;
+}
+.fpv-reticle .ticks {
+  stroke: #ffd27a;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  opacity: 0;
+}
+.fpv-reticle .ticks.on {
+  opacity: 1;
+}
+.fpv-reticle .threat-arc {
+  opacity: 0;
+  transform-origin: 0 0;
+  stroke: #ff3d6e;
+  stroke-width: 5;
+  stroke-linecap: round;
+}
+.fpv-reticle .threat-arc.on {
+  opacity: 1;
+}
+
+/* target lock: orange corner brackets over the auto-aim target */
+.fpv-lock {
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+.fpv-lock svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  fill: none;
+}
+.fpv-lock .br {
+  stroke: #ff6a1a;
+  stroke-width: 2.5;
+  vector-effect: non-scaling-stroke;
+}
+.fpv-lock .lead {
+  stroke: #ffd27a;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.fpv-lock .tag {
+  position: absolute;
+  left: 0;
+  bottom: 100%;
+  margin-bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(8, 12, 18, 0.72);
+  white-space: nowrap;
+}
+.fpv-lock .txt {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(11 * var(--u));
+  letter-spacing: 1px;
+  color: #ffb37a;
+}
+.fpv-lock .hp {
+  width: 100%;
+  min-width: calc(110 * var(--u));
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+}
+.fpv-lock .hp i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: #ff6a1a;
+}
+.fpv-hit {
+  position: absolute;
+  left: calc(50% + 210 * var(--u));
+  top: 45%;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(8, 12, 18, 0.72);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+  color: #ffd27a;
+}
+.fpv-hit small {
+  font-size: calc(12 * var(--u));
+  color: #c9d1dd;
+}
+
+/* next checkpoint */
+.fpv-cp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+.fpv-cp svg {
+  fill: none;
+  stroke: #2ec5ff;
+  stroke-width: 2;
+}
+.fpv-cp .txt {
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgba(8, 12, 18, 0.72);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(11 * var(--u));
+  color: #8fe0ff;
+  white-space: nowrap;
+}
+
+/* incoming rocket */
+.fpv-threat {
+  position: absolute;
+  left: calc(24 * var(--u));
+  top: 58%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 14px 6px 6px;
+  border-radius: 10px;
+  background: rgba(40, 6, 14, 0.6);
+  animation: fpv-flash 0.5s steps(2) infinite;
+}
+.fpv-threat svg {
+  fill: none;
+  stroke: #ff3d6e;
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+.fpv-threat .t1 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(18 * var(--u));
+  font-weight: 700;
+  color: #ff8fa9;
+}
+.fpv-threat .t2 {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(12 * var(--u));
+  color: #ffc2cf;
+}
+@keyframes fpv-flash {
+  50% {
+    background: rgba(70, 8, 22, 0.75);
+  }
+}
+
+/* panels (bottom corners, over the door card and the passenger dash) */
+.fpv-panel {
+  position: absolute;
+  bottom: calc(34 * var(--u));
+  width: calc(250 * var(--u));
+  box-sizing: border-box;
+  padding: calc(12 * var(--u)) calc(14 * var(--u));
+  display: flex;
+  flex-direction: column;
+  gap: calc(8 * var(--u));
+  background: rgba(10, 14, 20, 0.55);
+  border: 1px solid rgba(46, 197, 255, 0.35);
+  border-radius: 10px;
+  backdrop-filter: blur(2px);
+}
+.fpv-weapons {
+  left: calc(28 * var(--u));
+}
+.fpv-hull {
+  right: calc(28 * var(--u));
+}
+.fpv-panel .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(13 * var(--u));
+}
+.fpv-panel .row.mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(12 * var(--u));
+}
+.fpv-panel em {
+  font-style: normal;
+  color: #ffb37a;
+}
+.fpv-panel small {
+  font-size: calc(11 * var(--u));
+  color: #9aa4b5;
+}
+.fpv-panel .bar {
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.12);
+}
+.fpv-panel .bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2ec5ff, #ff6a1a);
+}
+.fpv-panel .bar i.over {
+  background: #ff3d6e;
+}
+.fpv-panel .bar i.hullbar {
+  background: #5fe0c2;
+}
+.fpv-panel .nitro .bars {
+  display: flex;
+  gap: 5px;
+}
+.fpv-panel .row.nitro {
+  white-space: nowrap;
+  gap: calc(8 * var(--u));
+}
+.fpv-panel .nitro .bars i {
+  display: block;
+  width: calc(36 * var(--u));
+  height: 10px;
+  border-radius: 3px;
+  background: #2ec5ff;
+  opacity: 0.25;
+}
+.fpv-panel .nitro .bars i.active {
+  box-shadow: 0 0 8px #2ec5ff;
+}
+.fpv kbd {
+  display: inline-block;
+  min-width: 16px;
+  box-sizing: border-box;
+  padding: 4px 6px 3px;
+  text-align: center;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: calc(12 * var(--u));
+  font-weight: 700;
+  line-height: 1;
+  color: #e8ecf2;
+  background: #0e1116;
+  border: 1px solid #4a5260;
+  border-bottom-width: 3px;
+  border-radius: 5px;
+}
+
+/* hint strip */
+.fpv-hint {
+  position: absolute;
+  left: 50%;
+  bottom: calc(8 * var(--u));
+  transform: translateX(-50%);
+  display: flex;
+  gap: 14px;
+  padding: 5px 12px;
+  border-radius: 8px;
+  background: rgba(10, 14, 20, 0.6);
+  font-size: calc(11 * var(--u));
+  color: #9aa4b5;
+  transition: opacity 0.6s;
+}
+.fpv-hint kbd {
+  font-size: calc(11 * var(--u));
+}
+
+/* "CAMERA · COCKPIT · HUD FULL" notice, in every view */
+.fpv-toast {
+  position: fixed;
+  left: 50%;
+  top: calc(176 * var(--u));
+  transform: translateX(-50%);
+  padding: 8px 16px;
+  border-radius: 10px;
+  background: rgba(10, 14, 20, 0.55);
+  border: 1px solid rgba(46, 197, 255, 0.35);
+  backdrop-filter: blur(2px);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: calc(15 * var(--u));
+  font-weight: 700;
+  color: #e8ecf2;
+  pointer-events: none;
+}
+.fpv-toast[hidden] {
+  display: none;
+}
+
+/* ---- the existing HUD under each view and HUD mode ---- */
+
+/* hood and cockpit: the visor draws position, lap, weapons and hull itself */
+body.view-hood .race-top,
+body.view-cockpit .race-top,
+body.view-hood .cb-panel,
+body.view-cockpit .cb-panel,
+body.view-hood .hud-hint,
+body.view-cockpit .hud-hint,
+body.view-cockpit .hud-speed,
+body.view-cockpit .hud-drift {
+  display: none;
+}
+/* the dash screen shows speed, gear and nitro in the cockpit; the hood keeps the HTML panel */
+body.view-hood .hud-speed {
+  bottom: calc(34 * var(--u));
+  right: calc(300 * var(--u));
+}
+
+/* the minimap becomes the small visor one */
+body.view-hood .minimap,
+body.view-cockpit .minimap {
+  right: calc(22 * var(--u));
+  top: calc(12 * var(--u));
+  width: calc(118 * var(--u));
+  height: calc(118 * var(--u));
+  border: 1px solid rgba(46, 197, 255, 0.35);
+  border-radius: 10px;
+  background: rgba(10, 14, 20, 0.55);
+}
+body.view-hood .minimap canvas,
+body.view-cockpit .minimap canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* minimal: position + lap, speed and gear, hull and nitro. No minimap, tags, feed, hints, MG heat or rockets. */
+body.hud-min .minimap,
+body.hud-min .nt-layer,
+body.hud-min .hud-hint,
+body.hud-min .cb-feed,
+body.hud-min .hud-drift,
+body.hud-min .race-top .race-time,
+body.hud-min .race-top .race-best,
+body.hud-min .cb-panel > .cb-row:nth-child(n + 3),
+body.hud-min .cb-panel > .cb-bar.thin {
+  display: none;
+}
+
+/* off: only the notices that must always show (countdown / start lights, no-fire zone, wrecked, results, pause) */
+body.hud-off .minimap,
+body.hud-off .nt-layer,
+body.hud-off .hud-hint,
+body.hud-off .hud-speed,
+body.hud-off .hud-drift,
+body.hud-off .race-top,
+body.hud-off .cb-panel,
+body.hud-off .cb-feed,
+body.hud-off .cb-banner {
+  display: none;
+}

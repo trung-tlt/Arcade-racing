@@ -113,6 +113,17 @@ export class CarVisual {
     }
   }
 
+  /**
+   * The player's own view from inside the car: `all` hides every mesh (the cockpit rig stands in for it), `rider` hides
+   * only the rider so the fairing, bars and halo frame the view, `none` is the normal outside look. Meshes are toggled
+   * rather than the root, so wrecks, respawn blinking and distance culling keep working unchanged.
+   */
+  setFirstPerson(mode: 'none' | 'all' | 'rider'): void {
+    for (const m of this.meshes) m.visible = mode !== 'all';
+    const rider = this.root.getObjectByName('rider');
+    if (rider) rider.visible = mode === 'none';
+  }
+
   /** Interpolates the body between the last two physics steps and animates wheels / lights / turret. */
   /** Cars far from the camera skip the shadow pass (every mesh is drawn twice otherwise). */
   setCastShadow(on: boolean): void {

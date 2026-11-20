@@ -216,5 +216,12 @@
     "withinM": 6,
     "cooldownSec": 3,
     "minSpeedMps": 25
+  },
+  "threat": {
+    "minHz": 2,
+    "maxHz": 6,
+    "fromSec": 4,
+    "toSec": 0.6,
+    "pitch": 1.5
   }
 }

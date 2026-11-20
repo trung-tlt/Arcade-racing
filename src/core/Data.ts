@@ -1,6 +1,7 @@
 import carsJson from '../../data/cars.json';
 import weaponsJson from '../../data/weapons.json';
 import handlingJson from '../../data/handling.json';
+import fpvJson from '../../data/fpv.json';
 import aiJson from '../../data/ai.json';
 import audioJson from '../../data/audio.json';
 import combatJson from '../../data/combat.json';
@@ -59,8 +60,15 @@ export interface CarDef {
   openWheel?: boolean;
   /** Downforce coefficient (see handling.json `openWheel`). */
   downforce?: number;
-  /** Driver first-person view placement (data only; the camera is not built yet). */
-  fpv?: { mode: 'cockpit' | 'helmet'; eye: [number, number, number]; fovDeg: number };
+  /** Driver first-person view: `cockpit` shows the shared rig at `eye`; `helmet` keeps the vehicle's own fairing/halo. */
+  fpv?: {
+    mode: 'cockpit' | 'helmet';
+    eye: [number, number, number];
+    fovDeg: number;
+    /** Cockpit only: the rig model and the colours for its bonnet (`paint`) and accent lights. */
+    rig?: string;
+    tint?: { paint: string; accent: string };
+  };
 }
 
 export type HandlingDef = typeof handlingJson;
@@ -407,6 +415,8 @@ export const AI = aiJson;
 export const UI_SOUNDS = uiSoundsJson;
 export const LIGHTING = lightingJson;
 export const COMBAT = combatJson;
+/** Driver first-person view: camera feel, cockpit mirror and dash numbers (data/fpv.json). */
+export const FPV = fpvJson;
 export const AUDIO = audioJson;
 export const CAT_LAI = loadTrack(catLaiJson);
 export const CONG_HOA = loadTrack(congHoaJson);

@@ -32,6 +32,7 @@ test.describe('mobile layer', () => {
       '.tb-nitro',
       '.tb-brake',
       '.tb-pause',
+      '.tb-reset',
     ]) {
       const box = await page.locator(sel).boundingBox();
       expect(box, sel).not.toBeNull();

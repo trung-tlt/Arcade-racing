@@ -1,7 +1,7 @@
 import type { CarControls } from '../vehicle/CarPhysics';
 import { touchInput, type TouchInput } from './TouchInput';
 
-type Edge = 'reset' | 'pause' | 'restart';
+type Edge = 'reset' | 'pause' | 'restart' | 'view' | 'hud' | 'mirror';
 
 /** The one action map: every binding lives here. */
 const KEYS = {
@@ -16,6 +16,10 @@ const KEYS = {
   reset: ['KeyR'],
   pause: ['Escape', 'KeyP'],
   restart: ['Enter'],
+  view: ['KeyV'],
+  hud: ['KeyH'],
+  mirror: ['KeyM'],
+  lookBack: ['KeyC'],
 } as const;
 const MOUSE = { fire: 0, fireSecondary: 2 } as const;
 const PAD = {
@@ -27,7 +31,11 @@ const PAD = {
   fireSecondary: 4,
   reset: 3,
   pause: 9,
-  restart: 8,
+  restart: 10, // left stick click
+  /** View / Back button: camera. D-pad down: HUD. Right stick click: look back. */
+  view: 8,
+  hud: 13,
+  lookBack: 11,
 } as const;
 const STICK_DEADZONE = 0.15;
 const TRIGGER_DEADZONE = 0.05;
@@ -37,7 +45,16 @@ export class Input {
   private readonly down = new Set<string>();
   private readonly mouse = new Set<number>();
   private readonly pressed = new Set<Edge>();
-  private readonly padPrev: Record<Edge, boolean> = { reset: false, pause: false, restart: false };
+  private readonly padPrev: Record<Edge, boolean> = {
+    reset: false,
+    pause: false,
+    restart: false,
+    view: false,
+    hud: false,
+    mirror: false,
+  };
+  /** C / R3 held: look over the shoulder. */
+  lookBack = false;
   private readonly controls: CarControls = {
     throttle: 0,
     brake: 0,
@@ -101,11 +118,14 @@ export class Input {
     this.padEdge('reset', btn(PAD.reset));
     this.padEdge('pause', btn(PAD.pause));
     this.padEdge('restart', btn(PAD.restart));
+    this.padEdge('view', btn(PAD.view));
+    this.padEdge('hud', btn(PAD.hud));
+    this.lookBack = this.anyKey(KEYS.lookBack) || btn(PAD.lookBack);
     return c;
   }
 
   wasPressed(a: Edge): boolean {
-    return this.pressed.has(a) || (a !== 'restart' && this.touch.hasEdge(a));
+    return this.pressed.has(a) || ((a === 'reset' || a === 'pause') && this.touch.hasEdge(a));
   }
 
   endFrame(): void {
@@ -140,6 +160,9 @@ export class Input {
       if ((KEYS.reset as readonly string[]).includes(e.code)) this.pressed.add('reset');
       if ((KEYS.pause as readonly string[]).includes(e.code)) this.pressed.add('pause');
       if ((KEYS.restart as readonly string[]).includes(e.code)) this.pressed.add('restart');
+      if ((KEYS.view as readonly string[]).includes(e.code)) this.pressed.add('view');
+      if ((KEYS.hud as readonly string[]).includes(e.code)) this.pressed.add('hud');
+      if ((KEYS.mirror as readonly string[]).includes(e.code)) this.pressed.add('mirror');
     }
     this.down.add(e.code);
   };

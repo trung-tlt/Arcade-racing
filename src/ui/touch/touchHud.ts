@@ -101,7 +101,8 @@ export class TouchHud {
       <div class="tc tc-actions">
         ${ACTION_BUTTONS.slice(0, 5).map(btn).join('')}
       </div>
-      <div class="tb tb-pause" data-pause role="button" aria-label="Pause"><span>II</span></div>`;
+      <div class="tb tb-pause" data-pause role="button" aria-label="Pause"><span>II</span></div>
+      <div class="tb tb-reset" data-reset role="button" aria-label="Reset to track"><span>↺</span></div>`;
     root.appendChild(this.el);
     this.rocketLabel = this.el.querySelector('.tb-rocket span') as HTMLElement;
     this.knob = this.el.querySelector('.knob') as HTMLElement;
@@ -110,7 +111,8 @@ export class TouchHud {
     for (const b of this.el.querySelectorAll<HTMLElement>('[data-btn]'))
       this.bindButton(b, b.dataset.btn as TouchButton);
     this.bindWheel(this.el.querySelector('[data-wheel]') as HTMLElement);
-    this.bindPause(this.el.querySelector('[data-pause]') as HTMLElement);
+    this.bindEdge(this.el.querySelector('[data-pause]') as HTMLElement, 'pause');
+    this.bindEdge(this.el.querySelector('[data-reset]') as HTMLElement, 'reset');
     this.tiltPrompt.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       void requestTiltPermission().then((ok) => {
@@ -232,11 +234,12 @@ export class TouchHud {
     el.addEventListener('lostpointercapture', end);
   }
 
-  private bindPause(el: HTMLElement): void {
+  /** A one-shot button: pause, or put the car back on the track when it is stuck. */
+  private bindEdge(el: HTMLElement, edge: 'pause' | 'reset'): void {
     el.addEventListener('pointerdown', (e) => {
       e.preventDefault();
       el.classList.add('down');
-      this.input.edge('pause');
+      this.input.edge(edge);
     });
     const up = (): void => el.classList.remove('down');
     el.addEventListener('pointerup', up);

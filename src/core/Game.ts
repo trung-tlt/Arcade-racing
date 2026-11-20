@@ -43,13 +43,23 @@ import { Track } from '../world/Track';
 import { relaxTightBends } from '../world/relaxBends';
 import { TrackPath } from '../world/TrackPath';
 import { Hud } from '../ui/hud';
+import { FpvHud, type FpvRocket, type FpvState, type FpvTarget } from '../ui/fpvHud';
+import { gapAheadSec } from '../ui/fpvMath';
+import { ViewState, type CameraView } from './ViewState';
+import { COCKPIT_RIG } from '../vehicle/CockpitView';
+import { engineState } from '../audio/Rpm';
 import { Car } from '../vehicle/Car';
 import { IDLE_CONTROLS } from '../vehicle/CarPhysics';
 import { ChaseCamera } from '../vehicle/ChaseCamera';
+import { CockpitView } from '../vehicle/CockpitView';
+import { availableViews, nextAvailableView, resolveView } from '../vehicle/FpvMath';
+import { ViewCamera } from '../vehicle/ViewCamera';
+import { ViewToast } from '../ui/viewToast';
 import { Environment } from '../world/Environment';
 import { Lighting } from '../world/Lighting';
 import type { Assets } from './Assets';
 import {
+  FPV,
   AI,
   AUDIO,
   COMBAT,
@@ -95,15 +105,33 @@ export interface GameHooks {
 }
 
 /** The one allowed singleton: owns the renderer, the Rapier world and every system. */
+/** localStorage, or null where it is blocked (private windows, sandboxed frames). */
+function safeStorage(): Storage | null {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
 export class Game {
   readonly events = new EventBus();
   private readonly renderer: THREE.WebGLRenderer;
   private readonly scene = new THREE.Scene();
   private readonly chase: ChaseCamera;
+  private readonly viewCam: ViewCamera;
+  /** The player's cockpit rig, mirror and dash (null for cars with a helmet view only). */
+  private cockpit: CockpitView | null = null;
+  private readonly viewToast: ViewToast;
+  private readonly carQuat = new THREE.Quaternion();
+  private lastSteer = 0;
   private readonly postfx: PostFX;
   private readonly lighting: Lighting;
   private readonly input: Input;
   private readonly hud: Hud;
+  /** Camera view (V), HUD mode (H) and mirror (M). */
+  readonly view = new ViewState(safeStorage());
+  private readonly fpvHud: FpvHud;
   private readonly raceHud: RaceHud;
   private readonly loop: Loop;
   private readonly carId: string;
@@ -237,10 +265,18 @@ export class Game {
     this.chase = new ChaseCamera(innerWidth / innerHeight, HANDLING);
     this.lighting = new Lighting(this.scene, this.trackDef, this.assets);
     this.postfx = new PostFX(this.renderer, this.scene, this.chase.camera, this.trackDef);
+    this.viewCam = new ViewCamera(this.chase, getCarDef(cfg.carId));
+    this.viewToast = new ViewToast(document.getElementById('hud') as HTMLElement);
     this.input = new Input(window);
     this.hud = new Hud(document.getElementById('hud') as HTMLElement);
     this.raceHud = new RaceHud(document.getElementById('hud') as HTMLElement);
     this.combatHud = new CombatHud(document.getElementById('hud') as HTMLElement);
+    this.fpvHud = new FpvHud(document.getElementById('hud') as HTMLElement, {
+      view: this.view,
+      events: this.events,
+      beep: () => this.audio?.play(AUDIO.oneShots.countdownBeep, AUDIO.threat.pitch),
+      onThreat: (on) => this.setMirrorThreat(on),
+    });
     this.loop = new Loop(
       (dt) => this.step(dt),
       (a, dt) => this.render(a, dt),
@@ -370,6 +406,7 @@ export class Game {
     });
     this.cars = [this.car];
     this.spawnPoses.set('player', grid);
+    this.setupFirstPerson();
 
     if (this.mode === 'race') {
       const free = Array.from({ length: RACE.track.gridSlotCount }, (_, i) => i).filter((i) => i !== playerSlot);
@@ -480,6 +517,12 @@ export class Game {
       events: this.events,
       particles: this.particles,
       tracers: this.tracers,
+      tracerOrigin: (car, out) => {
+        const ck = this.cockpit;
+        if (!ck || car !== this.car || !this.viewCam.cockpitVisible) return false;
+        ck.muzzleWorld(car.physics.curr.p as unknown as THREE.Vector3, this.carQuat, out);
+        return true;
+      },
       cars: () => this.cars,
       respawnPoseFor: (c) => {
         const r = this.races.get(c.id);
@@ -538,9 +581,185 @@ export class Game {
     this.restartRace();
   }
 
+  private readonly fpvBuild = (): FpvState => this.fpvState();
+  private readonly fpvTargets: FpvTarget[] = [];
+  private readonly fpvRockets: FpvRocket[] = [];
+
+  /** Everything the first-person visor draws this frame (only built while it is live). */
+  private fpvState(): FpvState {
+    const car = this.car;
+    const p = car.physics;
+    const yaw = p.yaw;
+    const fx = Math.sin(yaw);
+    const fz = Math.cos(yaw);
+    const v = p.body.linvel();
+    const targets = this.fpvTargets;
+    targets.length = 0;
+    for (const c of this.cars) {
+      if (c.kind === 'player' || c.hull.wrecked) continue;
+      const q = c.physics.curr.p;
+      targets.push({
+        id: c.id,
+        name: this.nameOf(c.id),
+        car: c.def.name,
+        x: q.x,
+        y: q.y + COMBAT.aimTargetHeightM,
+        z: q.z,
+        hullFraction: c.hull.fraction,
+      });
+    }
+    const rockets = this.fpvRockets;
+    rockets.length = 0;
+    const speed = WEAPONS.hornet_rocket.speedMps;
+    this.combat.forEachRocket((owner, pos, dir) => {
+      if (owner === 'player') return;
+      rockets.push({
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+        dirX: dir.x,
+        dirY: dir.y,
+        dirZ: dir.z,
+        speedMps: speed,
+        owner: this.nameOf(owner),
+      });
+    });
+    const place = this.places.get('player') ?? 1;
+    let gap: number | null = null;
+    if (place > 1) {
+      const ahead = [...this.places].find(([, pl]) => pl === place - 1)?.[0];
+      if (ahead)
+        gap = gapAheadSec(this.progressOf(ahead), this.progressOf('player'), this.path.lengthM, Math.hypot(v.x, v.z));
+    }
+    const gateT = this.race.nextGateT;
+    const cpIndex = this.race.laps.nextCheckpoint;
+    const tNow = this.carTs.get('player') ?? 0;
+    const cpPoint = this.path.pointAt(gateT);
+    const cp =
+      cpIndex < this.trackDef.checkpoints.length
+        ? {
+            x: cpPoint.x,
+            y: cpPoint.y,
+            z: cpPoint.z,
+            index: cpIndex + 1,
+            distM: ((((gateT - tNow) % 1) + 1) % 1) * this.path.lengthM,
+          }
+        : null;
+    return {
+      camera: this.chase.camera,
+      position: place,
+      totalCars: this.cars.length,
+      lap: this.race.laps.lap,
+      totalLaps: this.cfg.laps,
+      timeSec: this.race.timeSec,
+      bestLapSec: this.race.laps.bestLap,
+      gapAheadSec: gap,
+      hullFraction: car.hull.fraction,
+      hp: car.hull.hp,
+      maxHp: car.hull.maxHp,
+      heat: car.gun.heat,
+      overheated: car.gun.locked,
+      rockets: car.ammo.count,
+      nitroBars: p.nitro.bars,
+      nitroActive: p.nitroActive,
+      player: { x: p.curr.p.x, y: p.curr.p.y, z: p.curr.p.z, fx, fz, vx: v.x, vz: v.z },
+      fullTurret: car.def.turretYawDeg >= COMBAT.turret.fullTurretDeg,
+      targets,
+      incoming: rockets,
+      checkpoint: cp,
+      hidden: car.hull.wrecked || this.race.phase === 'finished',
+    };
+  }
+
   private nameOf(id: string): string {
     if (id === 'player') return 'YOU';
     return this.rivals.find((r) => r.id === id)?.name ?? id.replace('dummy', 'DUMMY ').toUpperCase();
+  }
+
+  /** The views this car can show (the driver's view needs its fpv data and, for a cockpit, the rig). */
+  private carViews(): CameraView[] {
+    return availableViews(this.car.def, this.assets.hasModel(COCKPIT_RIG));
+  }
+
+  /** Builds the cockpit for cars that have one and starts following the V / H / M state. */
+  private setupFirstPerson(): void {
+    const def = this.car.def;
+    if (def.fpv?.mode === 'cockpit' && this.assets.hasModel(def.fpv.rig ?? COCKPIT_RIG)) {
+      this.cockpit = new CockpitView(this.assets, def, userSettings.preset === 'low');
+      this.postfx.setOverlay(this.cockpit.scene, this.cockpit.camera);
+    }
+    this.applyView();
+    this.offView = this.view.onChange(() => this.applyView());
+  }
+
+  private offView: (() => void) | null = null;
+
+  /** Cockpit rig, dash, mirror and which of the player's meshes are hidden, once the camera has moved this frame. */
+  private updateFirstPerson(dt: number): void {
+    const def = this.car.def;
+    const inside = this.viewCam.current === 'cockpit' && this.viewCam.blendAmount >= FPV.cockpitShowAt * 0.7;
+    this.car.visual.setFirstPerson(!inside ? 'none' : def.fpv?.mode === 'cockpit' ? 'all' : 'rider');
+    const ck = this.cockpit;
+    if (!ck) return;
+    const show = this.viewCam.cockpitVisible && !this.car.hull.wrecked;
+    this.postfx.setOverlayVisible(show);
+    if (!show) return;
+    const p = this.car.physics;
+    const top = def.topSpeedKmh / 3.6;
+    const es = engineState(p.forwardSpeed, top, AUDIO.engine.gears, AUDIO.engine.idleRpm, AUDIO.engine.gearBaseRpm);
+    ck.update(
+      dt,
+      {
+        steer: this.lastSteer,
+        speedMps: p.forwardSpeed,
+        reversing: p.forwardSpeed < -0.5,
+        gear: es.gear,
+        rpm: es.rpm,
+        nitroBars: p.nitro.bars,
+        mph: userSettings.speedUnit === 'mph',
+      },
+      this.viewCam.pose,
+      this.chase.camera.aspect,
+      this.viewCam.fov,
+      this.carQuat,
+      this.scene,
+    );
+    ck.setMirror(this.view.mirror);
+    ck.renderMirror(this.renderer, this.scene, dt, this.carPos, this.carQuat, this.postfx.sceneCalls);
+  }
+
+  /** Puts the camera, the player's car meshes and the cockpit in the state the view calls for. */
+  private applyView(): void {
+    const v = resolveView(this.view.camera, this.carViews());
+    if (v !== this.view.camera) this.view.setCamera(v);
+    this.viewCam.setView(v);
+    this.cockpit?.setMirror(this.view.mirror);
+  }
+
+  /** V / H / M. */
+  private handleViewKeys(): void {
+    if (this.input.wasPressed('view')) {
+      const next = nextAvailableView(this.view.camera, this.carViews());
+      this.view.setCamera(next);
+      this.viewToast.show(`CAMERA · ${next.toUpperCase()}`);
+    }
+    if (this.input.wasPressed('hud')) {
+      const mode = this.view.cycleHud();
+      this.viewToast.show(`HUD · ${mode === 'off' ? 'OFF (DASH ONLY)' : mode.toUpperCase()}`);
+    }
+    if (this.input.wasPressed('mirror')) {
+      this.viewToast.show(`MIRROR · ${this.view.toggleMirror() ? 'ON' : 'OFF'}`);
+    }
+  }
+
+  /** Red tint and outline on the cockpit mirror while a rocket is locked on the player (the HUD sets this). */
+  setMirrorThreat(on: boolean): void {
+    this.cockpit?.setMirrorThreat(on);
+  }
+
+  /** The render camera, for HUD layers that pin things to the world (target lock, checkpoint). */
+  get camera(): THREE.PerspectiveCamera {
+    return this.chase.camera;
   }
 
   /** Camera shake and the takedown banner / kill feed, driven by gameplay events. */
@@ -549,7 +768,9 @@ export class Game {
     const near = (p: { x: number; y: number; z: number }): number =>
       Math.max(0, 1 - Math.hypot(p.x - this.carPos.x, p.y - this.carPos.y, p.z - this.carPos.z) / 40);
     const shake = (v: number): void => {
-      if (userSettings.cameraShake) this.chase.addShake(v);
+      if (!userSettings.cameraShake) return;
+      this.chase.addShake(v);
+      this.viewCam.addShake(v);
     };
     this.events.on('carHit', (e) => {
       if (e.carId === 'player') shake(sh.hit);
@@ -639,6 +860,7 @@ export class Game {
     if (this.devPilot) return this.race.controlsLocked ? IDLE_CONTROLS : { ...this.devPilot.read() };
     this.lastControls.throttle = c.throttle;
     this.lastControls.brake = c.brake;
+    this.lastSteer = c.steer;
     return this.race.controlsLocked ? IDLE_CONTROLS : c;
   }
 
@@ -1000,6 +1222,45 @@ export class Game {
     }
   }
 
+  /** Dev/e2e only: the driver's view state (camera, rig, mirror, look-back, own-car visibility). */
+  debugFpv(): {
+    view: string;
+    hud: string;
+    mirror: boolean;
+    hasRig: boolean;
+    rigVisible: boolean;
+    carHidden: boolean;
+    riderHidden: boolean;
+    lookBack: number;
+    fov: number;
+    blend: number;
+    threat: boolean;
+  } {
+    const root = this.car.visual.root;
+    const rider = root.getObjectByName('rider');
+    let meshes = 0;
+    let shown = 0;
+    root.traverse((o) => {
+      if (o instanceof THREE.Mesh) {
+        meshes++;
+        if (o.visible) shown++;
+      }
+    });
+    return {
+      view: this.viewCam.current,
+      hud: this.view.hud,
+      mirror: this.view.mirror,
+      hasRig: !!this.cockpit,
+      rigVisible: this.viewCam.cockpitVisible,
+      carHidden: meshes > 0 && shown === 0,
+      riderHidden: rider ? !rider.visible : false,
+      lookBack: this.viewCam.head.lookBackAmount,
+      fov: this.viewCam.fov,
+      blend: this.viewCam.blendAmount,
+      threat: this.cockpit?.mirrorThreat ?? false,
+    };
+  }
+
   /** Dev/e2e only: step the simulation `seconds` of game time without rendering; returns per-car stats. */
   debugFastForward(seconds: number): Record<string, unknown> {
     if (!this.devStats) {
@@ -1159,6 +1420,7 @@ export class Game {
       this.hooks.onPause();
       return;
     }
+    this.handleViewKeys();
     if (this.input.wasPressed('restart')) this.restartRace();
     if (this.input.wasPressed('reset')) this.resetPlayer();
     this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
@@ -1400,7 +1662,25 @@ export class Game {
     }
     this.particles.update(dt, this.chase.camera);
     this.tracers.update(dt, this.chase.camera);
-    this.chase.update(dt, this.carPos, this.car.physics.yaw, this.car.physics);
+    this.carQuat
+      .set(
+        prev.q.x + (curr.q.x - prev.q.x) * alpha,
+        prev.q.y + (curr.q.y - prev.q.y) * alpha,
+        prev.q.z + (curr.q.z - prev.q.z) * alpha,
+        prev.q.w + (curr.q.w - prev.q.w) * alpha,
+      )
+      .normalize();
+    this.viewCam.update({
+      dt,
+      carPos: this.carPos,
+      carQuat: this.carQuat,
+      carYaw: this.car.physics.yaw,
+      physics: this.car.physics,
+      steer: this.lastSteer,
+      lookBack: this.input.lookBack,
+      calm: !userSettings.cameraShake || userSettings.preset === 'low',
+    });
+    this.updateFirstPerson(dt);
     this.lighting.update(this.carPos);
 
     const p = this.car.physics;
@@ -1484,6 +1764,7 @@ export class Game {
         })),
       120,
     );
+    this.fpvHud.update(frameDt, this.fpvBuild);
     this.skidmarks.update(dt, this.skidEmitters);
     this.emitTireSmoke(dt);
     this.speedLines.update(this.speedLineIntensity());
@@ -1509,9 +1790,15 @@ export class Game {
     this.engineSound.dispose();
     this.audio.dispose();
     this.input.dispose();
+    this.offView?.();
+    this.viewToast.dispose();
+    this.postfx.setOverlay(null, null);
+    this.cockpit?.dispose();
+    this.cockpit = null;
     this.hud.dispose();
     this.raceHud.dispose();
     this.combatHud.dispose();
+    this.fpvHud.dispose();
     this.minimap.dispose();
     this.nameTags.dispose();
     this.dev?.dispose();

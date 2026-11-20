@@ -63,6 +63,10 @@ export class Assets {
     ]);
   }
 
+  hasModel(path: string): boolean {
+    return this.models.has(path);
+  }
+
   /** Deep clone; geometry is shared, materials are cloned per call. */
   cloneModel(path: string): THREE.Group {
     const src = this.models.get(path);

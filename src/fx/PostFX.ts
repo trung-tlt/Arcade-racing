@@ -9,6 +9,7 @@ import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 export class PostFX {
   private readonly composer: EffectComposer;
   private readonly bloom: UnrealBloomPass;
+  private overlay: RenderPass | null = null;
   private readonly baseExposure: number;
   private readonly baseBloom: number;
   /** Draw calls of the scene render (shadow map + main pass), excluding the full-screen post passes. */
@@ -43,6 +44,29 @@ export class PostFX {
     this.baseBloom = this.bloom.strength;
     this.composer.addPass(this.bloom);
     this.composer.addPass(new OutputPass());
+  }
+
+  /**
+   * A second scene drawn over the first with a cleared depth buffer and before bloom: the driver's cockpit, so it never
+   * clips walls and still glows. `null` removes it.
+   */
+  setOverlay(scene: THREE.Scene | null, camera: THREE.PerspectiveCamera | null): void {
+    if (this.overlay) {
+      this.composer.removePass(this.overlay);
+      this.overlay.dispose();
+      this.overlay = null;
+    }
+    if (!scene || !camera) return;
+    const pass = new RenderPass(scene, camera);
+    pass.clear = false;
+    pass.clearDepth = true;
+    pass.enabled = false;
+    this.composer.insertPass(pass, 1);
+    this.overlay = pass;
+  }
+
+  setOverlayVisible(on: boolean): void {
+    if (this.overlay) this.overlay.enabled = on;
   }
 
   setSize(w: number, h: number): void {

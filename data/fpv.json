@@ -1,0 +1,75 @@
+{
+  "fov": {
+    "cockpit": 64,
+    "helmet": 70,
+    "hood": 68,
+    "nitroKickDeg": 6,
+    "nitroLerpSec": 0.3
+  },
+  "near": {
+    "world": 0.1,
+    "helmet": 0.05,
+    "cockpit": 0.03
+  },
+  "head": {
+    "lagSec": 0.03,
+    "leanMaxDeg": 2,
+    "leanPerLatAccelDeg": 0.35,
+    "leanRateSec": 0.12,
+    "dipM": 0.04,
+    "dipRecoverSec": 0.25,
+    "dipMinImpactMps": 4,
+    "bikeLeanMul": 0.6
+  },
+  "apex": {
+    "gain": 0.12,
+    "maxDeg": 8,
+    "rateSec": 0.18
+  },
+  "lookBack": {
+    "rateSec": 0.12
+  },
+  "shake": {
+    "hit": {
+      "sec": 0.15,
+      "deg": 0.8
+    },
+    "rocket": {
+      "sec": 0.4,
+      "deg": 2.5
+    },
+    "rocketMinAmount": 0.35
+  },
+  "wheel": {
+    "radPerSteer": 2.4,
+    "rateSec": 0.05
+  },
+  "hood": {
+    "forwardInsetM": 0.35,
+    "aboveRoofM": 0.0,
+    "minHeightM": 0.9
+  },
+  "mirror": {
+    "width": 512,
+    "height": 128,
+    "fps": 30,
+    "lowWidth": 256,
+    "lowHeight": 64,
+    "lowFps": 15,
+    "far": 120,
+    "threatColor": "#FF3D6E",
+    "threatIntensity": 2.4,
+    "fovDeg": 20,
+    "near": 0.5,
+    "maxTotalCalls": 320
+  },
+  "dash": {
+    "hz": 10,
+    "lowHz": 5,
+    "size": 256
+  },
+  "toastSec": 1.4,
+  "transitionSec": 0.35,
+  "cockpitShowAt": 0.7,
+  "cockpitPitchDownDeg": 5
+}
