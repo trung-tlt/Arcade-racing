@@ -31,3 +31,4 @@ pnpm-debug.log*
 .vscode/*
 !.vscode/extensions.json
 *.pem
+dist-server
