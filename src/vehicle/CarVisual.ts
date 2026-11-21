@@ -9,13 +9,8 @@ import { approachAngle } from './Turret';
 
 const FLAME_TEX = 'textures/fx_nitro_flame.png';
 
-/** Shared between Car (written by combat) and CarVisual (read each frame). */
-export interface TurretAim {
-  /** Requested gun-mount yaw in radians, + = towards the car's left. */
-  yawRad: number;
-  /** Seconds left to keep that yaw before the turret returns to centre. */
-  holdSec: number;
-}
+export type { TurretAim } from '../sim/CarSim';
+import type { TurretAim } from '../sim/CarSim';
 
 const tmpQ = new THREE.Quaternion();
 const tmpQ2 = new THREE.Quaternion();

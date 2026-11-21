@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Assets } from '../core/Assets';
 import { COMBAT, WEAPONS, type TrackDef } from '../core/Data';
+import { pickupPositions } from '../sim/pickupPositions';
 import { InstancedModel } from '../world/InstancedModel';
 import { drawDistance } from '../world/Windowed';
 import type { TrackPath } from '../world/TrackPath';
@@ -39,14 +40,8 @@ export class PickupVisuals {
     for (const [type, n] of counts) {
       this.models.set(type, new InstancedModel(this.group, assets, WEAPONS.pickups[type].model, n));
     }
-    const left = new THREE.Vector3();
-    for (const d of defs) {
-      const p = path.pointAt(d.t);
-      const tg = path.tangentAt(d.t);
-      const h = Math.hypot(tg.x, tg.z) || 1;
-      left.set(tg.z / h, 0, -tg.x / h);
-      const off = track.laneOffsetsM[d.lane] ?? 0;
-      this.positions[d.id] = new THREE.Vector3(p.x + left.x * off, COMBAT.pickupHeightM, p.z + left.z * off);
+    for (const [id, v] of pickupPositions(defs, path, track).entries()) {
+      if (v) this.positions[id] = new THREE.Vector3(v.x, v.y, v.z);
     }
     // Pickups are tiny and spread over the whole lap: draw a type only while one of its cubes is within the fog's reach.
     for (const [type, model] of this.models) {

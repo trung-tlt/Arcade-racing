@@ -7,7 +7,6 @@ import { bindSfx, playCountdown, playStartGo, playStartLamp, sfxFiles } from '..
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
 import { RacingLine } from '../ai/RacingLine';
 import { type Rival, applyTrackRoster, rollRoster } from '../ai/Roster';
-import { contactDamage, isSideHit, wallHit } from '../combat/Contact';
 import { noFireZoneAt } from '../race/NoFire';
 import { StartLights } from '../race/StartLights';
 import { CombatSystem } from '../combat/CombatSystem';
@@ -23,6 +22,8 @@ import { Minimap } from '../ui/minimap';
 import { NameTags } from '../ui/nameTags';
 import { type CarRaceView, effectiveT, rankCars, rubberBandSignal } from '../race/Standings';
 import { RaceManager } from '../race/RaceManager';
+import { HitRules } from '../sim/HitRules';
+import { StuckWatch, upY } from '../sim/Recovery';
 import { gridPose, respawnPose } from '../race/Respawn';
 import { RaceHud } from '../ui/raceHud';
 import { CongHoaDressing } from '../world/CongHoaDressing';
@@ -198,7 +199,7 @@ export class Game {
   private drawCalls = 0;
   private triangles = 0;
   /** Per AI car: progress anchor (to detect "not getting anywhere") and seconds upside down. */
-  private readonly aiStuck = new Map<string, { anchorT: number; anchorSec: number; flipped: number }>();
+  private readonly aiStuck = new Map<string, StuckWatch>();
   /** Dev/e2e: how many times each AI car was put back on the road. */
   readonly aiRecoveries = new Map<string, number>();
   /** Dev/e2e only: rivals never fire, so a race-finish test measures blocking rather than wrecks. */
@@ -227,7 +228,7 @@ export class Game {
   /** Light-sequence start (Map 5); null on the maps with the 3-2-1 countdown. One instance for every car. */
   private startLights: StartLights | null = null;
   /** Seconds before a car can take another wall / contact hit (stops one scrape counting every step). */
-  private readonly hitCooldown = new Map<string, number>();
+  private hitRules!: HitRules;
   private readonly passbyCooldown = new Map<string, number>();
   private readonly sparkPos = new THREE.Vector3();
   private dev: Awaited<ReturnType<typeof setupDevTools>> | null = null;
@@ -532,6 +533,19 @@ export class Game {
       pickupDefs,
       pickupVisuals: new PickupVisuals(this.scene, this.assets, pickupDefs, this.path, this.trackDef),
     });
+    this.hitRules = new HitRules(
+      !!(this.trackDef.raw.barriers as { armco?: unknown } | undefined)?.armco,
+      (x, y, z) => {
+        this.sparkPos.set(x, y, z);
+        this.particles.burst(
+          'spark',
+          this.sparkPos,
+          COMBAT.wall.sparkCount,
+          COMBAT.wall.sparkSpeed,
+          COMBAT.wall.sparkLifeSec,
+        );
+      },
+    );
     this.bindHudEvents();
     if (this.trackDef.startLights) {
       this.startLights = new StartLights(RACE.startLights);
@@ -877,7 +891,7 @@ export class Game {
       this.races.get(c.id)?.restart(t);
     }
     this.startLights?.restart();
-    this.hitCooldown.clear();
+    this.hitRules.clear();
     this.chase.snap();
     this.lastCountdown = null;
     this.skidmarks?.clear();
@@ -1169,23 +1183,10 @@ export class Game {
       const race = this.races.get(c.id);
       if (!race || race.phase !== 'racing' || race.timeSec < cfg.graceSec) continue;
       const t = this.carTs.get(c.id) ?? 0;
-      const st = this.aiStuck.get(c.id) ?? { anchorT: t, anchorSec: 0, flipped: 0 };
-      const q = c.physics.curr.q;
-      const upY = 1 - 2 * (q.x * q.x + q.z * q.z);
-      st.flipped = upY < cfg.flippedUpY ? st.flipped + dt : 0;
-      // Measured by progress along the track, not speed: a car rocking against an obstacle still "moves".
-      st.anchorSec += dt;
-      const moved = (((t - st.anchorT + 1.5) % 1) - 0.5) * this.path.lengthM; // signed metres along the lap
-      if (moved >= cfg.minProgressM) {
-        st.anchorT = t;
-        st.anchorSec = 0;
-      }
-      this.aiStuck.set(c.id, st);
-      if (st.anchorSec < cfg.progressWindowSec && st.flipped < cfg.flippedSec) continue;
+      const watch = this.aiStuck.get(c.id) ?? new StuckWatch();
+      this.aiStuck.set(c.id, watch);
+      if (!watch.update(dt, t, upY(c.physics.curr.q), this.path.lengthM)) continue;
       c.respawn(respawnPose(this.path, t + cfg.stepAheadM / this.path.lengthM, this.lanes.get(c.id) ?? 0));
-      st.anchorT = t;
-      st.anchorSec = 0;
-      st.flipped = 0;
       this.aiRecoveries.set(c.id, (this.aiRecoveries.get(c.id) ?? 0) + 1);
     }
   }
@@ -1531,51 +1532,7 @@ export class Game {
    * contact with another car, and clipping a car from the side makes it hop. Numbers: data/combat.json `wall` / `contact`.
    */
   private applyHitRules(dt: number): void {
-    const W = COMBAT.wall;
-    const C = COMBAT.contact;
-    const walls = !!(this.trackDef.raw.barriers as { armco?: unknown } | undefined)?.armco;
-    for (const [id, left] of this.hitCooldown) {
-      if (left <= dt) this.hitCooldown.delete(id);
-      else this.hitCooldown.set(id, left - dt);
-    }
-    for (const car of this.cars) {
-      const p = car.physics;
-      if (car.hull.wrecked || p.airborne || p.impactStrength < Math.min(W.minGlancingImpactMps, C.minImpactMps))
-        continue;
-      if (this.hitCooldown.has(car.id)) continue;
-      let other: Car | null = null;
-      let best = C.radiusM;
-      for (const o of this.cars) {
-        if (o === car || o.hull.wrecked) continue;
-        const d = Math.hypot(o.physics.curr.p.x - p.curr.p.x, o.physics.curr.p.z - p.curr.p.z);
-        if (d < best) {
-          best = d;
-          other = o;
-        }
-      }
-      if (other) {
-        const open = !!car.def.openWheel;
-        const dmg = open ? contactDamage(p.impactStrength, true, C) : 0;
-        if (dmg > 0) this.combat.damageCar(car, dmg, other.id);
-        const op = other.physics.curr.p;
-        if (
-          open &&
-          p.impactStrength >= C.minImpactMps &&
-          isSideHit(other.physics.yaw, p.curr.p.x - op.x, p.curr.p.z - op.z, C)
-        ) {
-          other.physics.hop(C.sideLaunchMps);
-        }
-        if (dmg > 0 || open) this.hitCooldown.set(car.id, C.cooldownSec);
-      } else if (walls) {
-        const hit = wallHit(p.velBefore, p.velAfter, W);
-        if (!hit) continue;
-        this.combat.damageCar(car, hit.hull, null);
-        if (hit.speedMul < 1) p.scaleHorizontalVelocity(hit.speedMul);
-        this.sparkPos.set(p.curr.p.x, p.curr.p.y + 0.5, p.curr.p.z);
-        this.particles.burst('spark', this.sparkPos, W.sparkCount, W.sparkSpeed, W.sparkLifeSec);
-        this.hitCooldown.set(car.id, W.cooldownSec);
-      }
-    }
+    this.hitRules.apply(dt, this.cars, (v, amount, by) => this.combat.damageCar(v as Car, amount, by));
   }
 
   /** Doppler pass-by for a rival open-wheel car passing within a few metres of the player. */

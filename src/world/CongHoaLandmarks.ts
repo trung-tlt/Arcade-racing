@@ -7,6 +7,10 @@ import { userSettings } from '../core/Settings';
 import { mergePropMaterials } from '../vehicle/MergeMaterials';
 import { findOpposites, type CorridorPath } from './Corridor';
 import type { TrackPath } from './TrackPath';
+import { CongHoaTrafficSim, type CongHoaMover } from '../sim/CongHoaTrafficSim';
+import { leftOfHeading, sampleAt, rightOfHeading, type PathSample, type V2 } from '../sim/congHoaTrafficCommon';
+
+export * from '../sim/congHoaTrafficCommon';
 
 type Rapier = typeof RAPIER;
 
@@ -38,62 +42,6 @@ const MIN_DECK_LINE_Y = 3;
 // ---------------------------------------------------------------------------------------------
 // Pure helpers (no DOM / rendering): everything numeric lives here so it can be unit tested.
 // ---------------------------------------------------------------------------------------------
-
-export interface V2 {
-  x: number;
-  z: number;
-}
-
-/** Left of a heading: +X is left for something facing +Z (matches Track.left). */
-export function leftOfHeading(tx: number, tz: number): V2 {
-  return { x: tz, z: -tx };
-}
-
-/** Right of a heading (the side traffic drives on). */
-export function rightOfHeading(tx: number, tz: number): V2 {
-  return { x: -tz, z: tx };
-}
-
-/** Distance from the racing line (carriageway centre) to the centre of the rightmost lane. */
-export function rightLaneOffsetM(roadWidthM: number, lanesPerDirection: number): number {
-  return roadWidthM / 2 - roadWidthM / lanesPerDirection / 2;
-}
-
-/** Small deterministic PRNG (mulberry32). */
-export function seededRng(seed: number): () => number {
-  let a = seed >>> 0;
-  return () => {
-    a = (a + 0x6d2b79f5) >>> 0;
-    let t = a;
-    t = Math.imul(t ^ (t >>> 15), t | 1);
-    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-
-export interface PathSample {
-  x: number;
-  z: number;
-  tx: number;
-  tz: number;
-}
-
-/** Interpolated centre line at loop position t ∈ [0,1) without allocating (fills `out`). */
-export function sampleAt(path: CorridorPath, t: number, out: PathSample): PathSample {
-  const n = path.count;
-  const f = (((t % 1) + 1) % 1) * n;
-  const i = Math.floor(f) % n;
-  const j = (i + 1) % n;
-  const k = f - Math.floor(f);
-  out.x = path.px[i] + (path.px[j] - path.px[i]) * k;
-  out.z = path.pz[i] + (path.pz[j] - path.pz[i]) * k;
-  const tx = path.tx[i] + (path.tx[j] - path.tx[i]) * k;
-  const tz = path.tz[i] + (path.tz[j] - path.tz[i]) * k;
-  const h = Math.hypot(tx, tz) || 1;
-  out.tx = tx / h;
-  out.tz = tz / h;
-  return out;
-}
 
 export interface Placement {
   x: number;
@@ -323,64 +271,6 @@ export function airlinerPose(timeSec: number, plan: FlightPlan, out: AirlinerPos
   return out;
 }
 
-// --- ambient traffic ---------------------------------------------------------------------------
-
-export interface TrafficKind {
-  key: string;
-  count: number;
-  /** Model files; a kind with none is skipped (no art is invented). */
-  models: readonly string[];
-  /** Collider half extents (x, y, z) in metres. */
-  half: readonly [number, number, number];
-}
-
-export interface TrafficSpec {
-  kind: number;
-  model: number;
-  /** Start position along the lap, 0..1. */
-  phase: number;
-  speedMps: number;
-  /** Lateral jitter in metres (+ = further right). */
-  jitterM: number;
-  /** Per-instance brightness variety. */
-  tint: number;
-}
-
-/** Evenly spread phases with random offsets, kept out of the starting grid; fully determined by `seed`. */
-export function trafficPlan(
-  kind: number,
-  count: number,
-  models: number,
-  seed: number,
-  speedKmh: readonly [number, number],
-  lapLengthM: number,
-  avoid: { behindLineM: number; aheadOfLineM: number },
-): TrafficSpec[] {
-  const rng = seededRng(seed + kind * 7919);
-  const lo = (1 - avoid.behindLineM / lapLengthM + 1) % 1; // start of the keep-out zone (just before the line)
-  const hi = avoid.aheadOfLineM / lapLengthM; // end of it (just after the line)
-  const inZone = (p: number): boolean => p >= lo || p <= hi;
-  const out: TrafficSpec[] = [];
-  for (let k = 0; k < count; k++) {
-    let phase = (k + rng() * 0.8) / count;
-    for (let guard = 0; inZone(phase) && guard < 20; guard++) phase = (phase + (hi + 1 - lo) / 2 + 0.013) % 1;
-    out.push({
-      kind,
-      model: models > 0 ? Math.floor(rng() * models) : 0,
-      phase,
-      speedMps: (speedKmh[0] + rng() * (speedKmh[1] - speedKmh[0])) / 3.6,
-      jitterM: (rng() - 0.5) * 0.8,
-      tint: 0.85 + rng() * 0.15,
-    });
-  }
-  return out;
-}
-
-/** Position along the lap of a traffic participant after `timeSec`. */
-export function trafficT(spec: TrafficSpec, timeSec: number, lapLengthM: number): number {
-  return (spec.phase + (spec.speedMps * timeSec) / lapLengthM) % 1;
-}
-
 // ---------------------------------------------------------------------------------------------
 // Scene objects
 // ---------------------------------------------------------------------------------------------
@@ -474,8 +364,7 @@ class PropInstances {
 }
 
 interface Mover {
-  spec: TrafficSpec;
-  body: RAPIER.RigidBody;
+  sim: CongHoaMover;
   /** Index inside its kind's PropInstances. */
   slot: number;
   set: PropInstances;
@@ -513,8 +402,7 @@ export class CongHoaLandmarks {
   private moverSets: PropInstances[] = [];
   /** Where the player is; traffic sets with nothing within TRAFFIC_DRAW_RADIUS_M are not drawn. */
   private focus: { x: number; z: number } | null = null;
-  private readonly kinPos = { x: 0, y: 0, z: 0 };
-  private readonly kinRot = { x: 0, y: 0, z: 0, w: 1 };
+  private sim: CongHoaTrafficSim | null = null;
 
   constructor(
     private readonly scene: THREE.Scene,
@@ -707,23 +595,19 @@ export class CongHoaLandmarks {
 
   private buildTraffic(): void {
     const cfg = this.raw.ambientTraffic;
-    const half = (size: [number, number, number]): [number, number, number] => [size[0] / 2, size[1] / 2, size[2] / 2];
-    const kinds: TrafficKind[] = [
-      { key: 'scooters', count: cfg.scooters, models: cfg.models.scooters, half: half(cfg.vehicleSizesM.scooter) },
-      { key: 'cars', count: cfg.cars, models: cfg.models.cars, half: half(cfg.vehicleSizesM.car) },
-      { key: 'buses', count: cfg.buses, models: cfg.models.buses, half: half(cfg.vehicleSizesM.bus) },
+    const sim = new CongHoaTrafficSim(this.R, this.world, this.track, this.path);
+    this.sim = sim;
+    this.skippedKinds.push(...sim.skippedKinds);
+    const kinds: { key: string; models: readonly string[] }[] = [
+      { key: 'scooters', models: cfg.models.scooters },
+      { key: 'cars', models: cfg.models.cars },
+      { key: 'buses', models: cfg.models.buses },
     ];
-    kinds.forEach((kind, ki) => {
-      if (kind.models.length === 0) {
-        if (kind.count > 0) this.skippedKinds.push(kind.key);
-        return;
-      }
-      const specs = trafficPlan(ki, kind.count, kind.models.length, 1971, cfg.speedKmh, this.track.lapLengthM, {
-        behindLineM: 130,
-        aheadOfLineM: 30,
-      });
+    kinds.forEach((kind) => {
+      const mine = sim.movers.filter((m) => m.kindKey === kind.key);
+      if (kind.models.length === 0 || mine.length === 0) return;
       const perModel = kind.models.map((m) => {
-        const n = specs.filter((s) => s.model === kind.models.indexOf(m)).length;
+        const n = mine.filter((s) => s.spec.model === kind.models.indexOf(m)).length;
         return { path: m, n, used: 0, set: null as PropInstances | null };
       });
       for (const pm of perModel) {
@@ -731,30 +615,21 @@ export class CongHoaLandmarks {
         pm.set = new PropInstances(this.group, this.assets, pm.path, pm.n, { merge: true, colors: true });
         this.sets.push(pm.set);
       }
-      for (const spec of specs) {
-        const pm = perModel[spec.model];
+      for (const mv of mine) {
+        const pm = perModel[mv.spec.model];
         const set = pm.set as PropInstances;
         const slot = pm.used++;
-        set.setTint(slot, spec.tint);
-        const body = this.world.createRigidBody(this.R.RigidBodyDesc.kinematicPositionBased());
-        this.world.createCollider(
-          this.R.ColliderDesc.cuboid(kind.half[0], kind.half[1], kind.half[2])
-            .setTranslation(0, kind.half[1], 0)
-            .setFriction(0.2),
-          body,
-        );
-        this.movers.push({ spec, body, slot, set });
+        set.setTint(slot, mv.spec.tint);
+        this.movers.push({ sim: mv, slot, set });
       }
     });
     this.moverSets = [...new Set(this.movers.map((m) => m.set))];
-    this.placeTraffic(true);
+    this.placeTraffic();
   }
 
   /** Dev/e2e: along-track t (0..1) of every ambient vehicle of a kind (0 scooters, 1 cars, 2 buses). */
   debugTrafficTs(kind: number): number[] {
-    return this.movers
-      .filter((m) => m.spec.kind === kind)
-      .map((m) => trafficT(m.spec, this.time, this.track.lapLengthM));
+    return this.sim?.tsOfKind(kind) ?? [];
   }
 
   /** Tell the traffic where the camera is so far-away sets skip their draw calls. */
@@ -764,34 +639,18 @@ export class CongHoaLandmarks {
     this.focus.z = z;
   }
 
-  /** Move every ambient vehicle to its position for the current clock. */
-  private placeTraffic(initial: boolean): void {
+  /** Copy every ambient vehicle's simulated pose into its instance matrix. */
+  private placeTraffic(): void {
     if (this.movers.length === 0) return;
-    const offset = rightLaneOffsetM(this.track.roadWidthM, this.raw.roadLayout.lanesPerDirection);
     for (const set of this.moverSets) set.near = this.focus === null;
     for (const mv of this.movers) {
-      sampleAt(this.path, trafficT(mv.spec, this.time, this.track.lapLengthM), this.sample);
-      const r = rightOfHeading(this.sample.tx, this.sample.tz);
-      const d = offset + mv.spec.jitterM;
-      const x = this.sample.x + r.x * d;
-      const z = this.sample.z + r.z * d;
-      const yaw = Math.atan2(this.sample.tx, this.sample.tz);
-      mv.set.set(mv.slot, this.compose(x, 0, z, yaw));
+      const p = mv.sim;
+      mv.set.set(mv.slot, this.compose(p.x, 0, p.z, p.yaw));
       if (this.focus) {
-        const dx = x - this.focus.x;
-        const dz = z - this.focus.z;
+        const dx = p.x - this.focus.x;
+        const dz = p.z - this.focus.z;
         if (dx * dx + dz * dz < TRAFFIC_DRAW_RADIUS_M * TRAFFIC_DRAW_RADIUS_M) mv.set.near = true;
       }
-      this.kinPos.x = x;
-      this.kinPos.z = z;
-      this.kinRot.y = Math.sin(yaw / 2);
-      this.kinRot.w = Math.cos(yaw / 2);
-      if (initial) {
-        mv.body.setTranslation(this.kinPos, true);
-        mv.body.setRotation(this.kinRot, true);
-      }
-      mv.body.setNextKinematicTranslation(this.kinPos);
-      mv.body.setNextKinematicRotation(this.kinRot);
     }
     for (const set of this.moverSets) {
       set.setVisible(set.near);
@@ -811,7 +670,8 @@ export class CongHoaLandmarks {
         a.rotation.set(this.pose.pitch, this.pose.yaw, this.pose.bank, 'YXZ');
       }
     }
-    this.placeTraffic(false);
+    this.sim?.update(dt);
+    this.placeTraffic();
   }
 
   dispose(): void {
@@ -829,7 +689,7 @@ export class CongHoaLandmarks {
       });
       this.group.remove(this.airliner);
     }
-    for (const mv of this.movers) this.world.removeRigidBody(mv.body);
+    this.sim?.dispose();
     this.movers.length = 0;
     this.world.removeRigidBody(this.body);
     this.scene.remove(this.group);

@@ -6,6 +6,10 @@ import { userSettings } from '../core/Settings';
 import { mergePropMaterials } from '../vehicle/MergeMaterials';
 import { nearestSample } from './Corridor';
 import type { TrackPath } from './TrackPath';
+import { CatLaiYardSim } from '../sim/CatLaiYardSim';
+import { SHORTCUT_WALL_GAP_M, SHORTCUT_WALL_THICKNESS_M, catLaiRaw, type RawCatLai } from '../sim/catLaiTrafficCommon';
+
+export * from '../sim/catLaiTrafficCommon';
 import { DistanceCull, drawDistance, gateByDistance, windowInstances } from './Windowed';
 
 type Rapier = typeof RAPIER;
@@ -41,9 +45,6 @@ const LEG_HALF_Y = 12;
 const FERRY_HALF_LEN_M = 24;
 const FERRY_Y = -0.1;
 const SHIP_Y = -1.2;
-/** Reach stacker body (chassis) and truck footprint for kinematic colliders. */
-const STACKER_HALF: [number, number, number] = [2.4, 1.9, 5.5];
-const TRUCK_HALF: [number, number, number] = [1.25, 1.95, 8.2];
 
 const QUAY_WALL_HALF_X = 0.4;
 const QUAY_WALL_HALF_Y = 0.75;
@@ -51,24 +52,6 @@ const QUAY_WALL_HALF_Y = 0.75;
 const DYNAMIC_DRAW_RADIUS_M = 380;
 
 // --- JSON ------------------------------------------------------------------------------------------------------
-interface RawCatLai {
-  quay: { edgeX: number; fromN: number; toN: number; tileM: number };
-  cranes: { sts: { positions: [number, number, number][] }; rtg: { positions: [number, number, number][] } };
-  ships: { position: [number, number, number]; headingDeg: number }[];
-  ferry: { landing: [number, number, number]; crossing: { to: [number, number, number]; durationSec: number } };
-  yardTraffic: { reachStackers: { count: number }; trucks: number };
-  shortcut: {
-    fromT: number;
-    toT: number;
-    widthM: number;
-    points: [number, number, number][];
-    ramp: { position: [number, number, number]; heightM: number; lengthM: number };
-  };
-  roadLayout: { yardLanes: { widthM: number } };
-}
-
-export const catLaiRaw = (track: TrackDef): RawCatLai => track.raw as unknown as RawCatLai;
-
 // --- Pure helpers (unit-tested) ---------------------------------------------------------------------------------
 
 /** A box on the ground plane: centre, half extents along its own axes, and yaw (rotation about +Y like THREE). */
@@ -179,95 +162,6 @@ export function ferryPose(
   return out;
 }
 
-/** One reach-stacker crossing: it shuttles A ↔ B across a lane, dwelling at each side. */
-export interface Crossing {
-  ax: number;
-  az: number;
-  bx: number;
-  bz: number;
-  phaseSec: number;
-}
-export interface StackerPose {
-  x: number;
-  z: number;
-  yaw: number;
-}
-
-export const STACKER_DWELL_SEC = 8;
-export const STACKER_CROSS_SEC = 6;
-
-/** Smooth 0→1 step. */
-const smooth = (k: number): number => {
-  const c = Math.min(1, Math.max(0, k));
-  return c * c * (3 - 2 * c);
-};
-
-/**
- * Pose along a crossing. The stacker waits parked PARALLEL to the lane, beside it (an 11 m machine parked across the
- * lane would block it), then swings square to the lane for the crossing and back again.
- */
-export function stackerPose(c: Crossing, timeSec: number, out: StackerPose): StackerPose {
-  const period = 2 * (STACKER_DWELL_SEC + STACKER_CROSS_SEC);
-  const u = (((timeSec + c.phaseSec) % period) + period) % period;
-  const toB = Math.atan2(c.bx - c.ax, c.bz - c.az);
-  let k: number;
-  let dir: number;
-  if (u < STACKER_DWELL_SEC) {
-    k = 0;
-    dir = 0;
-  } else if (u < STACKER_DWELL_SEC + STACKER_CROSS_SEC) {
-    k = smooth((u - STACKER_DWELL_SEC) / STACKER_CROSS_SEC);
-    dir = 0;
-  } else if (u < 2 * STACKER_DWELL_SEC + STACKER_CROSS_SEC) {
-    k = 1;
-    dir = 1;
-  } else {
-    k = 1 - smooth((u - 2 * STACKER_DWELL_SEC - STACKER_CROSS_SEC) / STACKER_CROSS_SEC);
-    dir = 1;
-  }
-  // 1 while square to the lane (mid-crossing), 0 when parked at either side.
-  const square = smooth(k / 0.15) * (1 - smooth((k - 0.85) / 0.15));
-  const base = toB + dir * Math.PI;
-  out.yaw = base + (1 - square) * (dir === 0 ? Math.PI / 2 : -Math.PI / 2);
-  out.x = c.ax + (c.bx - c.ax) * k;
-  out.z = c.az + (c.bz - c.az) * k;
-  return out;
-}
-
-/**
- * Where the stackers cross: two crossings of the Reefer lane (at 40 % and 75 % of its length, along Z) and one of
- * the yard lane at the shortcut's mouth (along the lane's normal). Each spans the road plus `margin` on both sides.
- */
-export function stackerCrossings(track: TrackDef, _path: TrackPath, count: number): Crossing[] {
-  const raw = catLaiRaw(track);
-  const pts = raw.shortcut.points;
-  const sx0 = pts[0][0];
-  const sx1 = pts[pts.length - 1][0];
-  const sz = pts[0][2];
-  // Parked beside the side walls: wall outer face + half the machine's width + a little air.
-  const half = SHORTCUT_WALL_GAP_M + SHORTCUT_WALL_THICKNESS_M + STACKER_HALF[0] + 0.3;
-  // Never on the racing roads: the yard lane is 10 m wide between container stacks and the stacker is 11 m long.
-  const out: Crossing[] = [];
-  for (const f of [0.2, 0.6, 0.85]) {
-    const x = sx0 + (sx1 - sx0) * f;
-    out.push({ ax: x, az: sz - half, bx: x, bz: sz + half, phaseSec: 0 });
-  }
-  const n = Math.min(count, out.length);
-  return out.slice(0, n).map((c, k) => ({ ...c, phaseSec: k * 7 }));
-}
-
-/** The straight stretch of the yard lane where the trucks shuttle (t window) — wrap inside it. */
-export const YARD_TRUCK_FROM_T = 0.322;
-export const YARD_TRUCK_TO_T = 0.39;
-export const YARD_TRUCK_SPEED_MPS = 4;
-
-/** Along-track t of yard truck `k` of `n` after `timeSec`: evenly spaced, wrapping inside the window. */
-export function yardTruckT(k: number, n: number, timeSec: number, lengthM: number): number {
-  const span = YARD_TRUCK_TO_T - YARD_TRUCK_FROM_T;
-  const u = (((k / n + (timeSec * YARD_TRUCK_SPEED_MPS) / (span * lengthM)) % 1) + 1) % 1;
-  return YARD_TRUCK_FROM_T + u * span;
-}
-
 /** Reefer-lane geometry: ribbon centreline plus oriented side walls that leave both ends open. */
 export interface ShortcutGeometry {
   points: [number, number][];
@@ -275,9 +169,7 @@ export interface ShortcutGeometry {
   walls: GroundBox[];
 }
 
-export const SHORTCUT_WALL_GAP_M = 3.8;
 export const SHORTCUT_END_OPENING_M = 8;
-export const SHORTCUT_WALL_THICKNESS_M = 0.8;
 
 export function shortcutGeometry(track: TrackDef): ShortcutGeometry {
   const sc = catLaiRaw(track).shortcut;
@@ -439,24 +331,19 @@ export class CatLaiQuay {
   readonly group = new THREE.Group();
   private readonly body: RAPIER.RigidBody;
   private readonly sets: ModelSet[] = [];
-  private readonly bodies: RAPIER.RigidBody[] = [];
-  private stackerBodies: RAPIER.RigidBody[] = [];
+  private yard: CatLaiYardSim | null = null;
   private readonly ribbon: THREE.Mesh;
   private stsSet: ModelSet;
   private rtgSet: ModelSet;
   private ferrySet: ModelSet | null = null;
   private ferryCfg: RawCatLai['ferry'];
-  private crossings: Crossing[] = [];
   private stackerSet: ModelSet | null = null;
   private truckSets: ModelSet[] = [];
-  private truckSlots: { set: ModelSet; slot: number; k: number; body: RAPIER.RigidBody }[] = [];
+  private truckSlots: { set: ModelSet; slot: number; k: number }[] = [];
   private time = 0;
   private focus: { x: number; z: number } | null = null;
   private readonly m4 = new THREE.Matrix4();
-  private readonly kinPos = { x: 0, y: 0, z: 0 };
-  private readonly kinRot = { x: 0, y: 0, z: 0, w: 1 };
   private readonly fp: FerryPose = { x: 0, yaw: 0 };
-  private readonly sp: StackerPose = { x: 0, z: 0, yaw: 0 };
   private readonly raw: RawCatLai;
 
   constructor(
@@ -683,11 +570,10 @@ export class CatLaiQuay {
     const raw = this.raw;
     this.ferrySet = this.add(new ModelSet(this.group, assets, FERRY, 1));
 
-    const cross = stackerCrossings(this.track, this.path, raw.yardTraffic.reachStackers.count);
-    this.crossings = cross;
-    if (cross.length > 0) {
-      this.stackerSet = this.add(new ModelSet(this.group, assets, STACKER, cross.length));
-      this.stackerBodies = cross.map(() => this.addMover(STACKER_HALF));
+    const yard = new CatLaiYardSim(this.R, this.world, this.track, this.path);
+    this.yard = yard;
+    if (yard.stackers.length > 0) {
+      this.stackerSet = this.add(new ModelSet(this.group, assets, STACKER, yard.stackers.length));
     }
 
     const n = raw.yardTraffic.trucks;
@@ -699,34 +585,10 @@ export class CatLaiQuay {
       this.truckSets.push(set);
       for (let s = 0; s < counts[mi]; s++) {
         const k = mi === 0 ? s * 2 : s * 2 + 1;
-        this.truckSlots.push({ set, slot: s, k, body: this.addMover(TRUCK_HALF) });
+        this.truckSlots.push({ set, slot: s, k });
       }
     });
-    this.place(true);
-  }
-
-  private addMover(half: [number, number, number]): RAPIER.RigidBody {
-    const body = this.world.createRigidBody(this.R.RigidBodyDesc.kinematicPositionBased());
-    this.world.createCollider(
-      this.R.ColliderDesc.cuboid(half[0], half[1], half[2]).setTranslation(0, half[1], 0).setFriction(0.2),
-      body,
-    );
-    this.bodies.push(body);
-    return body;
-  }
-
-  private moveBody(body: RAPIER.RigidBody, x: number, z: number, yaw: number, initial: boolean): void {
-    this.kinPos.x = x;
-    this.kinPos.y = RACE.track.roadY;
-    this.kinPos.z = z;
-    this.kinRot.y = Math.sin(yaw / 2);
-    this.kinRot.w = Math.cos(yaw / 2);
-    if (initial) {
-      body.setTranslation(this.kinPos, true);
-      body.setRotation(this.kinRot, true);
-    }
-    body.setNextKinematicTranslation(this.kinPos);
-    body.setNextKinematicRotation(this.kinRot);
+    this.place();
   }
 
   private near(x: number, z: number): boolean {
@@ -743,7 +605,7 @@ export class CatLaiQuay {
     this.focus.z = z;
   }
 
-  private place(initial: boolean): void {
+  private place(): void {
     const t = this.time;
     // Cranes: spreaders slide slowly, each crane on its own phase.
     const w = (Math.PI * 2 * t) / SPREADER_PERIOD_SEC;
@@ -768,34 +630,20 @@ export class CatLaiQuay {
     const ss = this.stackerSet;
     if (ss) {
       let any = false;
-      this.crossings.forEach((c, i) => {
-        stackerPose(c, t, this.sp);
-        ss.set(i, posQuat(this.m4, this.sp.x, 0, this.sp.z, this.sp.yaw));
-        any = any || this.near(this.sp.x, this.sp.z);
-        this.moveBody(this.stackerBodies[i], this.sp.x, this.sp.z, this.sp.yaw, initial);
+      this.yard?.stackers.forEach((m, i) => {
+        ss.set(i, posQuat(this.m4, m.x, 0, m.z, m.yaw));
+        any = any || this.near(m.x, m.z);
       });
       ss.commit();
       ss.setVisible(any);
     }
 
-    const nTrucks = this.truckSlots.length;
     for (const set of this.truckSets) set.setVisible(false);
     for (const ts of this.truckSlots) {
-      const tt = yardTruckT(ts.k, nTrucks, t, this.path.lengthM);
-      const p = this.path.pointAt(tt);
-      const tg = this.path.tangentAt(tt);
-      const len = Math.hypot(tg.x, tg.z) || 1;
-      const tx = tg.x / len;
-      const tz = tg.z / len;
-      // Oncoming: they drive against the race, on their own right = the racers' left.
-      // Hug the left wall: the racers' centre line (and a 3.5 m wide APC) must stay clear.
-      const lane = this.raw.roadLayout.yardLanes.widthM / 2 - TRUCK_HALF[0] - 0.35;
-      const x = p.x + tz * lane;
-      const z = p.z - tx * lane;
-      const yaw = Math.atan2(-tx, -tz);
-      ts.set.set(ts.slot, posQuat(this.m4, x, 0, z, yaw));
-      if (this.near(x, z)) ts.set.setVisible(true);
-      this.moveBody(ts.body, x, z, yaw, initial);
+      const m = this.yard?.trucks[ts.k];
+      if (!m) continue;
+      ts.set.set(ts.slot, posQuat(this.m4, m.x, 0, m.z, m.yaw));
+      if (this.near(m.x, m.z)) ts.set.setVisible(true);
     }
     for (const set of this.truckSets) set.commit();
   }
@@ -803,12 +651,12 @@ export class CatLaiQuay {
   /** Fixed-step update, after world.step(). */
   update(dt: number): void {
     this.time += dt;
-    this.place(false);
+    this.yard?.update(dt);
+    this.place();
   }
 
   dispose(): void {
-    for (const b of this.bodies) this.world.removeRigidBody(b);
-    this.bodies.length = 0;
+    this.yard?.dispose();
     this.world.removeRigidBody(this.body);
     for (const s of this.sets) s.dispose();
     this.sets.length = 0;
