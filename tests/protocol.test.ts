@@ -22,12 +22,12 @@ describe('client message validation', () => {
   });
 
   it('clamps input ranges and rejects non-numbers', () => {
-    const r = ok({ t: 'input', seq: 7, throttle: 5, brake: -2, steer: 9, drift: 1, nitro: true, fire: 'yes' });
+    const r = ok({ t: 'input', tick: 7, throttle: 5, brake: -2, steer: 9, drift: 1, nitro: true, fire: 'yes' });
     expect(r).toEqual({
       ok: true,
       msg: {
         t: 'input',
-        seq: 7,
+        tick: 7,
         throttle: 1,
         brake: 0,
         steer: 1,
@@ -37,10 +37,10 @@ describe('client message validation', () => {
         fireSecondary: false,
       },
     });
-    expect(ok({ t: 'input', seq: 1, throttle: 'a', brake: 0, steer: 0 }).ok).toBe(false);
-    expect(parseClientMessage('{"t":"input","seq":1,"throttle":1e999,"brake":0,"steer":0}').ok).toBe(false);
-    expect(ok({ t: 'input', seq: -1, throttle: 0, brake: 0, steer: 0 }).ok).toBe(false);
-    expect(ok({ t: 'input', seq: 1.5, throttle: 0, brake: 0, steer: 0 }).ok).toBe(false);
+    expect(ok({ t: 'input', tick: 1, throttle: 'a', brake: 0, steer: 0 }).ok).toBe(false);
+    expect(parseClientMessage('{"t":"input","tick":1,"throttle":1e999,"brake":0,"steer":0}').ok).toBe(false);
+    expect(ok({ t: 'input', tick: -1, throttle: 0, brake: 0, steer: 0 }).ok).toBe(false);
+    expect(ok({ t: 'input', tick: 1.5, throttle: 0, brake: 0, steer: 0 }).ok).toBe(false);
   });
 
   it('rejects junk, oversize and unknown types', () => {

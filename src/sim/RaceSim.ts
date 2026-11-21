@@ -79,13 +79,13 @@ export function centreRanges(def: TrackDef): { fromT: number; toT: number }[] {
 
 export interface SimEntry {
   readonly id: string;
-  readonly kind: SlotKind;
+  kind: SlotKind;
   readonly car: CarSim;
   readonly race: RaceManager;
   /** Along-track position t in [0, 1). */
   t: number;
   recoveries: number;
-  readonly driver: AIDriver | null;
+  driver: AIDriver | null;
   others: OtherCar[];
   lane: number;
   readonly stuck: StuckWatch;
@@ -110,12 +110,13 @@ export class RaceSim {
   tick = 0;
   private readonly byId = new Map<string, SimEntry>();
   private readonly cars: CarSim[] = [];
-  private readonly traffic: { update(dt: number): void }[] = [];
-  private readonly combat: CombatSim | null;
+  private readonly traffic: { update(dt: number): void; time: number }[] = [];
+  private combat: CombatSim | null = null;
   private readonly hitRules: HitRules;
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
   private readonly holdFire: boolean;
   private readonly reference: () => SimEntry;
+  private readonly line: RacingLine;
 
   /** Build a race. Call `initSim()` (or `await RaceSim.create`) first so Rapier's wasm is ready. */
   constructor(opts: RaceSimOpts) {
@@ -129,6 +130,7 @@ export class RaceSim {
     );
     this.path = path;
     const line = new RacingLine(path, RACE.track.sampleSpacingM);
+    this.line = line;
     const world = new RAPIER.World({ x: 0, y: HANDLING.world.gravity, z: 0 });
     world.timestep = STEP;
     this.world = world;
@@ -153,12 +155,8 @@ export class RaceSim {
       this.entries.find((e) => e.kind === 'human') ??
       this.entries.find((e) => e.kind === 'pilot') ??
       (this.entries[0] as SimEntry);
-    const progress = (e: SimEntry): number =>
-      e.race.laps.lap +
-      effectiveT({ lap: e.race.laps.lap, t: e.race.progressT, checkpointsPassed: e.race.laps.nextCheckpoint });
     const pickupDefs = expandPickups(def.pickups);
     const pickupPos = pickupPositions(pickupDefs, path, def);
-    let combat: CombatSim | null = null;
 
     opts.slots.forEach((sp, index) => {
       const carDef = getCarDef(sp.carId);
@@ -202,38 +200,7 @@ export class RaceSim {
         spawn: { x: g.x, y: g.y + 0.4, z: g.z, yaw: g.yaw },
       });
       (entry as { car: CarSim }).car = car;
-      if (sp.kind !== 'human') {
-        const phys = car.physics;
-        const pilot = sp.kind === 'pilot';
-        (entry as { driver: AIDriver | null }).driver = new AIDriver({
-          carId: sp.id,
-          line,
-          laneOffsetM: lane,
-          centreRanges: centreRanges(def),
-          halfWidthAt: (t) => roadWidthAt(def, t) / 2,
-          skill: sp.skill ?? 0.9,
-          difficulty: 'normal',
-          handling: carDef.handling,
-          topSpeedMps: carDef.topSpeedKmh / 3.6,
-          self: () => ({
-            x: phys.curr.p.x,
-            z: phys.curr.p.z,
-            yaw: phys.yaw,
-            forwardSpeed: phys.forwardSpeed,
-            lateralSpeed: phys.lateralSpeed,
-            t: entry.t,
-            nitroBars: phys.nitro.bars,
-            airborne: phys.airborne,
-            ...(pilot ? { locked: entry.race.controlsLocked } : {}),
-          }),
-          others: () => (pilot ? [] : entry.others),
-          pickups: () => (pilot || !combat ? [] : combat.availablePickups()),
-          rubberBand: () =>
-            pilot ? 0 : rubberBandSignal(progress(entry), progress(this.reference()), RACE.ai.rubberBandScaleLaps),
-          rocketAmmo: () => (pilot ? 0 : car.ammo.count),
-          hullFraction: () => car.hull.fraction,
-        });
-      }
+      if (sp.kind !== 'human') entry.driver = this.makeDriver(entry, sp.kind === 'pilot', sp.skill ?? 0.9);
       this.entries.push(entry);
       this.cars.push(car);
       this.byId.set(sp.id, entry);
@@ -254,7 +221,7 @@ export class RaceSim {
     }
     this.hitRules = new HitRules(!!(def.raw.barriers as { armco?: unknown } | undefined)?.armco);
     if (opts.combat !== false) {
-      combat = new CombatSim({
+      this.combat = new CombatSim({
         R: RAPIER,
         world,
         events,
@@ -267,12 +234,65 @@ export class RaceSim {
         pickupPositions: pickupPos,
       });
     }
-    this.combat = combat;
   }
 
   static async create(opts: RaceSimOpts): Promise<RaceSim> {
     await initSim();
     return new RaceSim(opts);
+  }
+
+  private progressOf(e: SimEntry): number {
+    return (
+      e.race.laps.lap +
+      effectiveT({ lap: e.race.laps.lap, t: e.race.progressT, checkpointsPassed: e.race.laps.nextCheckpoint })
+    );
+  }
+
+  /** An AI driver for one car: the rivals' racing-line driver, or (`pilot`) the stripped autopilot used for parity runs. */
+  private makeDriver(entry: SimEntry, pilot: boolean, skill: number): AIDriver {
+    const def = this.def;
+    const car = entry.car;
+    const phys = car.physics;
+    const carDef = car.def;
+    return new AIDriver({
+      carId: entry.id,
+      line: this.line,
+      laneOffsetM: entry.lane,
+      centreRanges: centreRanges(def),
+      halfWidthAt: (t) => roadWidthAt(def, t) / 2,
+      skill,
+      difficulty: 'normal',
+      handling: carDef.handling,
+      topSpeedMps: carDef.topSpeedKmh / 3.6,
+      self: () => ({
+        x: phys.curr.p.x,
+        z: phys.curr.p.z,
+        yaw: phys.yaw,
+        forwardSpeed: phys.forwardSpeed,
+        lateralSpeed: phys.lateralSpeed,
+        t: entry.t,
+        nitroBars: phys.nitro.bars,
+        airborne: phys.airborne,
+        ...(pilot ? { locked: entry.race.controlsLocked } : {}),
+      }),
+      others: () => (pilot ? [] : entry.others),
+      pickups: () => (pilot || !this.combat ? [] : this.combat.availablePickups()),
+      rubberBand: () =>
+        pilot
+          ? 0
+          : rubberBandSignal(this.progressOf(entry), this.progressOf(this.reference()), RACE.ai.rubberBandScaleLaps),
+      rocketAmmo: () => (pilot ? 0 : car.ammo.count),
+      hullFraction: () => car.hull.fraction,
+    });
+  }
+
+  /** A human left mid-race: their car now follows the racing line like a rival (v1 disconnect rule). */
+  handToAI(id: string, skill = 0.9): void {
+    const e = this.byId.get(id);
+    if (!e || e.kind !== 'human') return;
+    e.kind = 'ai';
+    e.lane = 0;
+    e.driver = this.makeDriver(e, false, skill);
   }
 
   entry(id: string): SimEntry | undefined {
@@ -289,6 +309,11 @@ export class RaceSim {
   requestReset(id: string): void {
     const e = this.byId.get(id);
     if (e) e.resetRequested = true;
+  }
+
+  /** Put every ambient-traffic clock at `timeSec` (a client keeps its local traffic in step with the server's). */
+  setTrafficTime(timeSec: number): void {
+    for (const t of this.traffic) t.time = timeSec;
   }
 
   /** Every car has taken the flag. */

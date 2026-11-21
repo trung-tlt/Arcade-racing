@@ -100,7 +100,10 @@ describe('websocket server', () => {
     // 60 Hz input loop from the latest snapshot (the pilot extrapolates it by its age).
     const timer = setInterval(() => {
       if (!c.snap) return;
-      c.sendInput(pilot.read(c.snap.cars, c.snap.phase === 'countdown', (performance.now() - lastSnapMs) / 1000));
+      c.sendInput(
+        c.serverTickNow() + 6,
+        pilot.read(c.snap.cars, c.snap.phase === 'countdown', (performance.now() - lastSnapMs) / 1000),
+      );
     }, 1000 / 60);
     await sleep(9000);
     clearInterval(timer);
@@ -149,7 +152,11 @@ describe.skipIf(!process.env.NET_LAP)('a full lap over the websocket (real time,
     let last = 0;
     c.events.onSnapshot = () => (last = performance.now());
     const timer = setInterval(() => {
-      if (c.snap) c.sendInput(pilot.read(c.snap.cars, c.snap.phase === 'countdown', (performance.now() - last) / 1000));
+      if (c.snap)
+        c.sendInput(
+          c.serverTickNow() + 6,
+          pilot.read(c.snap.cars, c.snap.phase === 'countdown', (performance.now() - last) / 1000),
+        );
     }, 1000 / 60);
     const start = Date.now();
     while (!results && Date.now() - start < 200_000) await sleep(250);

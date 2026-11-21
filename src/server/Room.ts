@@ -1,16 +1,12 @@
 import { AI, CARS, TRACKS } from '../core/Data';
-import { IDLE_CONTROLS } from '../vehicle/CarPhysics';
 import {
-  FLAG_AIRBORNE,
-  FLAG_FINISHED,
-  FLAG_INVULNERABLE,
-  FLAG_WRECKED,
   PROTOCOL_VERSION,
   SIM_HZ,
   SNAPSHOT_EVERY_TICKS,
   encode,
   round,
   type ClientMsg,
+  type InputFrame,
   type RejectReason,
   type ResultRow,
   type RoomPhase,
@@ -19,6 +15,7 @@ import {
   type SnapCar,
 } from '../shared/protocol';
 import { RaceSim, type SlotSpec } from '../sim/RaceSim';
+import { snapOfEntry } from '../sim/snapshot';
 
 /** One connected client, as the room sees it. `send` takes an already-encoded message. */
 export interface Conn {
@@ -51,13 +48,20 @@ export interface Player {
   ready: boolean;
   host: boolean;
   connected: boolean;
-  lastSeq: number;
+  /** Frames received for ticks not yet simulated, by tick. */
+  frames: Map<number, InputFrame>;
+  /** Newest frame tick received, frames that arrived after their tick, and ticks that reused the previous frame. */
+  ackTick: number;
+  late: number;
+  repeats: number;
   tokens: number;
   tokenStamp: number;
   dropped: number;
 }
 
 const MAX_DROPPED_INPUTS = 600;
+/** Frames for ticks further ahead than this are refused (a client cannot buffer the future without bound). */
+const MAX_AHEAD_TICKS = 90;
 
 /**
  * One online race room: lobby -> countdown -> racing -> results. The server owns everything; clients only send inputs.
@@ -81,6 +85,7 @@ export class Room {
   private firstFinishAt: number | null = null;
   private readonly slotOf = new Map<string, SlotSpec>();
   private readonly names = new Map<string, string>();
+  private readonly resets = new Map<string, number>();
 
   constructor(o: RoomOptions) {
     this.code = o.code;
@@ -115,7 +120,10 @@ export class Room {
       ready: false,
       host: this.players.size === 0,
       connected: true,
-      lastSeq: -1,
+      frames: new Map(),
+      ackTick: -1,
+      late: 0,
+      repeats: 0,
       tokens: 30,
       tokenStamp: this.now(),
       dropped: 0,
@@ -146,8 +154,8 @@ export class Room {
       }
       this.broadcastState();
     } else {
-      // Mid-race: the car coasts (handing it to the AI comes with prediction in Phase 3).
-      this.sim?.setInput(player.id, { ...IDLE_CONTROLS });
+      // Mid-race: the car carries on under the AI (v1 rule; reconnect is v1.1).
+      this.sim?.handToAI(player.id);
     }
   }
 
@@ -188,17 +196,16 @@ export class Room {
       return player.dropped > MAX_DROPPED_INPUTS ? 'rate' : null;
     }
     player.tokens -= 1;
-    if (msg.seq <= player.lastSeq) return null; // duplicate or reordered
-    player.lastSeq = msg.seq;
-    this.sim?.setInput(player.id, {
-      throttle: msg.throttle,
-      brake: msg.brake,
-      steer: msg.steer,
-      drift: msg.drift,
-      nitro: msg.nitro,
-      fire: msg.fire,
-      fireSecondary: msg.fireSecondary,
-    });
+    const now = this.sim?.tick ?? 0;
+    // Even a late frame tells the client how far behind it is (its ack is the newest tick we have seen from it).
+    if (msg.tick > player.ackTick) player.ackTick = msg.tick;
+    if (msg.tick < now) {
+      player.late++; // arrived after its tick was simulated
+      return null;
+    }
+    if (msg.tick > now + MAX_AHEAD_TICKS) return null;
+    if (player.frames.has(msg.tick)) return null; // duplicate
+    player.frames.set(msg.tick, msg);
     return null;
   }
 
@@ -225,6 +232,7 @@ export class Room {
       this.names.set(id, r.name);
     });
     this.sim = new RaceSim({ trackId: this.trackId, laps: this.laps, slots });
+    this.sim.events.on('carReset', (e) => this.resets.set(e.carId, (this.resets.get(e.carId) ?? 0) + 1));
     this.phase = 'countdown';
     this.broadcastState();
   }
@@ -233,6 +241,7 @@ export class Room {
   tick(): void {
     const sim = this.sim;
     if (!sim || this.phase === 'results') return;
+    this.consumeInputs(sim);
     sim.step();
     const ref = sim.entries.find((e) => e.kind === 'human');
     if (this.phase === 'countdown' && ref && ref.race.phase !== 'countdown') {
@@ -241,6 +250,21 @@ export class Room {
     }
     if (sim.tick % SNAPSHOT_EVERY_TICKS === 0) this.sendSnapshots(sim);
     this.checkFinish(sim);
+  }
+
+  /** The frame for this tick from each player; a missing one repeats the previous input (and is counted). */
+  private consumeInputs(sim: RaceSim): void {
+    const tick = sim.tick;
+    for (const p of this.players.values()) {
+      const frame = p.frames.get(tick);
+      if (frame) {
+        p.repeats = 0;
+        sim.setInput(p.id, frame);
+      } else if (p.ackTick >= 0) {
+        p.repeats++;
+      }
+      for (const k of p.frames.keys()) if (k <= tick) p.frames.delete(k);
+    }
   }
 
   private checkFinish(sim: RaceSim): void {
@@ -297,35 +321,12 @@ export class Room {
   }
 
   private sendSnapshots(sim: RaceSim): void {
-    const cars: SnapCar[] = sim.entries.map((e) => {
-      const ph = e.car.physics;
-      const body = ph.body;
-      const v = body.linvel();
-      const w = body.angvel();
-      const { p, q } = ph.curr;
-      const view = sim.views.find((x) => x.id === e.id);
-      return {
-        id: e.id,
-        p: [round(p.x, 2), round(p.y, 2), round(p.z, 2)],
-        q: [round(q.x, 4), round(q.y, 4), round(q.z, 4), round(q.w, 4)],
-        v: [round(v.x, 2), round(v.y, 2), round(v.z, 2)],
-        w: [round(w.x, 3), round(w.y, 3), round(w.z, 3)],
-        hp: Math.round(e.car.hull.hp),
-        nb: round(ph.nitro.bars, 2),
-        lap: view?.lap ?? 1,
-        t: round(e.t, 4),
-        fl:
-          (e.car.hull.wrecked ? FLAG_WRECKED : 0) |
-          (ph.airborne ? FLAG_AIRBORNE : 0) |
-          (e.car.hull.invulnerable ? FLAG_INVULNERABLE : 0) |
-          (e.race.phase === 'finished' ? FLAG_FINISHED : 0),
-      };
-    });
+    const cars: SnapCar[] = sim.entries.map((e, i) => snapOfEntry(e, sim.views[i].lap, this.resets.get(e.id) ?? 0));
     const carsJson = JSON.stringify(cars);
     const head = `{"t":"snap","tick":${sim.tick},"time":${round(sim.time, 3)},"phase":"${this.phase}"`;
     for (const p of this.players.values()) {
       if (!p.connected) continue;
-      p.conn.send(`${head},"ack":${p.lastSeq},"cars":${carsJson}}`);
+      p.conn.send(`${head},"ack":${p.ackTick},"late":${p.late},"cars":${carsJson}}`);
     }
   }
 

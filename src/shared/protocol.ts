@@ -23,9 +23,12 @@ export interface RosterEntry {
   host: boolean;
 }
 
-/** One control frame (60 Hz). `seq` increases by one per frame; the server acks the last one it applied. */
+/**
+ * One control frame (60 Hz). `tick` is the server sim tick the frame is for: the client runs a few ticks ahead of the
+ * server and the server applies the frame for tick N during its Nth step (or repeats the previous frame if it is missing).
+ */
 export interface InputFrame extends CarControls {
-  seq: number;
+  tick: number;
 }
 
 export type ClientMsg =
@@ -42,6 +45,9 @@ export const FLAG_WRECKED = 1;
 export const FLAG_AIRBORNE = 2;
 export const FLAG_INVULNERABLE = 4;
 export const FLAG_FINISHED = 8;
+export const FLAG_BRAKING = 16;
+export const FLAG_NITRO = 32;
+export const FLAG_DRIFTING = 64;
 
 export interface SnapCar {
   id: string;
@@ -57,6 +63,10 @@ export interface SnapCar {
   /** Along-track position, 0..1. */
   t: number;
   fl: number;
+  /** Front-wheel steer angle (rad), for the wheel visuals of remote cars. */
+  st: number;
+  /** Respawn counter: when it changes the car was teleported (wreck respawn, reset), so clients must not interpolate across it. */
+  rs: number;
 }
 
 export interface ResultRow {
@@ -75,7 +85,17 @@ export type ServerMsg =
   | { t: 'welcome'; id: string; room: string; tick: number; ms: number; track: string; laps: number; hz: number }
   | { t: 'reject'; reason: RejectReason }
   | { t: 'state'; phase: RoomPhase; track: string; laps: number; roster: RosterEntry[]; results?: ResultRow[] }
-  | { t: 'snap'; tick: number; ack: number; time: number; phase: RoomPhase; cars: SnapCar[] }
+  | {
+      t: 'snap';
+      /** Server sim ticks completed: the state is the result of applying input frames up to tick - 1. */
+      tick: number;
+      /** Newest input frame tick the server has received from you, and how many of your frames arrived too late to use. */
+      ack: number;
+      late: number;
+      time: number;
+      phase: RoomPhase;
+      cars: SnapCar[];
+    }
   | { t: 'pong'; c: number; s: number };
 
 export type ParseResult<T> = { ok: true; msg: T } | { ok: false; reason: 'bad_message' };
@@ -111,14 +131,14 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
   const m = j as Record<string, unknown>;
   switch (m.t) {
     case 'input': {
-      const { seq, throttle, brake, steer } = m;
-      if (!isNum(seq) || !Number.isInteger(seq) || seq < 0) return bad;
+      const { tick, throttle, brake, steer } = m;
+      if (!isNum(tick) || !Number.isInteger(tick) || tick < 0) return bad;
       if (!isNum(throttle) || !isNum(brake) || !isNum(steer)) return bad;
       return {
         ok: true,
         msg: {
           t: 'input',
-          seq,
+          tick,
           throttle: clamp(throttle, 0, 1),
           brake: clamp(brake, 0, 1),
           steer: clamp(steer, -1, 1),

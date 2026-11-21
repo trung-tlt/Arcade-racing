@@ -111,7 +111,7 @@ describe('Room input handling', () => {
     send(room, a, { t: 'start' });
     const frame = (seq: number): ClientMsg => ({
       t: 'input',
-      seq,
+      tick: seq,
       throttle: 1,
       brake: 0,
       steer: 0,
@@ -121,12 +121,16 @@ describe('Room input handling', () => {
       fireSecondary: false,
     });
     send(room, a, frame(5));
-    send(room, a, frame(3)); // reordered: ignored
-    expect(a.player?.lastSeq).toBe(5);
+    send(room, a, frame(5)); // duplicate: ignored
+    expect(a.player?.frames.size).toBe(1);
+    room.tick();
+    room.tick();
+    send(room, a, frame(0)); // arrives after its tick: late
+    expect(a.player?.late).toBe(1);
     // A flood far above the rate: tokens run out, frames are dropped, and persistent abuse is reported.
     let abuse: string | null = null;
     for (let i = 6; i < 2000 && !abuse; i++) {
-      abuse = room.handle(a.player as Player, { ...(frame(i) as Extract<ClientMsg, { t: 'input' }>) });
+      abuse = room.handle(a.player as Player, { ...(frame(5 + i) as Extract<ClientMsg, { t: 'input' }>) });
     }
     expect(abuse).toBe('rate');
     now += 5000;
@@ -142,7 +146,6 @@ describe('a human drives a lap online (in-process, 60 Hz, 20 Hz snapshots)', () 
     const c = seat(room);
     send(room, c, { t: 'start' });
     const pilot = new NetPilot('cat_lai', 'p1', 'kestrel_gt');
-    let seq = 0;
     let slow = 0;
     let me: SnapCar | undefined;
     let snaps = 0;
@@ -169,7 +172,7 @@ describe('a human drives a lap online (in-process, 60 Hz, 20 Hz snapshots)', () 
       }
       send(room, c, {
         t: 'input',
-        seq: seq++,
+        tick: room.sim?.tick ?? 0,
         ...pilot.read(c.last('snap')?.cars ?? [], room.phase === 'countdown', (tick - snapTick) / 60),
       });
     }
@@ -184,6 +187,7 @@ describe('a human drives a lap online (in-process, 60 Hz, 20 Hz snapshots)', () 
     // ~20 snapshots a second were sent, and the server acked our latest input.
     expect(snaps).toBeGreaterThan(20 * 50);
     expect((c.last('snap')?.ack ?? 0) > 1000).toBe(true);
+    expect(c.last('snap')?.late).toBe(0);
     room.dispose();
   }, 120_000);
 });
@@ -195,12 +199,16 @@ describe('a full grid online', () => {
     const c = seat(room);
     send(room, c, { t: 'start' });
     const pilot = new NetPilot('cat_lai', 'p1', 'kestrel_gt');
-    let seq = 0;
     for (let tick = 0; tick < 60 * 40; tick++) {
       clockMs = (tick * 1000) / 60;
       room.tick();
       const s = c.last('snap');
-      if (s) send(room, c, { t: 'input', seq: seq++, ...pilot.read(s.cars, room.phase === 'countdown') });
+      if (s)
+        send(room, c, {
+          t: 'input',
+          tick: room.sim?.tick ?? 0,
+          ...pilot.read(s.cars, room.phase === 'countdown'),
+        });
     }
     const s = c.last('snap');
     expect(s?.cars).toHaveLength(6);

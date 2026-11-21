@@ -26,11 +26,11 @@ type WebSocketCtor = new (url: string) => WebSocket;
  */
 export class NetClient {
   private ws: WebSocket | null = null;
-  private seq = 0;
   id = '';
   phase: RoomPhase = 'lobby';
   /** Latest snapshot from the server. */
   snap: Extract<ServerMsg, { t: 'snap' }> | null = null;
+  private snapAt = 0;
   /** Round-trip time in ms (smoothed). */
   pingMs = 0;
   /** server clock minus client clock, ms. */
@@ -79,11 +79,14 @@ export class NetClient {
     this.send({ t: 'reset' });
   }
 
-  /** Send one control frame; returns its sequence number (for prediction replay). */
-  sendInput(c: CarControls): number {
-    const seq = this.seq++;
-    this.send({ t: 'input', seq, ...c });
-    return seq;
+  /** Send one control frame for server tick `tick` (see `InputFrame`). */
+  sendInput(tick: number, c: CarControls): void {
+    this.send({ t: 'input', tick, ...c });
+  }
+
+  /** The server's sim tick right now, estimated from the newest snapshot and how long ago it arrived. */
+  serverTickNow(): number {
+    return this.snap ? this.snap.tick + Math.round(((performance.now() - this.snapAt) / 1000) * 60) : 0;
   }
 
   /** This client's car in the latest snapshot. */
@@ -113,6 +116,7 @@ export class NetClient {
         break;
       case 'snap':
         this.snap = m;
+        this.snapAt = performance.now();
         this.phase = m.phase;
         this.events.onSnapshot?.(m);
         break;
