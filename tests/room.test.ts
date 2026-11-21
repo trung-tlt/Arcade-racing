@@ -82,8 +82,29 @@ describe('Room lobby', () => {
     send(room, b, { t: 'start' });
     expect(room.phase).toBe('lobby');
     send(room, a, { t: 'start' });
+    expect(room.phase).toBe('loading');
+    expect(a.last('state')?.grid).toHaveLength(6);
+    send(room, a, { t: 'ready', ready: true });
+    room.tick();
+    expect(room.phase).toBe('loading'); // b has not finished loading
+    send(room, b, { t: 'ready', ready: true });
+    room.tick();
     expect(room.phase).toBe('countdown');
     expect(room.join(new FakeClient(), joinMsg())).toBe('race_started');
+    room.dispose();
+  });
+
+  it('starts anyway when a client takes too long to load', () => {
+    let now = 0;
+    const room = mkRoom({ now: () => now, loadTimeoutMs: 5000 });
+    const a = seat(room);
+    seat(room);
+    send(room, a, { t: 'start' });
+    room.tick();
+    expect(room.phase).toBe('loading');
+    now = 6000;
+    room.tick();
+    expect(room.phase).toBe('countdown');
     room.dispose();
   });
 
@@ -109,6 +130,7 @@ describe('Room input handling', () => {
     const room = mkRoom({ now: () => now, inputRatePerSec: 60 });
     const a = seat(room);
     send(room, a, { t: 'start' });
+    send(room, a, { t: 'ready', ready: true });
     const frame = (seq: number): ClientMsg => ({
       t: 'input',
       tick: seq,
@@ -145,6 +167,7 @@ describe('a human drives a lap online (in-process, 60 Hz, 20 Hz snapshots)', () 
     const room = mkRoom({ gridSize: 1, now: () => clockMs });
     const c = seat(room);
     send(room, c, { t: 'start' });
+    send(room, c, { t: 'ready', ready: true });
     const pilot = new NetPilot('cat_lai', 'p1', 'kestrel_gt');
     let slow = 0;
     let me: SnapCar | undefined;
@@ -198,6 +221,7 @@ describe('a full grid online', () => {
     const room = mkRoom({ now: () => clockMs });
     const c = seat(room);
     send(room, c, { t: 'start' });
+    send(room, c, { t: 'ready', ready: true });
     const pilot = new NetPilot('cat_lai', 'p1', 'kestrel_gt');
     for (let tick = 0; tick < 60 * 40; tick++) {
       clockMs = (tick * 1000) / 60;

@@ -2,6 +2,10 @@ import { Assets } from './core/Assets';
 import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
 import { AI, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
+import { NetClient } from './net/NetClient';
+import type { OnlineRace } from './net/OnlineRace';
+import { OnlineSession } from './net/OnlineSession';
+import { dataHash } from './shared/dataHash';
 import { bestLapText, loadBestLap } from './core/Records';
 import { applyMobileDefaults, loadSettings, updateSettings } from './core/Settings';
 import { detectTouch, touchInput } from './core/TouchInput';
@@ -255,7 +259,55 @@ async function boot(): Promise<void> {
     show(next, next === 'title' ? title : carSelect);
   }
 
-  async function startRace(s: RaceSetup, mode: GameConfig['mode'] = 'race'): Promise<void> {
+  /** `?online=ws://host:port&room=ABC&name=Linh&car=kestrel_gt&track=cat_lai&laps=1&start=2` */
+  async function runOnline(url: string): Promise<void> {
+    const room = params.get('room') ?? 'DEV';
+    const name = params.get('name') ?? 'Player';
+    const laps = Math.max(1, Number(params.get('laps') ?? 1));
+    const startAt = Number(params.get('start') ?? 0);
+    const client = new NetClient(url);
+    let session: OnlineSession | null = null;
+    let launched = false;
+    let started = false;
+    let selfId = '';
+    const rejected = new Promise<never>((_, reject) => {
+      client.events.onReject = (reason) => reject(new Error(`server refused the join: ${reason}`));
+    });
+    const welcomed = new Promise<{ id: string; track: string }>((resolve) => {
+      client.events.onWelcome = (m) => resolve({ id: m.id, track: m.track });
+    });
+    client.events.onSnapshot = (m) => session?.onSnapshot(m, performance.now() / 1000);
+    client.events.onState = (m) => {
+      // Dev convenience: the host starts the race once enough players are in.
+      const me = m.roster.find((r) => r.id === selfId);
+      if (m.phase === 'lobby' && startAt > 0 && me?.host && m.roster.length >= startAt && !started) {
+        started = true;
+        client.start();
+      }
+      if (m.phase === 'loading' && m.grid && session && !launched) {
+        launched = true;
+        const rivals: Rival[] = m.grid
+          .filter((g) => g.id !== selfId)
+          .map((g) => ({ id: g.id, name: g.name, car: g.car, laneOffsetM: 0, skill: 0.9 }));
+        void startRace({ ...setup, carId, trackId: m.track, laps: m.laps }, 'race', {
+          online: { client, session, selfId, grid: m.grid },
+          rivals,
+        });
+      }
+    };
+    await client.connect();
+    client.join(name, carId, room, dataHash(), requestedTrack ?? undefined, laps);
+    const w = await Promise.race([welcomed, rejected]);
+    selfId = w.id;
+    session = new OnlineSession(w.id);
+    client.id = w.id;
+  }
+
+  async function startRace(
+    s: RaceSetup,
+    mode: GameConfig['mode'] = 'race',
+    extra?: { online: OnlineRace; rivals: Rival[] },
+  ): Promise<void> {
     setup = s;
     for (const sc of all) sc.hide();
     state = 'racing';
@@ -273,7 +325,15 @@ async function boot(): Promise<void> {
     game = await Game.create(
       canvas,
       assets,
-      { carId: s.carId, trackId: s.trackId, laps: s.laps, difficulty: s.difficulty, mode, rivals: rosterFor(s.carId) },
+      {
+        carId: s.carId,
+        trackId: s.trackId,
+        laps: s.laps,
+        difficulty: s.difficulty,
+        mode,
+        rivals: extra?.rivals ?? rosterFor(s.carId),
+        online: extra?.online,
+      },
       {
         onPause: () => {
           if (state !== 'racing') return;
@@ -293,6 +353,8 @@ async function boot(): Promise<void> {
     );
     touchHud?.bindEvents(game.events);
     game.start();
+    // Online: the race is built, tell the server so the countdown can begin.
+    extra?.online.client.ready(true);
     if (import.meta.env.DEV) {
       (window as unknown as { __voltline: Game }).__voltline = game;
     }
@@ -320,6 +382,13 @@ async function boot(): Promise<void> {
     };
   }
 
+  const onlineUrl = params.get('online');
+  if (onlineUrl) {
+    // Dev/internal build: join a room on the race server by URL (the lobby UI comes later).
+    loading.hide();
+    await runOnline(onlineUrl);
+    return;
+  }
   if (quick) {
     loading.hide();
     await startRace({ ...setup }, params.get('mode') === 'practice' ? 'practice' : 'race');

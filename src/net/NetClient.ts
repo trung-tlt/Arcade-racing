@@ -31,6 +31,10 @@ export class NetClient {
   /** Latest snapshot from the server. */
   snap: Extract<ServerMsg, { t: 'snap' }> | null = null;
   private snapAt = 0;
+  /** Diagnostics: input frames handed to `sendInput` and the newest tick among them. */
+  sentFrames = 0;
+  closeInfo = '';
+  lastSentTick = -1;
   /** Round-trip time in ms (smoothed). */
   pingMs = 0;
   /** server clock minus client clock, ms. */
@@ -52,7 +56,8 @@ export class NetClient {
         resolve();
       };
       ws.onerror = () => reject(new Error('connection failed'));
-      ws.onclose = () => {
+      ws.onclose = (e) => {
+        this.closeInfo = `${e.code} ${e.reason}`;
         if (this.pingTimer) clearInterval(this.pingTimer);
         this.events.onClose?.();
       };
@@ -81,6 +86,8 @@ export class NetClient {
 
   /** Send one control frame for server tick `tick` (see `InputFrame`). */
   sendInput(tick: number, c: CarControls): void {
+    this.sentFrames++;
+    this.lastSentTick = tick;
     this.send({ t: 'input', tick, ...c });
   }
 

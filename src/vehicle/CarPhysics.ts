@@ -113,6 +113,8 @@ export class CarPhysics {
   readonly wheelLayout: readonly WheelLayout[];
   private readonly tp: HandlingDef['types']['car'];
   private lean = 0;
+  /** A remote car in an online race: the body is kinematic and follows `puppetTo`; nothing is simulated. */
+  private puppet = false;
 
   readonly prev = new Pose();
   readonly curr = new Pose();
@@ -270,6 +272,7 @@ export class CarPhysics {
 
   /** Runs before `world.step()`: converts controls into wheel forces. */
   preStep(dt: number, c: CarControls): void {
+    if (this.puppet) return;
     const { h, def } = this;
     this.prev.copy(this.curr);
     this.applyStatic();
@@ -471,6 +474,7 @@ export class CarPhysics {
 
   /** Runs after `world.step()`: reads results back for rendering and gameplay. */
   postStep(): void {
+    if (this.puppet) return;
     let contacts = 0;
     for (let i = 0; i < this.wheelLayout.length; i++) {
       const w = this.wheels[i];
@@ -506,6 +510,49 @@ export class CarPhysics {
     this.lastVz = v2.z;
     this.lastHSpeed = hs;
     this.readPose(this.curr);
+  }
+
+  /**
+   * Turn this car into a puppet of a remote player's car: no vehicle simulation, no collisions with the local car (the
+   * server decides contacts; the local sim runs ahead of the remote cars' drawn time, so local contact would be
+   * phantom), just the pose and wheel state a snapshot describes.
+   */
+  makePuppet(): void {
+    this.puppet = true;
+    this.body.setBodyType(2 as RAPIER.RigidBodyType, true); // KinematicPositionBased
+    this.collider.setEnabled(false);
+  }
+
+  /** Move a puppet to a snapshot pose and refresh what the car model reads (wheel steer, brake lights, nitro flames). */
+  puppetTo(
+    p: readonly [number, number, number],
+    q: readonly [number, number, number, number],
+    v: readonly [number, number, number],
+    steerRad: number,
+    flags: { braking: boolean; nitro: boolean; airborne: boolean },
+  ): void {
+    this.prev.copy(this.curr);
+    this.curr.p.x = p[0];
+    this.curr.p.y = p[1];
+    this.curr.p.z = p[2];
+    this.curr.q.x = q[0];
+    this.curr.q.y = q[1];
+    this.curr.q.z = q[2];
+    this.curr.q.w = q[3];
+    this.body.setNextKinematicTranslation({ x: p[0], y: p[1], z: p[2] });
+    this.body.setNextKinematicRotation({ x: q[0], y: q[1], z: q[2], w: q[3] });
+    const fx = 2 * (q[0] * q[2] + q[3] * q[1]);
+    const fz = 1 - 2 * (q[0] * q[0] + q[1] * q[1]);
+    this.forwardSpeed = v[0] * fx + v[2] * fz;
+    this.braking = flags.braking;
+    this.nitroActive = flags.nitro;
+    this.airborne = flags.airborne;
+    for (let i = 0; i < this.wheels.length; i++) {
+      const w = this.wheels[i];
+      w.inContact = !flags.airborne;
+      w.suspensionLength = this.h.suspension.restLength;
+      w.steerAngle = steerRad * this.wheelLayout[i].steerScale;
+    }
   }
 
   /** Scale the horizontal velocity (wall hits: the car keeps `k` of its speed). Vertical velocity is untouched. */

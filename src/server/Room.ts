@@ -6,6 +6,7 @@ import {
   encode,
   round,
   type ClientMsg,
+  type GridEntry,
   type InputFrame,
   type RejectReason,
   type ResultRow,
@@ -36,7 +37,9 @@ export interface RoomOptions {
   now?: () => number;
   /** Seconds after the first human finishes before the race is closed for the rest (default 30). */
   finishGraceSec?: number;
-  /** Input messages allowed per second per player (default 90, burst 30). */
+  /** How long to wait for every client to finish loading before starting anyway (ms, default 20000). */
+  loadTimeoutMs?: number;
+  /** Input messages allowed per second per player (default 180, burst 120: 60 Hz plus catch-up). */
   inputRatePerSec?: number;
 }
 
@@ -46,6 +49,8 @@ export interface Player {
   name: string;
   car: string;
   ready: boolean;
+  /** Has finished building the race (sent `ready` during the loading phase). */
+  loaded: boolean;
   host: boolean;
   connected: boolean;
   /** Frames received for ticks not yet simulated, by tick. */
@@ -60,6 +65,8 @@ export interface Player {
 }
 
 const MAX_DROPPED_INPUTS = 600;
+/** Token bucket for input frames: a short catch-up burst after a stall is legitimate, a sustained flood is not. */
+const BURST_TOKENS = 120;
 /** Frames for ticks further ahead than this are refused (a client cannot buffer the future without bound). */
 const MAX_AHEAD_TICKS = 90;
 
@@ -82,6 +89,9 @@ export class Room {
   private readonly now: () => number;
   private readonly finishGraceSec: number;
   private readonly inputRate: number;
+  private readonly loadTimeoutMs: number;
+  private loadStartedAt = 0;
+  private grid: GridEntry[] = [];
   private firstFinishAt: number | null = null;
   private readonly slotOf = new Map<string, SlotSpec>();
   private readonly names = new Map<string, string>();
@@ -96,7 +106,8 @@ export class Room {
     this.maxPlayers = Math.min(o.maxPlayers ?? 6, this.gridSize);
     this.now = o.now ?? (() => performance.now());
     this.finishGraceSec = o.finishGraceSec ?? 30;
-    this.inputRate = o.inputRatePerSec ?? 90;
+    this.inputRate = o.inputRatePerSec ?? 180;
+    this.loadTimeoutMs = o.loadTimeoutMs ?? 20_000;
   }
 
   get humanCount(): number {
@@ -118,13 +129,14 @@ export class Room {
       name: msg.name,
       car: msg.car,
       ready: false,
+      loaded: false,
       host: this.players.size === 0,
       connected: true,
       frames: new Map(),
       ackTick: -1,
       late: 0,
       repeats: 0,
-      tokens: 30,
+      tokens: BURST_TOKENS,
       tokenStamp: this.now(),
       dropped: 0,
     };
@@ -168,6 +180,8 @@ export class Room {
         if (this.phase === 'lobby') {
           player.ready = msg.ready;
           this.broadcastState();
+        } else if (this.phase === 'loading') {
+          player.loaded = msg.ready;
         }
         return null;
       case 'start':
@@ -188,8 +202,11 @@ export class Room {
   }
 
   private onInput(player: Player, msg: Extract<ClientMsg, { t: 'input' }>): RejectReason | null {
+    // The newest tick we have seen from this client (even if the frame is then dropped or late): the client steers its
+    // lead from it, so it must never be held back by the rate limiter.
+    if (msg.tick > player.ackTick) player.ackTick = msg.tick;
     const t = this.now();
-    player.tokens = Math.min(30, player.tokens + ((t - player.tokenStamp) / 1000) * this.inputRate);
+    player.tokens = Math.min(BURST_TOKENS, player.tokens + ((t - player.tokenStamp) / 1000) * this.inputRate);
     player.tokenStamp = t;
     if (player.tokens < 1) {
       player.dropped++;
@@ -197,8 +214,6 @@ export class Room {
     }
     player.tokens -= 1;
     const now = this.sim?.tick ?? 0;
-    // Even a late frame tells the client how far behind it is (its ack is the newest tick we have seen from it).
-    if (msg.tick > player.ackTick) player.ackTick = msg.tick;
     if (msg.tick < now) {
       player.late++; // arrived after its tick was simulated
       return null;
@@ -233,7 +248,15 @@ export class Room {
     });
     this.sim = new RaceSim({ trackId: this.trackId, laps: this.laps, slots });
     this.sim.events.on('carReset', (e) => this.resets.set(e.carId, (this.resets.get(e.carId) ?? 0) + 1));
-    this.phase = 'countdown';
+    this.grid = slots.map((sp) => ({
+      id: sp.id,
+      name: this.names.get(sp.id) ?? sp.id,
+      car: sp.carId,
+      bot: sp.kind !== 'human',
+      slot: sp.gridSlot ?? 0,
+    }));
+    this.phase = 'loading';
+    this.loadStartedAt = this.now();
     this.broadcastState();
   }
 
@@ -241,6 +264,15 @@ export class Room {
   tick(): void {
     const sim = this.sim;
     if (!sim || this.phase === 'results') return;
+    if (this.phase === 'loading') {
+      // The sim waits (no ticks) until every human has built the race, or the timeout passes.
+      const everyone = [...this.players.values()].every((p) => p.loaded || !p.connected);
+      if (everyone || this.now() - this.loadStartedAt > this.loadTimeoutMs) {
+        this.phase = 'countdown';
+        this.broadcastState();
+      }
+      return;
+    }
     this.consumeInputs(sim);
     sim.step();
     const ref = sim.entries.find((e) => e.kind === 'human');
@@ -310,6 +342,7 @@ export class Room {
       track: this.trackId,
       laps: this.laps,
       roster: this.roster(),
+      ...(this.phase === 'loading' ? { grid: this.grid } : {}),
       ...(this.results ? { results: this.results } : {}),
     };
     const text = encode(msg);

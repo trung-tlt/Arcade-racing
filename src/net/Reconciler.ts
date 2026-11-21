@@ -198,6 +198,11 @@ export class Reconciler {
     this.appliedQ = qnorm(qmul(dq, this.appliedQ));
   }
 
+  /** Diagnostics: the first and last tick in the history (null when empty). */
+  historyRange(): [number, number] | null {
+    return this.hist.length > 0 ? [this.hist[0].seq, this.hist[this.hist.length - 1].seq] : null;
+  }
+
   /** Forget everything (the car was respawned locally or the race restarted). */
   reset(): void {
     this.hist.length = 0;

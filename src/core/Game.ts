@@ -23,6 +23,9 @@ import { NameTags } from '../ui/nameTags';
 import { type CarRaceView, effectiveT, rankCars, rubberBandSignal } from '../race/Standings';
 import { RaceManager } from '../race/RaceManager';
 import { HitRules } from '../sim/HitRules';
+import type { OnlineRace } from '../net/OnlineRace';
+import { rapierBody } from '../net/RapierBody';
+import { FLAG_AIRBORNE, FLAG_BRAKING, FLAG_NITRO } from '../shared/protocol';
 import { StuckWatch, upY } from '../sim/Recovery';
 import { gridPose, respawnPose } from '../race/Respawn';
 import { RaceHud } from '../ui/raceHud';
@@ -96,6 +99,8 @@ export interface GameConfig {
   mode: GameMode;
   /** Who the five rivals are this race (random names and cars); rolled from the player's car when omitted. */
   rivals?: Rival[];
+  /** An online race: the other cars are puppets of the server's cars and the player's car is predicted. */
+  online?: OnlineRace;
 }
 
 export interface GameHooks {
@@ -168,6 +173,12 @@ export class Game {
   private path!: TrackPath;
   private track!: Track;
   private readonly rivals: Rival[];
+  /** Online race state (null offline): the other cars follow server snapshots. */
+  private readonly online: OnlineRace | null;
+  private onlineLive = false;
+  /** Sim ticks completed locally (the same count the server's snapshots carry, plus our lead). */
+  private localTick = 0;
+  private readonly puppets = new Map<string, Car>();
   /** Dev/e2e only: where and why cars were put back on the road by recoverFallen. */
   private readonly fallLog: string[] = [];
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
@@ -243,18 +254,22 @@ export class Game {
   ) {
     this.carId = cfg.carId;
     this.mode = cfg.mode;
+    this.online = cfg.online ?? null;
     // Maps with their own grid (Map 5's open-wheel field) override the rolled cars and give each a livery.
-    this.rivals = applyTrackRoster(
-      cfg.rivals ??
-        rollRoster(
-          AI.rivals,
-          AI.rosterNames,
-          CARS.map((c) => c.id),
-          cfg.carId,
-        ),
-      cfg.trackId,
-      AI.trackRosters,
-    );
+    // Online, the grid is whatever the server announced: everyone keeps the vehicle they picked.
+    this.rivals = this.online
+      ? (cfg.rivals ?? [])
+      : applyTrackRoster(
+          cfg.rivals ??
+            rollRoster(
+              AI.rivals,
+              AI.rosterNames,
+              CARS.map((c) => c.id),
+              cfg.carId,
+            ),
+          cfg.trackId,
+          AI.trackRosters,
+        );
     this.trackDef = getTrack(cfg.trackId);
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
     this.renderer.setPixelRatio(settings.pixelRatio);
@@ -388,7 +403,11 @@ export class Game {
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
     }
     if (!isXaLo) this.sponsors = new Sponsors(this.scene, this.assets, this.trackDef);
-    const playerSlot = this.mode === 'race' ? RACE.ai.playerGridSlot : RACE.ai.practiceGridSlot;
+    const playerSlot = this.online
+      ? this.gridSlotOf(this.online.selfId)
+      : this.mode === 'race'
+        ? RACE.ai.playerGridSlot
+        : RACE.ai.practiceGridSlot;
     const line = new RacingLine(this.path, RACE.track.sampleSpacingM);
     const grid = this.gridPoseForSlot(playerSlot);
     this.slots.set('player', playerSlot);
@@ -406,15 +425,39 @@ export class Game {
       scene: this.scene,
     });
     this.cars = [this.car];
+    this.online?.session.setBody(rapierBody(this.car.physics.body));
     this.spawnPoses.set('player', grid);
     this.setupFirstPerson();
 
     if (this.mode === 'race') {
       const free = Array.from({ length: RACE.track.gridSlotCount }, (_, i) => i).filter((i) => i !== playerSlot);
       this.rivals.forEach((r, i) => {
-        const slot = free[i];
+        const slot = this.online ? this.gridSlotOf(r.id) : free[i];
         const pose = this.gridPoseForSlot(slot);
         this.slots.set(r.id, slot);
+        if (this.online) {
+          // A remote player's (or the server's bot's) car: a puppet that follows snapshots.
+          const puppet = new Car({
+            id: r.id,
+            kind: 'ai',
+            R: RAPIER,
+            world: this.world,
+            assets: this.assets,
+            def: getCarDef(r.car),
+            handling: HANDLING,
+            controller: { read: () => IDLE_CONTROLS },
+            events: this.events,
+            spawn: { x: pose.x, y: pose.y + 0.4, z: pose.z, yaw: pose.yaw },
+            scene: this.scene,
+            tint: COMBAT.enemyTint,
+            livery: r.livery,
+          });
+          puppet.physics.makePuppet();
+          this.puppets.set(r.id, puppet);
+          this.spawnPoses.set(r.id, pose);
+          this.cars.push(puppet);
+          return;
+        }
         // The data's lane offsets are for the 18 m Harbor road; scale them to this map's carriageway.
         const lane = this.laneFor(r.laneOffsetM);
         this.lanes.set(r.id, lane);
@@ -509,7 +552,8 @@ export class Game {
         });
       }
     }
-    const pickupDefs = expandPickups(this.trackDef.pickups);
+    // Online combat and pickups arrive with the server-side combat; for now the road is clear of them.
+    const pickupDefs = this.online ? [] : expandPickups(this.trackDef.pickups);
     this.combat = new CombatSystem({
       R: RAPIER,
       world: this.world,
@@ -820,6 +864,11 @@ export class Game {
   }
 
   private resetPlayer(): void {
+    if (this.online) {
+      // The server executes the reset and tells us (the respawn counter in our snapshots).
+      this.online.client.reset();
+      return;
+    }
     if (this.car.hull.wrecked || this.race.phase === 'finished') return;
     this.car.respawn(respawnPose(this.path, this.race.respawnT, 0));
     this.chase.snap();
@@ -870,12 +919,26 @@ export class Game {
   }
 
   private readControls(): ReturnType<Input['read']> {
+    const out = this.pickControls();
+    // Online: this step's input is for server tick `localTick`; the server applies it when it simulates that tick.
+    // Frames for ticks the server has already simulated are useless (they would only arrive late): while catching up, skip them.
+    if (this.online && this.onlineLive && this.localTick >= (this.online.session.snap?.tick ?? 0))
+      this.online.client.sendInput(this.localTick, out);
+    return out;
+  }
+
+  /** The controls for this step: the keyboard / pad (or the dev autopilot), idle while the race is locked. */
+  private pickControls(): ReturnType<Input['read']> {
     const c = this.input.read(); // always read: gamepad edge detection happens inside
     if (this.devPilot) return this.race.controlsLocked ? IDLE_CONTROLS : { ...this.devPilot.read() };
     this.lastControls.throttle = c.throttle;
     this.lastControls.brake = c.brake;
     this.lastSteer = c.steer;
     return this.race.controlsLocked ? IDLE_CONTROLS : c;
+  }
+
+  private gridSlotOf(id: string): number {
+    return this.online?.grid.find((g) => g.id === id)?.slot ?? 0;
   }
 
   /** Back to the grid with a fresh countdown. */
@@ -1308,6 +1371,52 @@ export class Game {
     return out;
   }
 
+  /** Dev/e2e: the state of an online race (null offline). */
+  debugOnline(): {
+    live: boolean;
+    localTick: number;
+    serverTick: number;
+    phase: string;
+    me: { x: number; z: number; speed: number };
+    puppets: { id: string; x: number; z: number; snapX: number; snapZ: number; speed: number }[];
+    reconcile: Record<string, number>;
+    pingMs: number;
+    minMargin: number;
+    advance: number;
+    racePhase: string;
+    lap: number;
+  } | null {
+    const net = this.online;
+    if (!net) return null;
+    const reconcile: Record<string, number> = {};
+    for (const r of net.session.log) reconcile[r.kind] = (reconcile[r.kind] ?? 0) + 1;
+    const p = this.car.physics.curr.p;
+    return {
+      live: this.onlineLive,
+      localTick: this.localTick,
+      serverTick: net.session.snap?.tick ?? -1,
+      phase: net.session.snap?.phase ?? 'none',
+      me: { x: p.x, z: p.z, speed: this.car.physics.speedMps },
+      puppets: [...this.puppets].map(([id, c]) => {
+        const sc = net.session.snap?.cars.find((x) => x.id === id);
+        return {
+          id,
+          x: c.physics.curr.p.x,
+          z: c.physics.curr.p.z,
+          snapX: sc?.p[0] ?? 0,
+          snapZ: sc?.p[2] ?? 0,
+          speed: sc ? Math.hypot(sc.v[0], sc.v[2]) : 0,
+        };
+      }),
+      reconcile,
+      pingMs: net.client.pingMs,
+      minMargin: net.session.minMargin,
+      advance: net.session.pendingAdvance,
+      racePhase: this.race.phase,
+      lap: this.race.laps.lap,
+    };
+  }
+
   /** Dev/e2e only: where and why cars were put back on the road by recoverFallen (first 40). */
   debugFallLog(): string[] {
     return this.fallLog;
@@ -1413,6 +1522,10 @@ export class Game {
   }
 
   private step(dt: number): void {
+    if (this.online) {
+      this.stepOnline(dt);
+      return;
+    }
     if (this.paused) {
       this.input.endFrame();
       return;
@@ -1422,25 +1535,79 @@ export class Game {
       this.hooks.onPause();
       return;
     }
+    this.stepCore(dt);
+  }
+
+  /**
+   * Online: nothing runs until the server's first snapshot; then the sim fast-forwards to the server's tick plus a few
+   * ticks of lead and from there runs in step with it (`OnlineSession` decides each frame to hold, run or catch up).
+   */
+  private stepOnline(dt: number): void {
+    const net = this.online as OnlineRace;
+    if (!this.onlineLive) {
+      const snap = net.session.snap;
+      if (!snap || snap.phase === 'lobby' || snap.phase === 'loading') {
+        this.input.endFrame();
+        return;
+      }
+      const target = net.session.startTicks(snap);
+      for (let i = 0; i < target; i++) this.stepCore(dt);
+      this.onlineLive = true;
+      return;
+    }
+    const n = net.session.planSteps();
+    if (n === 0) this.input.endFrame();
+    for (let i = 0; i < n; i++) this.stepCore(dt);
+  }
+
+  /** Remote cars follow their (interpolated, smoothed) snapshot poses. */
+  private updatePuppets(dt: number): void {
+    const net = this.online as OnlineRace;
+    const now = performance.now() / 1000;
+    for (const [id, car] of this.puppets) {
+      const r = net.session.remotePose(id, now, dt);
+      if (!r) continue;
+      const fl = r.pose.fl;
+      car.physics.puppetTo(r.shown, r.pose.q, r.pose.v, r.pose.st, {
+        braking: (fl & FLAG_BRAKING) !== 0,
+        nitro: (fl & FLAG_NITRO) !== 0,
+        airborne: (fl & FLAG_AIRBORNE) !== 0,
+      });
+    }
+  }
+
+  private stepCore(dt: number): void {
     this.handleViewKeys();
-    if (this.input.wasPressed('restart')) this.restartRace();
+    if (this.input.wasPressed('restart') && !this.online) this.restartRace();
     if (this.input.wasPressed('reset')) this.resetPlayer();
-    this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
+    if (!this.online) this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
     this.updateMonteCarlo(dt);
     this.startLights?.update(dt);
     this.updateWeaponLocks();
+    if (this.online) {
+      this.online.session.beforeStep();
+      this.updatePuppets(dt);
+    }
     for (const c of this.cars) c.preStep(dt);
     if (this.startLights && this.race.jumpStart(this.lastControls.throttle)) {
       this.banner = { text: `JUMP START · +${RACE.startLights.jumpStartPenaltySec} s`, left: 3 };
     }
     this.world.step();
     for (const c of this.cars) c.postStep();
-    this.applyHitRules(dt);
+    if (this.online) {
+      // The server decides hits, guns and recoveries; here we only remember the predicted state for this tick.
+      this.localTick++;
+      this.online.session.afterStep(this.localTick);
+    } else {
+      this.applyHitRules(dt);
+    }
     this.openWheelPassby(dt);
-    this.combat.update(dt);
+    if (!this.online) this.combat.update(dt);
     if (this.devStats) this.collectDevStats(dt);
-    this.recoverFallen();
-    this.recoverStuckAi(dt);
+    if (!this.online) {
+      this.recoverFallen();
+      this.recoverStuckAi(dt);
+    }
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
     this.landmarks?.update(dt);
     if (this.catLai) {
@@ -1742,6 +1909,7 @@ export class Game {
 
   /** Disposes geometries, materials, textures and the Rapier world. */
   dispose(): void {
+    this.online?.client.close();
     this.loop.stop();
     window.removeEventListener('resize', this.onResize);
     this.unbindSfx?.();

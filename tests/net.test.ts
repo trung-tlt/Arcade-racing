@@ -85,6 +85,8 @@ describe('websocket server', () => {
     expect(welcomed).toBe(true);
     expect(c.id).toBe('p1');
     c.start();
+    await sleep(100);
+    c.ready(true);
     const pilot = new NetPilot('cat_lai', c.id, 'kestrel_gt');
     let snaps = 0;
     let firstSnapAt = 0;
@@ -148,6 +150,8 @@ describe.skipIf(!process.env.NET_LAP)('a full lap over the websocket (real time,
     c.join('Lapper', 'kestrel_gt', 'LAP1', dataHash(), 'cat_lai', 1);
     await sleep(200);
     c.start();
+    await sleep(100);
+    c.ready(true);
     const pilot = new NetPilot('cat_lai', c.id, 'kestrel_gt');
     let last = 0;
     c.events.onSnapshot = () => (last = performance.now());

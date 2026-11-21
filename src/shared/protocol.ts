@@ -11,7 +11,8 @@ export const MAX_MESSAGE_CHARS = 600;
 export const MAX_NAME_CHARS = 16;
 export const MAX_ROOM_CODE_CHARS = 8;
 
-export type RoomPhase = 'lobby' | 'countdown' | 'racing' | 'results';
+/** `loading`: the grid is announced and clients are building the race; the countdown starts when all have said ready. */
+export type RoomPhase = 'lobby' | 'loading' | 'countdown' | 'racing' | 'results';
 
 export interface RosterEntry {
   id: string;
@@ -69,6 +70,14 @@ export interface SnapCar {
   rs: number;
 }
 
+export interface GridEntry {
+  id: string;
+  name: string;
+  car: string;
+  bot: boolean;
+  slot: number;
+}
+
 export interface ResultRow {
   id: string;
   name: string;
@@ -84,7 +93,15 @@ export type RejectReason = 'version' | 'data' | 'full' | 'bad_message' | 'race_s
 export type ServerMsg =
   | { t: 'welcome'; id: string; room: string; tick: number; ms: number; track: string; laps: number; hz: number }
   | { t: 'reject'; reason: RejectReason }
-  | { t: 'state'; phase: RoomPhase; track: string; laps: number; roster: RosterEntry[]; results?: ResultRow[] }
+  | {
+      t: 'state';
+      phase: RoomPhase;
+      track: string;
+      laps: number;
+      roster: RosterEntry[];
+      grid?: GridEntry[];
+      results?: ResultRow[];
+    }
   | {
       t: 'snap';
       /** Server sim ticks completed: the state is the result of applying input frames up to tick - 1. */
