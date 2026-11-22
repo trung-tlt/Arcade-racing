@@ -25,7 +25,16 @@ import { RaceManager } from '../race/RaceManager';
 import { HitRules } from '../sim/HitRules';
 import type { OnlineRace } from '../net/OnlineRace';
 import { rapierBody } from '../net/RapierBody';
-import { FLAG_AIRBORNE, FLAG_BRAKING, FLAG_NITRO } from '../shared/protocol';
+import {
+  FLAG_AIRBORNE,
+  FLAG_BRAKING,
+  FLAG_GUN_LOCKED,
+  FLAG_INVULNERABLE,
+  FLAG_NITRO,
+  FLAG_WRECKED,
+  type NetEvent,
+} from '../shared/protocol';
+import { rotateBy } from '../sim/lagcomp';
 import { StuckWatch, upY } from '../sim/Recovery';
 import { gridPose, respawnPose } from '../race/Respawn';
 import { RaceHud } from '../ui/raceHud';
@@ -179,6 +188,12 @@ export class Game {
   /** Sim ticks completed locally (the same count the server's snapshots carry, plus our lead). */
   private localTick = 0;
   private readonly puppets = new Map<string, Car>();
+  /** Online: which cars the server last said were wrecked (to freeze / unfreeze them on the transition). */
+  private readonly wasWrecked = new Set<string>();
+  /** Dev/e2e: how many events of each kind the server has sent. */
+  private readonly netEventCounts: Record<string, number> = {};
+  private readonly netVec = new THREE.Vector3();
+  private readonly netVec2 = new THREE.Vector3();
   /** Dev/e2e only: where and why cars were put back on the road by recoverFallen. */
   private readonly fallLog: string[] = [];
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
@@ -552,8 +567,7 @@ export class Game {
         });
       }
     }
-    // Online combat and pickups arrive with the server-side combat; for now the road is clear of them.
-    const pickupDefs = this.online ? [] : expandPickups(this.trackDef.pickups);
+    const pickupDefs = expandPickups(this.trackDef.pickups);
     this.combat = new CombatSystem({
       R: RAPIER,
       world: this.world,
@@ -575,8 +589,18 @@ export class Game {
         return respawnPose(this.path, r.respawnT, this.lanes.get(c.id) ?? 0);
       },
       pickupDefs,
+      remote: !!this.online,
       pickupVisuals: new PickupVisuals(this.scene, this.assets, pickupDefs, this.path, this.trackDef),
     });
+    if (this.online) {
+      this.online.session.onEvents = (ev) => this.handleNetEvents(ev);
+      // A wreck respawn or reset on the server: bring our frozen car back before its state is adopted.
+      this.online.session.onOwnTeleport = () => {
+        this.car.unfreeze();
+        this.wasWrecked.delete('player');
+        this.chase.snap();
+      };
+    }
     this.hitRules = new HitRules(
       !!(this.trackDef.raw.barriers as { armco?: unknown } | undefined)?.armco,
       (x, y, z) => {
@@ -923,7 +947,7 @@ export class Game {
     // Online: this step's input is for server tick `localTick`; the server applies it when it simulates that tick.
     // Frames for ticks the server has already simulated are useless (they would only arrive late): while catching up, skip them.
     if (this.online && this.onlineLive && this.localTick >= (this.online.session.snap?.tick ?? 0))
-      this.online.client.sendInput(this.localTick, out);
+      this.online.client.sendInput(this.localTick, out, this.online.session.viewTick(performance.now() / 1000));
     return out;
   }
 
@@ -1380,6 +1404,8 @@ export class Game {
     me: { x: number; z: number; speed: number };
     puppets: { id: string; x: number; z: number; snapX: number; snapZ: number; speed: number }[];
     reconcile: Record<string, number>;
+    netEvents: Record<string, number>;
+    hp: number;
     pingMs: number;
     minMargin: number;
     advance: number;
@@ -1409,6 +1435,8 @@ export class Game {
         };
       }),
       reconcile,
+      netEvents: { ...this.netEventCounts },
+      hp: Math.round(this.car.hull.hp),
       pingMs: net.client.pingMs,
       minMargin: net.session.minMargin,
       advance: net.session.pendingAdvance,
@@ -1453,7 +1481,8 @@ export class Game {
     this.xaLo?.[name].dispose();
   }
 
-  debugAutopilot(on: boolean): void {
+  /** `fight`: the autopilot also sees the other cars, so its gunner shoots at them (online combat tests). */
+  debugAutopilot(on: boolean, fight = false): void {
     if (!on) {
       this.devPilot = null;
       return;
@@ -1483,10 +1512,10 @@ export class Game {
           locked: this.race.controlsLocked,
         };
       },
-      others: () => [],
+      others: () => (fight ? (this.otherViews.get('player') ?? []) : []),
       pickups: () => [],
       rubberBand: () => 0,
-      rocketAmmo: () => 0,
+      rocketAmmo: () => (fight ? car.ammo.count : 0),
       hullFraction: () => car.hull.fraction,
     });
   }
@@ -1560,6 +1589,124 @@ export class Game {
     for (let i = 0; i < n; i++) this.stepCore(dt);
   }
 
+  private localId(serverId: string): string {
+    return serverId === this.online?.selfId ? 'player' : serverId;
+  }
+
+  private carById(id: string): Car | undefined {
+    return this.cars.find((c) => c.id === id);
+  }
+
+  /** Where the car's gun muzzle is drawn right now (its drawn pose, not the server's). */
+  private drawnMuzzle(car: Car, out: THREE.Vector3): THREE.Vector3 {
+    const { p, q } = car.physics.curr;
+    const gm = car.def.gunMount;
+    const mo = COMBAT.muzzleOffset;
+    rotateBy(gm[0] + mo[0], gm[1] + mo[1], gm[2] + mo[2], q, out);
+    return out.set(out.x + p.x, out.y + p.y, out.z + p.z);
+  }
+
+  /**
+   * Server events arrive with a snapshot: replay them into the local event bus (so the HUD, sounds, camera shake and
+   * the kill feed work exactly as offline) and draw the shots. A tracer is drawn from where the shooter's car *is drawn*
+   * (we show remote cars slightly in the past, and our own ahead of the server), keeping the server's shot direction.
+   */
+  private handleNetEvents(events: NetEvent[]): void {
+    for (const e of events) {
+      this.netEventCounts[e.k] = (this.netEventCounts[e.k] ?? 0) + 1;
+      switch (e.k) {
+        case 'gun': {
+          const id = this.localId(e.c);
+          const car = this.carById(id);
+          if (!car) break;
+          const from = this.netVec.set(e.f[0], e.f[1], e.f[2]);
+          const to = this.netVec2.set(e.to[0], e.to[1], e.to[2]);
+          const drawn = this.drawnMuzzle(car, this.carPos.clone());
+          const shift = drawn.sub(from);
+          from.add(shift);
+          to.add(shift);
+          this.tracers.fire(from, to);
+          this.tracers.muzzleFlash(from, to.clone().sub(from).normalize());
+          if (e.h) this.particles.burst('spark', to, 3, 6, 0.25);
+          this.events.emit('gunFired', { carId: id, pos: { x: from.x, y: from.y, z: from.z } });
+          break;
+        }
+        case 'heat': {
+          const car = this.carById(this.localId(e.c));
+          const p = car?.physics.curr.p ?? { x: 0, y: 0, z: 0 };
+          this.events.emit('gunOverheated', { carId: this.localId(e.c), pos: { x: p.x, y: p.y, z: p.z } });
+          break;
+        }
+        case 'rkt':
+          this.events.emit('rocketLaunched', { carId: this.localId(e.c), pos: { x: e.p[0], y: e.p[1], z: e.p[2] } });
+          break;
+        case 'boom':
+          this.particles.explosion(this.netVec.set(e.p[0], e.p[1], e.p[2]), e.r);
+          this.events.emit('explosion', { pos: { x: e.p[0], y: e.p[1], z: e.p[2] }, radius: e.r });
+          break;
+        case 'hit':
+          this.events.emit('carHit', {
+            carId: this.localId(e.c),
+            attackerId: e.by === null ? null : this.localId(e.by),
+            damage: e.d,
+          });
+          break;
+        case 'wreck':
+          this.events.emit('carWrecked', {
+            carId: this.localId(e.c),
+            attackerId: e.by === null ? null : this.localId(e.by),
+          });
+          break;
+        case 'pick':
+          this.events.emit('pickupTaken', {
+            carId: this.localId(e.c),
+            kind: e.kind,
+            pos: { x: e.p[0], y: e.p[1], z: e.p[2] },
+          });
+          break;
+        case 'nitro':
+          this.events.emit('nitroBarEarned', { carId: this.localId(e.c), source: e.src });
+          break;
+      }
+    }
+  }
+
+  /** Mirror the server's combat state (hull, rockets in the rack, gun heat, wrecks) onto the local cars. */
+  private syncOnlineCombat(): void {
+    const net = this.online as OnlineRace;
+    const snap = net.session.snap;
+    if (!snap) return;
+    for (const c of snap.cars) {
+      const id = this.localId(c.id);
+      const car = this.carById(id);
+      if (!car) continue;
+      const wrecked = (c.fl & FLAG_WRECKED) !== 0;
+      car.hull.sync(c.hp, wrecked, (c.fl & FLAG_INVULNERABLE) !== 0);
+      car.ammo.count = c.am;
+      car.gun.sync(c.ht, (c.fl & FLAG_GUN_LOCKED) !== 0);
+      const was = this.wasWrecked.has(id);
+      if (wrecked && !was) {
+        this.wasWrecked.add(id);
+        car.freeze();
+      } else if (!wrecked && was) {
+        this.wasWrecked.delete(id);
+        car.unfreeze();
+      }
+    }
+    // Rockets in flight: drawn where they are by now, flying on from the snapshot's position.
+    const age = Math.min(0.15, Math.max(0, performance.now() / 1000 - net.session.rocketsAtSec));
+    const speed = WEAPONS.hornet_rocket.speedMps;
+    this.combat.setRemoteState(
+      net.session.rockets.map((r) => ({
+        i: r.i,
+        owner: this.localId(r.owner),
+        p: { x: r.p[0] + r.d[0] * speed * age, y: r.p[1] + r.d[1] * speed * age, z: r.p[2] + r.d[2] * speed * age },
+        d: { x: r.d[0], y: r.d[1], z: r.d[2] },
+      })),
+      net.session.takenPickups,
+    );
+  }
+
   /** Remote cars follow their (interpolated, smoothed) snapshot poses. */
   private updatePuppets(dt: number): void {
     const net = this.online as OnlineRace;
@@ -1586,6 +1733,7 @@ export class Game {
     this.updateWeaponLocks();
     if (this.online) {
       this.online.session.beforeStep();
+      this.syncOnlineCombat();
       this.updatePuppets(dt);
     }
     for (const c of this.cars) c.preStep(dt);
@@ -1602,7 +1750,7 @@ export class Game {
       this.applyHitRules(dt);
     }
     this.openWheelPassby(dt);
-    if (!this.online) this.combat.update(dt);
+    this.combat.update(dt);
     if (this.devStats) this.collectDevStats(dt);
     if (!this.online) {
       this.recoverFallen();

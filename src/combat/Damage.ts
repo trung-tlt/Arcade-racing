@@ -62,6 +62,13 @@ export class Hull {
     return { applied, wrecked: false };
   }
 
+  /** Online: adopt the server's hull state (the server owns damage; the client only mirrors it). */
+  sync(hp: number, wrecked: boolean, invulnerable: boolean): void {
+    this.hp = Math.min(this.maxHp, Math.max(0, hp));
+    this.isWrecked = wrecked;
+    this.shieldTimer = invulnerable ? Math.max(this.shieldTimer, 0.2) : 0;
+  }
+
   heal(hp: number): void {
     if (this.isWrecked || hp <= 0) return;
     this.hp = Math.min(this.maxHp, this.hp + hp);

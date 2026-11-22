@@ -1,4 +1,4 @@
-import type { ServerMsg, SnapCar } from '../shared/protocol';
+import type { NetEvent, ServerMsg, SnapCar, SnapRocket } from '../shared/protocol';
 import { ClockSync } from './ClockSync';
 import { Interpolator, PoseSmoother, type RemotePose } from './Interpolator';
 import { Reconciler, type ReconcileBody, type ReconcileResult } from './Reconciler';
@@ -45,6 +45,15 @@ export class OnlineSession {
     return this.advance;
   }
 
+  /** Called with the events that arrived in a snapshot, in order (combat feedback, wrecks, pickups). */
+  onEvents: ((events: NetEvent[], snap: Snap) => void) | null = null;
+  /** Called when the server teleports our own car (wreck respawn, reset), before its state is adopted. */
+  onOwnTeleport: ((c: SnapCar) => void) | null = null;
+  /** Rockets in flight as of the newest snapshot, the local time it arrived, and the pickups currently taken. */
+  rockets: SnapRocket[] = [];
+  rocketsAtSec = 0;
+  takenPickups: number[] = [];
+
   /** Lowest margin seen in the last review window (diagnostics). */
   minMargin = Infinity;
   localTick = 0;
@@ -72,6 +81,10 @@ export class OnlineSession {
       if (c.id === this.selfId) this.onOwn(m, c);
       else this.onRemote(m, c);
     }
+    this.rockets = m.rk;
+    this.rocketsAtSec = nowSec;
+    this.takenPickups = m.pk;
+    if (m.ev.length > 0) this.onEvents?.(m.ev, m);
     this.steerLead(m);
   }
 
@@ -80,6 +93,7 @@ export class OnlineSession {
     if (!body) return;
     if (this.ownRs >= 0 && c.rs !== this.ownRs) {
       // The server teleported us (wreck respawn / reset): adopt its state; the old history is meaningless.
+      this.onOwnTeleport?.(c);
       body.set(this.reconciler.advanced(c, Math.max(0, this.localTick - m.tick)));
       this.reconciler.reset();
       this.log.push({ kind: 'snap', errM: 0, errRad: 0, nearOther: false, tick: m.tick });
@@ -166,6 +180,11 @@ export class OnlineSession {
   /** Server sim time (s) the remote cars should be drawn at. */
   renderTime(nowSec: number): number {
     return this.clock.serverTime(nowSec) - this.interpDelaySec;
+  }
+
+  /** The server time, in ticks, that the remote cars are being drawn at (sent with each input for lag compensation). */
+  viewTick(nowSec: number): number | undefined {
+    return this.clock.ready ? Math.max(0, this.renderTime(nowSec) * 60) : undefined;
   }
 
   /** The interpolated, smoothed pose of a remote car at `nowSec`, or null before its first snapshot. */

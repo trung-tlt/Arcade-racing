@@ -85,10 +85,10 @@ export class NetClient {
   }
 
   /** Send one control frame for server tick `tick` (see `InputFrame`). */
-  sendInput(tick: number, c: CarControls): void {
+  sendInput(tick: number, c: CarControls, vt?: number): void {
     this.sentFrames++;
     this.lastSentTick = tick;
-    this.send({ t: 'input', tick, ...c });
+    this.send({ t: 'input', tick, ...c, ...(vt === undefined ? {} : { vt: Math.round(vt * 100) / 100 }) });
   }
 
   /** The server's sim tick right now, estimated from the newest snapshot and how long ago it arrived. */

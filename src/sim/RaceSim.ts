@@ -2,7 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
 import { RacingLine } from '../ai/RacingLine';
 import { expandPickups } from '../combat/Pickups';
-import { AI, HANDLING, RACE, getCarDef, getTrack, roadWidthAt, type TrackDef } from '../core/Data';
+import { AI, COMBAT, HANDLING, RACE, getCarDef, getTrack, roadWidthAt, type TrackDef } from '../core/Data';
 import { EventBus } from '../core/Events';
 import { STEP } from '../core/Loop';
 import { noFireZoneAt } from '../race/NoFire';
@@ -16,9 +16,10 @@ import { buildBaked } from './BakedColliders';
 import { loadBaked } from './bakedNode';
 import { CarSim } from './CarSim';
 import { CatLaiYardSim } from './CatLaiYardSim';
-import { CombatSim } from './CombatSim';
+import { CombatSim, type CombatFx, type LagComp } from './CombatSim';
 import { CongHoaTrafficSim } from './CongHoaTrafficSim';
 import { HitRules } from './HitRules';
+import { PoseHistory, nlerpQuat, type Quat } from './lagcomp';
 import { pickupPositions } from './pickupPositions';
 import { PvdTrafficSim } from './PvdTrafficSim';
 import { hasFallen, StuckWatch, upY } from './Recovery';
@@ -48,6 +49,8 @@ export interface RaceSimOpts {
   combat?: boolean;
   /** Rivals never fire (the browser's `debugAiHoldFire`); pickups are still collected. */
   holdFire?: boolean;
+  /** What to do with the combat visuals (the server collects tracers as events). */
+  fx?: CombatFx;
   /** Ambient traffic (default true). */
   traffic?: boolean;
   /** Rebuild the baked scenery colliders (default true; skipped if the map has no bake). */
@@ -112,6 +115,10 @@ export class RaceSim {
   private readonly cars: CarSim[] = [];
   private readonly traffic: { update(dt: number): void; time: number }[] = [];
   private combat: CombatSim | null = null;
+  /** Lag compensation: every car's recent poses by tick, and the tick each human's client was drawing the others at. */
+  private readonly poseHist = new Map<string, PoseHistory>();
+  private readonly viewTicks = new Map<string, number>();
+  private readonly maxRewindTicks = Math.ceil((COMBAT.lagComp.maxRewindMs * 60) / 1000);
   private readonly hitRules: HitRules;
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
   private readonly holdFire: boolean;
@@ -202,6 +209,7 @@ export class RaceSim {
       (entry as { car: CarSim }).car = car;
       if (sp.kind !== 'human') entry.driver = this.makeDriver(entry, sp.kind === 'pilot', sp.skill ?? 0.9);
       this.entries.push(entry);
+      this.poseHist.set(sp.id, new PoseHistory(this.maxRewindTicks + 8));
       this.cars.push(car);
       this.byId.set(sp.id, entry);
     });
@@ -232,6 +240,8 @@ export class RaceSim {
         },
         pickupDefs,
         pickupPositions: pickupPos,
+        fx: opts.fx,
+        lagComp: this.lagComp(),
       });
     }
   }
@@ -293,6 +303,70 @@ export class RaceSim {
     e.kind = 'ai';
     e.lane = 0;
     e.driver = this.makeDriver(e, false, skill);
+  }
+
+  /**
+   * The tick count (server time in ticks) a human's client was drawing the other cars at when it made the frame being
+   * applied. Hitscan from that car is resolved against the others as they were then, within `maxRewindMs`.
+   */
+  setViewTick(id: string, viewTick: number | undefined): void {
+    if (viewTick === undefined) this.viewTicks.delete(id);
+    else this.viewTicks.set(id, viewTick);
+  }
+
+  private lagComp(): LagComp {
+    const a: { p: { x: number; y: number; z: number }; q: Quat } = {
+      p: { x: 0, y: 0, z: 0 },
+      q: { x: 0, y: 0, z: 0, w: 1 },
+    };
+    const b: { p: { x: number; y: number; z: number }; q: Quat } = {
+      p: { x: 0, y: 0, z: 0 },
+      q: { x: 0, y: 0, z: 0, w: 1 },
+    };
+    return {
+      active: (shooter) => this.viewTicks.has(shooter.id),
+      poseOf: (shooter, target, p, q) => {
+        const vt = this.viewTicks.get(shooter.id);
+        if (vt === undefined) return false;
+        // During a step the live state is the one that will be tick count `tick + 1`.
+        const now = this.tick + 1;
+        const v = Math.min(now, Math.max(now - this.maxRewindTicks, vt));
+        if (v >= now - 1e-6) return false;
+        const hist = this.poseHist.get(target.id);
+        const k0 = Math.floor(v);
+        const k1 = k0 + 1;
+        const f = v - k0;
+        if (!hist || !hist.read(k0, a.p, a.q)) return false;
+        if (k1 >= now) {
+          const live = target.physics.curr;
+          b.p.x = live.p.x;
+          b.p.y = live.p.y;
+          b.p.z = live.p.z;
+          b.q.x = live.q.x;
+          b.q.y = live.q.y;
+          b.q.z = live.q.z;
+          b.q.w = live.q.w;
+        } else if (!hist.read(k1, b.p, b.q)) {
+          p.x = a.p.x;
+          p.y = a.p.y;
+          p.z = a.p.z;
+          q.x = a.q.x;
+          q.y = a.q.y;
+          q.z = a.q.z;
+          q.w = a.q.w;
+          return true;
+        }
+        p.x = a.p.x + (b.p.x - a.p.x) * f;
+        p.y = a.p.y + (b.p.y - a.p.y) * f;
+        p.z = a.p.z + (b.p.z - a.p.z) * f;
+        nlerpQuat(a.q, b.q, f, q);
+        return true;
+      },
+    };
+  }
+
+  get combatSim(): CombatSim | null {
+    return this.combat;
   }
 
   entry(id: string): SimEntry | undefined {
@@ -405,6 +479,9 @@ export class RaceSim {
     });
     this.tick++;
     this.time += STEP;
+    for (const e of this.entries) {
+      this.poseHist.get(e.id)?.record(this.tick, e.car.physics.curr.p, e.car.physics.curr.q);
+    }
   }
 
   /** Car ids, first to last. */

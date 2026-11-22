@@ -117,6 +117,12 @@ export class CarSim {
     this.onFreeze();
   }
 
+  /** A frozen (wrecked) car comes back without moving it: a puppet follows its snapshot pose by itself. */
+  unfreeze(): void {
+    this.physics.body.setEnabled(true);
+    this.onRespawn();
+  }
+
   /** Subclass hook: hide the car's visual. */
   protected onFreeze(): void {}
 

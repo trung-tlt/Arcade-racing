@@ -9,7 +9,7 @@ import { CombatSim, type CombatFx } from '../sim/CombatSim';
 import type { CarSim } from '../sim/CarSim';
 import type { Car } from '../vehicle/Car';
 import type { V3 } from './AutoAim';
-import type { PickupDef, PickupType } from './Pickups';
+import { PickupField, type PickupDef, type PickupType } from './Pickups';
 import type { PickupVisuals } from './PickupVisuals';
 import { RocketPool } from './RocketPool';
 
@@ -30,6 +30,17 @@ export interface CombatDeps {
   pickupVisuals: PickupVisuals;
   /** First-person view: where this car's tracers start instead of its gun muzzle (false = use the muzzle). */
   tracerOrigin?: (car: Car, out: THREE.Vector3) => boolean;
+  /** Online: the server runs the combat; this only draws its rockets, pickups and damage smoke. */
+  remote?: boolean;
+}
+
+/** Pickup availability as the server last said it. */
+class RemotePickupField extends PickupField {
+  readonly taken = new Set<number>();
+
+  override isAvailable(id: number): boolean {
+    return !this.taken.has(id);
+  }
 }
 
 const from = new THREE.Vector3();
@@ -41,6 +52,9 @@ const at = new THREE.Vector3();
 export class CombatSystem {
   private readonly sim: CombatSim;
   private readonly rockets: RocketPool;
+  private remoteField: RemotePickupField | null = null;
+  private remoteRockets: { i: number; owner: string; p: V3; d: V3 }[] = [];
+  private rocketsShown = new Set<number>();
 
   constructor(private readonly d: CombatDeps) {
     this.rockets = new RocketPool(d.scene, d.assets, d.particles);
@@ -87,10 +101,32 @@ export class CombatSystem {
 
   /** Rockets in flight, for the incoming-rocket warning. */
   forEachRocket(cb: (owner: string, pos: V3, dir: V3) => void): void {
-    this.sim.forEachRocket(cb);
+    if (this.d.remote) for (const r of this.remoteRockets) cb(r.owner, r.p, r.d);
+    else this.sim.forEachRocket(cb);
+  }
+
+  /** Online: the server's rockets in flight (already extrapolated to now) and the pickups it says are taken. */
+  setRemoteState(rockets: { i: number; owner: string; p: V3; d: V3 }[], taken: readonly number[]): void {
+    this.remoteRockets = rockets;
+    const field = (this.remoteField ??= new RemotePickupField(this.d.pickupDefs, { rocket: 0, repair: 0, nitro: 0 }));
+    field.taken.clear();
+    for (const id of taken) field.taken.add(id);
   }
 
   update(dt: number): void {
+    if (this.d.remote) {
+      this.sim.effects(dt);
+      const live = new Set<number>();
+      for (const r of this.remoteRockets) {
+        this.rockets.pose(r.i, r.p, r.d);
+        if (!this.rocketsShown.has(r.i)) this.rockets.show(r.i, true);
+        live.add(r.i);
+      }
+      for (const i of this.rocketsShown) if (!live.has(i)) this.rockets.show(i, false);
+      this.rocketsShown = live;
+      if (this.remoteField) this.d.pickupVisuals.update(dt, this.remoteField);
+      return;
+    }
     this.sim.update(dt);
     this.d.pickupVisuals.update(dt, this.sim.field);
   }

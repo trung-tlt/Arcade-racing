@@ -30,6 +30,11 @@ export interface RosterEntry {
  */
 export interface InputFrame extends CarControls {
   tick: number;
+  /**
+   * The server time, in ticks, of the remote cars as this client was drawing them when it made the frame. The server
+   * rewinds other cars to that moment when it resolves this frame's hitscan (lag compensation), within a cap.
+   */
+  vt?: number;
 }
 
 export type ClientMsg =
@@ -49,6 +54,7 @@ export const FLAG_FINISHED = 8;
 export const FLAG_BRAKING = 16;
 export const FLAG_NITRO = 32;
 export const FLAG_DRIFTING = 64;
+export const FLAG_GUN_LOCKED = 128;
 
 export interface SnapCar {
   id: string;
@@ -66,6 +72,9 @@ export interface SnapCar {
   fl: number;
   /** Front-wheel steer angle (rad), for the wheel visuals of remote cars. */
   st: number;
+  /** Rockets in the rack and the Pulse MG's heat (0..1): the HUD of your own car reads these. */
+  am: number;
+  ht: number;
   /** Respawn counter: when it changes the car was teleported (wreck respawn, reset), so clients must not interpolate across it. */
   rs: number;
 }
@@ -87,6 +96,27 @@ export interface ResultRow {
   bestLapSec: number | null;
   bot: boolean;
 }
+
+/** A rocket in flight. */
+export interface SnapRocket {
+  /** Pool slot: stable for the life of the rocket. */
+  i: number;
+  owner: string;
+  p: [number, number, number];
+  /** Unit heading. */
+  d: [number, number, number];
+}
+
+/** Discrete things that happened since the last snapshot (delivered in order with it). */
+export type NetEvent =
+  | { k: 'gun'; c: string; f: [number, number, number]; to: [number, number, number]; h: 0 | 1 }
+  | { k: 'heat'; c: string }
+  | { k: 'rkt'; c: string; p: [number, number, number] }
+  | { k: 'boom'; p: [number, number, number]; r: number }
+  | { k: 'hit'; c: string; by: string | null; d: number }
+  | { k: 'wreck'; c: string; by: string | null }
+  | { k: 'pick'; c: string; kind: 'rocket' | 'repair' | 'nitro'; p: [number, number, number] }
+  | { k: 'nitro'; c: string; src: 'drift' | 'pickup' | 'takedown' | 'hit' };
 
 export type RejectReason = 'version' | 'data' | 'full' | 'bad_message' | 'race_started' | 'rate' | 'unknown_car';
 
@@ -112,6 +142,10 @@ export type ServerMsg =
       time: number;
       phase: RoomPhase;
       cars: SnapCar[];
+      /** Rockets in flight, pickups currently taken (by id), events since the last snapshot. */
+      rk: SnapRocket[];
+      pk: number[];
+      ev: NetEvent[];
     }
   | { t: 'pong'; c: number; s: number };
 
@@ -151,11 +185,14 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
       const { tick, throttle, brake, steer } = m;
       if (!isNum(tick) || !Number.isInteger(tick) || tick < 0) return bad;
       if (!isNum(throttle) || !isNum(brake) || !isNum(steer)) return bad;
+      const vt = m.vt === undefined ? undefined : isNum(m.vt) ? clamp(m.vt, 0, 1e9) : null;
+      if (vt === null) return bad;
       return {
         ok: true,
         msg: {
           t: 'input',
           tick,
+          vt,
           throttle: clamp(throttle, 0, 1),
           brake: clamp(brake, 0, 1),
           steer: clamp(steer, -1, 1),

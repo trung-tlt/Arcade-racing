@@ -19,6 +19,12 @@ export class PulseGun {
     this.accum = 1 / cfg.fireRatePerSec; // primed: the first shot comes on the first tick of the trigger
   }
 
+  /** Online: adopt the server's heat and lockout for the HUD. */
+  sync(heat: number, locked: boolean): void {
+    this.heat = heat;
+    this.lockTimer = locked ? Math.max(this.lockTimer, 0.2) : 0;
+  }
+
   get locked(): boolean {
     return this.lockTimer > 0;
   }

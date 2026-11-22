@@ -142,6 +142,8 @@ export class SimClient {
         fl: r.pose.fl,
         st: r.pose.st,
         rs: 0,
+        am: 0,
+        ht: 0,
       });
       this.trackJump(id, r.pose.rs, r.shown, r.pose.v, this.session.remoteSamples(id));
     }
@@ -149,7 +151,8 @@ export class SimClient {
     for (let i = 0; i < steps; i++) {
       const tick = local.tick;
       const ctl = this.pilot.read(view, mine.race.controlsLocked);
-      if (tick >= (this.session.snap?.tick ?? 0)) this.send({ t: 'input', tick, ...ctl });
+      if (tick >= (this.session.snap?.tick ?? 0))
+        this.send({ t: 'input', tick, vt: this.session.viewTick(nowSec), ...ctl });
       this.session.beforeStep();
       local.setInput(this.id, ctl);
       local.setTrafficTime(tick * STEP);

@@ -3,6 +3,7 @@ import {
   FLAG_BRAKING,
   FLAG_DRIFTING,
   FLAG_FINISHED,
+  FLAG_GUN_LOCKED,
   FLAG_INVULNERABLE,
   FLAG_NITRO,
   FLAG_WRECKED,
@@ -36,8 +37,11 @@ export function snapOfEntry(e: SimEntry, lap: number, respawns: number, quantise
       (e.race.phase === 'finished' ? FLAG_FINISHED : 0) |
       (ph.braking ? FLAG_BRAKING : 0) |
       (ph.nitroActive ? FLAG_NITRO : 0) |
-      (ph.drifting ? FLAG_DRIFTING : 0),
+      (ph.drifting ? FLAG_DRIFTING : 0) |
+      (e.car.gun.locked ? FLAG_GUN_LOCKED : 0),
     st: r(ph.wheels[0]?.steerAngle ?? 0, 3),
+    am: e.car.ammo.count,
+    ht: r(e.car.gun.heat, 2),
     rs: respawns,
   };
 }

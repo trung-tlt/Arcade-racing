@@ -1,5 +1,9 @@
 {
-  "muzzleOffset": [0, 0.15, 1.6],
+  "muzzleOffset": [
+    0,
+    0.15,
+    1.6
+  ],
   "aimTargetHeightM": 0.7,
   "pickupRadiusM": 2.6,
   "pickupHeightM": 1.2,
@@ -81,5 +85,8 @@
     "threatConeDeg": 40,
     "crackBelowHull": 0.25,
     "tagMaxDistM": 120
+  },
+  "lagComp": {
+    "maxRewindMs": 250
   }
 }

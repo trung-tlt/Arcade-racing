@@ -7,6 +7,8 @@ import {
   round,
   type ClientMsg,
   type GridEntry,
+  type NetEvent,
+  type SnapRocket,
   type InputFrame,
   type RejectReason,
   type ResultRow,
@@ -15,6 +17,7 @@ import {
   type ServerMsg,
   type SnapCar,
 } from '../shared/protocol';
+import type { CombatFx } from '../sim/CombatSim';
 import { RaceSim, type SlotSpec } from '../sim/RaceSim';
 import { snapOfEntry } from '../sim/snapshot';
 
@@ -96,6 +99,8 @@ export class Room {
   private readonly slotOf = new Map<string, SlotSpec>();
   private readonly names = new Map<string, string>();
   private readonly resets = new Map<string, number>();
+  /** Events since the last snapshot, sent with the next one. */
+  private pending: NetEvent[] = [];
 
   constructor(o: RoomOptions) {
     this.code = o.code;
@@ -246,8 +251,16 @@ export class Room {
       slots.push({ id, carId: r.car, kind: 'ai', skill: r.skill, laneOffsetM: r.laneOffsetM, gridSlot });
       this.names.set(id, r.name);
     });
-    this.sim = new RaceSim({ trackId: this.trackId, laps: this.laps, slots });
-    this.sim.events.on('carReset', (e) => this.resets.set(e.carId, (this.resets.get(e.carId) ?? 0) + 1));
+    this.sim = new RaceSim({ trackId: this.trackId, laps: this.laps, slots, fx: this.netFx() });
+    const ev = this.sim.events;
+    ev.on('carReset', (e) => this.resets.set(e.carId, (this.resets.get(e.carId) ?? 0) + 1));
+    ev.on('gunOverheated', (e) => this.pending.push({ k: 'heat', c: e.carId }));
+    ev.on('rocketLaunched', (e) => this.pending.push({ k: 'rkt', c: e.carId, p: v3(e.pos) }));
+    ev.on('explosion', (e) => this.pending.push({ k: 'boom', p: v3(e.pos), r: e.radius }));
+    ev.on('carHit', (e) => this.pending.push({ k: 'hit', c: e.carId, by: e.attackerId, d: Math.round(e.damage) }));
+    ev.on('carWrecked', (e) => this.pending.push({ k: 'wreck', c: e.carId, by: e.attackerId }));
+    ev.on('pickupTaken', (e) => this.pending.push({ k: 'pick', c: e.carId, kind: e.kind, p: v3(e.pos) }));
+    ev.on('nitroBarEarned', (e) => this.pending.push({ k: 'nitro', c: e.carId, src: e.source }));
     this.grid = slots.map((sp) => ({
       id: sp.id,
       name: this.names.get(sp.id) ?? sp.id,
@@ -292,6 +305,7 @@ export class Room {
       if (frame) {
         p.repeats = 0;
         sim.setInput(p.id, frame);
+        sim.setViewTick(p.id, frame.vt);
       } else if (p.ackTick >= 0) {
         p.repeats++;
       }
@@ -353,13 +367,40 @@ export class Room {
     if (p.connected) p.conn.send(encode(msg));
   }
 
+  /** Combat visuals as events: only the tracer needs the server's help (its endpoint); the rest is derived by clients. */
+  private netFx(): CombatFx {
+    const none = (): void => undefined;
+    return {
+      tracer: (car, from, to, hit) =>
+        this.pending.push({ k: 'gun', c: car.id, f: v3(from), to: v3(to), h: hit ? 1 : 0 }),
+      muzzleFlash: none,
+      sparks: none,
+      explosion: none,
+      carVisible: none,
+      damageSmoke: none,
+      show: none,
+      pose: none,
+      trail: none,
+    };
+  }
+
   private sendSnapshots(sim: RaceSim): void {
     const cars: SnapCar[] = sim.entries.map((e, i) => snapOfEntry(e, sim.views[i].lap, this.resets.get(e.id) ?? 0));
     const carsJson = JSON.stringify(cars);
+    const rockets: SnapRocket[] = [];
+    sim.combatSim?.forEachRocket((owner, pos, dir, slot) =>
+      rockets.push({ i: slot, owner, p: v3(pos), d: [round(dir.x, 3), round(dir.y, 3), round(dir.z, 3)] }),
+    );
+    const taken = sim.combatSim?.takenPickups() ?? [];
+    const events = this.pending;
+    this.pending = [];
     const head = `{"t":"snap","tick":${sim.tick},"time":${round(sim.time, 3)},"phase":"${this.phase}"`;
+    const rk = JSON.stringify(rockets);
+    const pk = JSON.stringify(taken);
+    const ev = JSON.stringify(events);
     for (const p of this.players.values()) {
       if (!p.connected) continue;
-      p.conn.send(`${head},"ack":${p.ackTick},"late":${p.late},"cars":${carsJson}}`);
+      p.conn.send(`${head},"ack":${p.ackTick},"late":${p.late},"cars":${carsJson},"rk":${rk},"pk":${pk},"ev":${ev}}`);
     }
   }
 
@@ -370,6 +411,11 @@ export class Room {
     for (const p of this.players.values()) p.connected = false;
     this.players.clear();
   }
+}
+
+/** A position rounded to 1 cm for the wire. */
+function v3(p: { x: number; y: number; z: number }): [number, number, number] {
+  return [round(p.x, 2), round(p.y, 2), round(p.z, 2)];
 }
 
 export const TRACK_IDS: readonly string[] = TRACKS.map((t) => t.id);

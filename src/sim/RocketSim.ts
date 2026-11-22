@@ -60,8 +60,10 @@ export class RocketSim {
   }
 
   /** Visit every rocket in flight (HUD warnings): owner, position, heading. */
-  forEachActive(cb: (owner: string, pos: V3, dir: V3) => void): void {
-    for (const r of this.rockets) if (r.active) cb(r.owner, r.pos, r.dir);
+  forEachActive(cb: (owner: string, pos: V3, dir: V3, slot: number) => void): void {
+    this.rockets.forEach((r, i) => {
+      if (r.active) cb(r.owner, r.pos, r.dir, i);
+    });
   }
 
   /** Launch from the pool; returns false when every slot is in flight. */

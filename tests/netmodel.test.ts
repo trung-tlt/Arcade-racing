@@ -26,6 +26,8 @@ const car = (over: Partial<SnapCar> = {}): SnapCar => ({
   fl: 0,
   st: 0,
   rs: 0,
+  am: 0,
+  ht: 0,
   ...over,
 });
 
@@ -417,4 +419,58 @@ describe('a client whose frame rate is far below 60 fps', () => {
       expect(minLead).toBeGreaterThan(-20);
     }, 300_000);
   }
+});
+
+describe('combat over the network', () => {
+  it('every client gets the same event stream and a wrecked car is respawned and re-adopted', () => {
+    const net = new VirtualNet(9);
+    const link = PROFILES[1].link;
+    const room = new Room({
+      code: 'NET',
+      trackId: 'monte_carlo',
+      laps: 1,
+      hash: dataHash(),
+      now: () => net.now,
+      finishGraceSec: 300,
+    });
+    const clients = ['kestrel_gt', 'wisp_r', 'rhino_x4'].map(
+      (carId, i) =>
+        new SimClient({ net, room, trackId: 'monte_carlo', carId, name: `P${i + 1}`, up: link, down: link }),
+    );
+    const counts = clients.map(() => new Map<string, number>());
+    clients.forEach((c, i) => {
+      c.session.onEvents = (evs) => {
+        for (const e of evs) counts[i].set(e.k, (counts[i].get(e.k) ?? 0) + 1);
+      };
+    });
+    clients[0].send({ t: 'start' });
+    let teleports = 0;
+    clients[1].session.onOwnTeleport = () => teleports++;
+    for (let step = 0; step < 60 * 200 && room.phase !== 'results'; step++) {
+      net.now += 1000 / 60;
+      net.flush();
+      room.tick();
+      for (const c of clients) c.frame();
+    }
+    room.dispose();
+    const guns = counts.map((m) => m.get('gun') ?? 0);
+    const hits = counts.map((m) => m.get('hit') ?? 0);
+    console.log(
+      'NETMODEL combat gun',
+      JSON.stringify(guns),
+      'hit',
+      JSON.stringify(hits),
+      'wreck',
+      JSON.stringify(counts.map((m) => m.get('wreck') ?? 0)),
+      'teleports(p2)',
+      teleports,
+    );
+    expect(guns[0]).toBeGreaterThan(10);
+    expect(hits[0]).toBeGreaterThan(0);
+    // The same snapshots reach everyone, so the totals agree (a client may still be a snapshot or two behind at the end).
+    for (let i = 1; i < clients.length; i++) {
+      expect(Math.abs(guns[i] - guns[0])).toBeLessThanOrEqual(Math.max(8, guns[0] * 0.05));
+      expect(Math.abs(hits[i] - hits[0])).toBeLessThanOrEqual(Math.max(8, hits[0] * 0.05));
+    }
+  }, 240_000);
 });

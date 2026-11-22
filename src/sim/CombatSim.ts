@@ -2,10 +2,11 @@ import type RAPIER from '@dimforge/rapier3d-compat';
 import { type AimTarget, type V3, pickAimTarget } from '../combat/AutoAim';
 import { PickupField, type PickupDef, type PickupType, grantFor } from '../combat/Pickups';
 import { splashDamage } from '../combat/Rockets';
-import { COMBAT, WEAPONS } from '../core/Data';
+import { COMBAT, HANDLING, WEAPONS } from '../core/Data';
 import type { EventBus } from '../core/Events';
 import { turretYaw } from '../vehicle/Turret';
 import type { CarSim } from './CarSim';
+import { boxCentre, rayVsObb, type Quat } from './lagcomp';
 import { RocketSim, type RocketFx } from './RocketSim';
 
 type Rapier = typeof RAPIER;
@@ -13,7 +14,7 @@ type Rapier = typeof RAPIER;
 /** What the browser draws for combat; the server passes nothing (all calls are optional no-ops). */
 export interface CombatFx extends RocketFx {
   /** Tracer from the gun muzzle `from` to the impact (or max range) `to`. `car` lets the view override the origin. */
-  tracer(car: CarSim, from: V3, to: V3): void;
+  tracer(car: CarSim, from: V3, to: V3, hit: boolean): void;
   muzzleFlash(origin: V3, dir: V3): void;
   sparks(pos: V3, count: number, speed: number, size: number): void;
   explosion(pos: V3, radius: number): void;
@@ -23,7 +24,18 @@ export interface CombatFx extends RocketFx {
   damageSmoke(pos: V3, fire: boolean): void;
 }
 
+/**
+ * Lag compensation for a shooter whose client draws the other cars slightly in the past: where the shooter saw `target`
+ * is where a hitscan shot is tested. Shooters without it (bots, offline play) shoot at live positions.
+ */
+export interface LagComp {
+  active(shooter: CarSim): boolean;
+  /** Fills p/q with `target`'s pose as `shooter` saw it; false means "use the live pose". */
+  poseOf(shooter: CarSim, target: CarSim, p: V3, q: Quat): boolean;
+}
+
 export interface CombatSimDeps {
+  lagComp?: LagComp;
   R: Rapier;
   world: RAPIER.World;
   events: EventBus;
@@ -45,6 +57,9 @@ const endPt: V3 = { x: 0, y: 0, z: 0 };
 const tmpV: V3 = { x: 0, y: 0, z: 0 };
 const aimDir: V3 = { x: 0, y: 0, z: 1 };
 const centre: V3 = { x: 0, y: 0, z: 0 };
+const rwP: V3 = { x: 0, y: 0, z: 0 };
+const rwQ: Quat = { x: 0, y: 0, z: 0, w: 1 };
+const boxC: V3 = { x: 0, y: 0, z: 0 };
 
 const dist3 = (a: V3, b: V3): number => {
   const dx = a.x - b.x;
@@ -109,9 +124,21 @@ export class CombatSim {
     return this.hints;
   }
 
+  /** Ids of the pickups that are currently taken (respawning). */
+  takenPickups(out: number[] = []): number[] {
+    out.length = 0;
+    for (const def of this.d.pickupDefs) if (!this.field.isAvailable(def.id)) out.push(def.id);
+    return out;
+  }
+
   /** Rockets in flight, for the incoming-rocket warning. */
-  forEachRocket(cb: (owner: string, pos: V3, dir: V3) => void): void {
+  forEachRocket(cb: (owner: string, pos: V3, dir: V3, slot: number) => void): void {
     this.rockets.forEachActive(cb);
+  }
+
+  /** Online clients: only the smoke and fire of hurt cars (the server runs everything else). */
+  effects(dt: number): void {
+    for (const car of this.d.cars()) if (!car.hull.wrecked) this.damageFx(car, dt);
   }
 
   update(dt: number): void {
@@ -195,9 +222,10 @@ export class CombatSim {
     const full = this.isFullTurret(car);
     const aimAssist = this.d.aimAssistFor ? this.d.aimAssistFor(car) : true;
     const assist = !aimAssist ? 0 : full ? 180 : cfg.autoAimConeDeg;
+    const lag = this.d.lagComp?.active(car) ?? false;
     for (let i = 0; i < shots; i++) {
       this.muzzle(car);
-      const aim = pickAimTarget(origin, fwd, this.othersOf(car), assist, cfg.rangeM);
+      const aim = pickAimTarget(origin, fwd, lag ? this.rewoundTargets(car) : this.othersOf(car), assist, cfg.rangeM);
       if (aim) {
         aimDir.x = aim.dir.x;
         aimDir.y = aim.dir.y;
@@ -211,22 +239,86 @@ export class CombatSim {
       const yaw = this.aimTurret(car, aimDir);
       this.muzzle(car, yaw);
       this.setRay(origin, aimDir);
-      const hit = this.d.world.castRay(this.ray, cfg.rangeM, true, undefined, undefined, undefined, car.physics.body);
-      const dist = hit ? hit.timeOfImpact : cfg.rangeM;
+      let dist: number = cfg.rangeM;
+      let hit = false;
+      let victim: CarSim | undefined;
+      if (lag) {
+        const r = this.rewoundShot(car, cfg.rangeM);
+        dist = r.dist;
+        hit = r.hit;
+        victim = r.victim ?? undefined;
+      } else {
+        const h = this.d.world.castRay(this.ray, cfg.rangeM, true, undefined, undefined, undefined, car.physics.body);
+        if (h) {
+          dist = h.timeOfImpact;
+          hit = true;
+          victim = this.byCollider.get(h.collider.handle);
+        }
+      }
       endPt.x = origin.x + aimDir.x * dist;
       endPt.y = origin.y + aimDir.y * dist;
       endPt.z = origin.z + aimDir.z * dist;
-      this.d.fx?.tracer(car, origin, endPt);
+      this.d.fx?.tracer(car, origin, endPt, hit);
       this.d.fx?.muzzleFlash(origin, aimDir);
       this.d.events.emit('gunFired', { carId: car.id, pos: origin });
       if (!hit) continue;
       this.d.fx?.sparks(endPt, 3, 6, 0.25);
-      const victim = this.byCollider.get(hit.collider.handle);
       if (victim && victim !== car) {
         this.applyDamage(victim, cfg.damage * car.def.gunDamageMul, car.id);
         car.physics.nitro.add(cfg.nitroGainOnHit);
       }
     }
+  }
+
+  /** Aim targets at the poses `shooter` saw (lag compensation): a fresh list, only used for lag-compensated shooters. */
+  private rewoundTargets(shooter: CarSim): AimTarget[] {
+    const out: AimTarget[] = [];
+    for (const c of this.d.cars()) {
+      if (c === shooter || c.hull.wrecked) continue;
+      const lc = this.d.lagComp as LagComp;
+      const rewound = lc.poseOf(shooter, c, rwP, rwQ);
+      const p = rewound ? rwP : c.physics.curr.p;
+      out.push({ id: c.id, pos: { x: p.x, y: p.y + COMBAT.aimTargetHeightM, z: p.z } });
+    }
+    return out;
+  }
+
+  /**
+   * One hitscan shot with lag compensation: walls and scenery are tested in the live world (they do not move), cars
+   * as boxes at the pose the shooter saw. The nearest thing along the ray wins.
+   */
+  private rewoundShot(shooter: CarSim, range: number): { dist: number; hit: boolean; victim: CarSim | null } {
+    const lc = this.d.lagComp as LagComp;
+    const stat = this.d.world.castRay(
+      this.ray,
+      range,
+      true,
+      undefined,
+      undefined,
+      undefined,
+      shooter.physics.body,
+      (col) => !this.byCollider.has(col.handle),
+    );
+    let best = stat ? stat.timeOfImpact : range;
+    let hit = !!stat;
+    let victim: CarSim | null = null;
+    const boost = HANDLING.body.chassisClearanceBoostM;
+    for (const c of this.d.cars()) {
+      if (c === shooter || c.hull.wrecked) continue;
+      const rewound = lc.poseOf(shooter, c, rwP, rwQ);
+      const p = rewound ? rwP : c.physics.curr.p;
+      const q = rewound ? rwQ : c.physics.curr.q;
+      const col = c.def.collider;
+      const centreLocal: [number, number, number] = [col.center[0], col.center[1] + boost / 2, col.center[2]];
+      const half: [number, number, number] = [col.halfExtents[0], col.halfExtents[1] - boost / 2, col.halfExtents[2]];
+      const t = rayVsObb(origin, aimDir, boxCentre(p, q, centreLocal, boxC), q, half, best);
+      if (t !== null && t < best) {
+        best = t;
+        hit = true;
+        victim = c;
+      }
+    }
+    return { dist: best, hit, victim };
   }
 
   private fireRocket(car: CarSim): void {

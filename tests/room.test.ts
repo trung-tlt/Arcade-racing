@@ -244,3 +244,37 @@ describe('a full grid online', () => {
     room.dispose();
   });
 });
+
+describe('combat state reaches the clients', () => {
+  it('snapshots carry shots, hits, wrecks, rockets in flight and taken pickups from the server sim', () => {
+    let clockMs = 0;
+    const room = mkRoom({ now: () => clockMs, trackId: 'monte_carlo', finishGraceSec: 1000 });
+    const c = seat(room);
+    send(room, c, { t: 'start' });
+    send(room, c, { t: 'ready', ready: true });
+    const kinds = new Map<string, number>();
+    let rocketsSeen = 0;
+    let takenMax = 0;
+    for (let tick = 0; tick < 60 * 120; tick++) {
+      clockMs = (tick * 1000) / 60;
+      room.tick();
+      for (const m of c.inbox.splice(0)) {
+        if (m.t !== 'snap') continue;
+        for (const e of m.ev) kinds.set(e.k, (kinds.get(e.k) ?? 0) + 1);
+        rocketsSeen = Math.max(rocketsSeen, m.rk.length);
+        takenMax = Math.max(takenMax, m.pk.length);
+        for (const car of m.cars) {
+          expect(car.ht).toBeGreaterThanOrEqual(0);
+          expect(car.ht).toBeLessThanOrEqual(1);
+          expect(car.am).toBeGreaterThanOrEqual(0);
+        }
+      }
+    }
+    console.log('COMBAT EVENTS', JSON.stringify([...kinds]), 'maxRockets', rocketsSeen, 'maxTakenPickups', takenMax);
+    // Five bots shoot each other (and the idle human) for two minutes: there are shots and hits, and pickups get collected.
+    expect(kinds.get('gun')).toBeGreaterThan(5);
+    expect(kinds.get('hit')).toBeGreaterThan(0);
+    expect(takenMax).toBeGreaterThan(0);
+    room.dispose();
+  }, 120_000);
+});

@@ -31,6 +31,8 @@ type Online = {
   me: { x: number; z: number; speed: number };
   puppets: { id: string; x: number; z: number; snapX: number; snapZ: number; speed: number }[];
   reconcile: Record<string, number>;
+  netEvents: Record<string, number>;
+  hp: number;
   pingMs: number;
   minMargin: number;
   advance: number;
@@ -61,7 +63,7 @@ test('two browsers race each other online on one server', async ({ browser }) =>
   const room = `PW${Date.now() % 100000}`;
   const make = async (name: string, car: string): Promise<Page> => {
     // Software rendering with two tabs is slow: a tiny viewport on the Low preset keeps the sim near 60 Hz.
-    const page = await browser.newPage({ viewport: { width: 320, height: 180 } });
+    const page = await browser.newPage({ viewport: { width: 640, height: 360 } });
     await page.addInitScript(() => localStorage.setItem('voltline.settings', JSON.stringify({ preset: 'low' })));
     page.on('console', (m) => {
       if (m.type() === 'error') errors.push(`${name}: ${m.text()}`);
@@ -93,7 +95,9 @@ test('two browsers race each other online on one server', async ({ browser }) =>
   }
   for (const p of [a, b]) {
     await p.evaluate(() =>
-      (window as unknown as { __voltline: { debugAutopilot(on: boolean): void } }).__voltline.debugAutopilot(true),
+      (
+        window as unknown as { __voltline: { debugAutopilot(on: boolean, fight?: boolean): void } }
+      ).__voltline.debugAutopilot(true, true),
     );
   }
   const fps = await a.evaluate(
@@ -118,6 +122,8 @@ test('two browsers race each other online on one server', async ({ browser }) =>
       `ONLINE t=${i} A tick ${x?.localTick}/${x?.serverTick} adv=${x?.advance} mm=${x?.minMargin} | B tick ${y?.localTick}/${y?.serverTick} adv=${y?.advance} mm=${y?.minMargin}`,
     );
   }
+  await a.screenshot({ path: 'test-results/online-a.png' });
+  await b.screenshot({ path: 'test-results/online-b.png' });
   const [sa, sb] = [await state(a), await state(b)];
   console.log('ONLINE A', JSON.stringify(sa));
   console.log('ONLINE B', JSON.stringify(sb));
@@ -141,6 +147,11 @@ test('two browsers race each other online on one server', async ({ browser }) =>
     ).toHaveLength(0);
     expect(off.length, 'at most one bot mid-teleport').toBeLessThanOrEqual(1);
   }
+  // Combat arrives from the server: shots and hits are seen by both tabs, and the hull of a car that was hit is lower.
+  const events = [sa, sb].map((x) => (x as Online).netEvents);
+  console.log('ONLINE events', JSON.stringify(events), 'hp', (sa as Online).hp, (sb as Online).hp);
+  expect(events.reduce((n, e) => n + (e.gun ?? 0), 0)).toBeGreaterThan(5);
+  expect(events.reduce((n, e) => n + (e.hit ?? 0), 0)).toBeGreaterThan(0);
   expect(errors).toEqual([]);
   await a.close();
   await b.close();
