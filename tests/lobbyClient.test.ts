@@ -71,8 +71,11 @@ describe('LobbyClient', () => {
   });
 
   it('reports a wrong code, a full server and an unreachable server as hub errors', async () => {
-    const miss = await LobbyClient.enter(url, 'join', { ...me, room: 'ZZZZZZ' });
+    let closed = 0;
+    const miss = await LobbyClient.enter(url, 'join', { ...me, room: 'ZZZZZZ' }, { onClosed: () => closed++ });
     expect(miss).toMatchObject({ err: 'notfound' });
+    await sleep(300);
+    expect(closed).toBe(0); // the server hanging up on a refused join is not a lost connection
     const down = await LobbyClient.enter('ws://127.0.0.1:1', 'quick', me);
     expect(down).toEqual({ err: 'down' });
   });

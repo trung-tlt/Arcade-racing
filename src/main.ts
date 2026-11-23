@@ -350,7 +350,7 @@ async function boot(): Promise<void> {
           .filter((g) => g.id !== selfId)
           .map((g) => ({ id: g.id, name: g.name, car: g.car, laneOffsetM: 0, skill: 0.9 }));
         void startRace({ ...setup, carId, trackId: m.track, laps: m.laps }, 'race', {
-          online: { client, session, selfId, grid: m.grid },
+          online: { client, session, selfId, grid: m.grid, closeOnDispose: true },
           rivals,
         });
       }

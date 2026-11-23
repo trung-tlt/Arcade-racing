@@ -448,6 +448,7 @@ body.view-cockpit .minimap canvas {
 /* minimal: position + lap, speed and gear, hull and nitro. No minimap, tags, feed, hints, MG heat or rockets. */
 body.hud-min .minimap,
 body.hud-min .nt-layer,
+body.hud-min .ot-layer,
 body.hud-min .hud-hint,
 body.hud-min .cb-feed,
 body.hud-min .hud-drift,
@@ -461,6 +462,7 @@ body.hud-min .cb-panel > .cb-bar.thin {
 /* off: only the notices that must always show (countdown / start lights, no-fire zone, wrecked, results, pause) */
 body.hud-off .minimap,
 body.hud-off .nt-layer,
+body.hud-off .ot-layer,
 body.hud-off .hud-hint,
 body.hud-off .hud-speed,
 body.hud-off .hud-drift,

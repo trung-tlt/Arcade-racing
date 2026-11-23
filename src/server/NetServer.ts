@@ -6,6 +6,7 @@ import { randomInt } from 'node:crypto';
 import {
   MAX_MESSAGE_CHARS,
   PROTOCOL_VERSION,
+  REMATCH_SECONDS,
   ROOM_CODE_ALPHABET,
   ROOM_CODE_LENGTH,
   SIM_HZ,
@@ -30,6 +31,8 @@ export interface NetServerOptions {
   defaultLaps?: number;
   /** Let the host start a race alone and without everyone being ready (dev and tests; the lobby rule is 2+ ready). */
   soloStart?: boolean;
+  /** Seconds the rematch vote runs on the results screen (default 30). */
+  rematchSec?: number;
   log?: (line: string) => void;
 }
 
@@ -66,6 +69,7 @@ export class NetServer {
       defaultTrack: TRACKS[0].id,
       defaultLaps: 3,
       soloStart: false,
+      rematchSec: REMATCH_SECONDS,
       log: () => undefined,
       ...o,
     };
@@ -167,6 +171,7 @@ export class NetServer {
       laps: msg.laps ?? this.opts.defaultLaps,
       hash: this.hash,
       isPublic: msg.mode === 'quick',
+      rematchSec: this.opts.rematchSec,
       ...(this.opts.soloStart ? { minPlayers: 1, needAllReady: false } : {}),
     });
     this.rooms.set(code, room);

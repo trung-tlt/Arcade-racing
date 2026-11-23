@@ -70,7 +70,7 @@ export class OnlineHubScreen implements Screen {
             <div class="ol-join">
               <div class="mn-eyebrow">${esc(str('hub.join').toUpperCase())}</div>
               <div class="ol-join-row">
-                <input class="ol-code mn-mono" type="text" inputmode="text" maxlength="${ROOM_CODE_LENGTH}" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="······" aria-label="Room code, ${ROOM_CODE_LENGTH} characters" />
+                <input class="ol-code mn-mono" type="text" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="······" aria-label="Room code, ${ROOM_CODE_LENGTH} characters" />
                 <button type="button" class="ol-joinbtn" data-act="join" data-sfx="none">${esc(str('hub.join.button'))}</button>
               </div>
               <div class="ol-hint"></div>

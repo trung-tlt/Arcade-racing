@@ -83,6 +83,8 @@ export interface Player {
 }
 
 const MAX_DROPPED_INPUTS = 600;
+/** The lobby is re-sent this often (ticks) so the pings in it stay current. */
+const LOBBY_REFRESH_TICKS = SIM_HZ * 2;
 /** Token bucket for input frames: a short catch-up burst after a stall is legitimate, a sustained flood is not. */
 const BURST_TOKENS = 120;
 /** Frames for ticks further ahead than this are refused (a client cannot buffer the future without bound). */
@@ -113,6 +115,7 @@ export class Room {
   private readonly needAllReady: boolean;
   private readonly rematchSec: number;
   private resultsAt = 0;
+  private lobbyTicks = 0;
   private readonly takedowns = new Map<string, number>();
   private loadStartedAt = 0;
   private grid: GridEntry[] = [];
@@ -356,6 +359,11 @@ export class Room {
     const sim = this.sim;
     if (this.phase === 'results') {
       if (this.now() - this.resultsAt > this.rematchSec * 1000) this.resetToLobby(false);
+      return;
+    }
+    if (this.phase === 'lobby') {
+      // Refresh the lobby every 2 s so the pings in the roster stay current.
+      if (++this.lobbyTicks % LOBBY_REFRESH_TICKS === 0) this.broadcastState();
       return;
     }
     if (!sim) return;

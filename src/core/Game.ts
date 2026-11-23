@@ -20,6 +20,8 @@ import { Tracers } from '../fx/Tracers';
 import { CombatHud } from '../ui/combatHud';
 import { Minimap } from '../ui/minimap';
 import { NameTags } from '../ui/nameTags';
+import { OnlineNameTags, type OnlineTag } from '../ui/onlineTags';
+import { pickAimTarget } from '../combat/AutoAim';
 import { type CarRaceView, effectiveT, rankCars, rubberBandSignal } from '../race/Standings';
 import { RaceManager } from '../race/RaceManager';
 import { HitRules } from '../sim/HitRules';
@@ -222,6 +224,9 @@ export class Game {
   private readonly places = new Map<string, number>();
   private minimap!: Minimap;
   private nameTags!: NameTags;
+  /** Online only: the rival tags of board 40 (the offline game keeps `nameTags`). */
+  private onlineTags: OnlineNameTags | null = null;
+  private readonly tagSeen = new Map<string, { at: number; occluded: boolean }>();
   private drawCalls = 0;
   private triangles = 0;
   /** Per AI car: progress anchor (to detect "not getting anywhere") and seconds upside down. */
@@ -660,6 +665,7 @@ export class Game {
       this.trackDef.roadWidthM,
     );
     this.nameTags = new NameTags(document.getElementById('hud') as HTMLElement);
+    if (this.online) this.onlineTags = new OnlineNameTags(document.getElementById('hud') as HTMLElement);
     this.restartRace();
   }
 
@@ -2023,20 +2029,23 @@ export class Game {
       })),
       this.car.physics.yaw,
     );
-    this.nameTags.update(
-      this.chase.camera,
-      this.cars
-        .filter((c) => c.kind !== 'player')
-        .map((c) => ({
-          id: c.id,
-          name: this.nameOf(c.id),
-          place: this.places.get(c.id) ?? 0,
-          hullFraction: c.hull.fraction,
-          world: { x: c.physics.curr.p.x, y: c.physics.curr.p.y + 2.6, z: c.physics.curr.p.z },
-          visible: !c.hull.wrecked,
-        })),
-      120,
-    );
+    if (this.onlineTags) this.onlineTags.update(this.chase.camera, this.onlineTagList(), frameDt);
+    else {
+      this.nameTags.update(
+        this.chase.camera,
+        this.cars
+          .filter((c) => c.kind !== 'player')
+          .map((c) => ({
+            id: c.id,
+            name: this.nameOf(c.id),
+            place: this.places.get(c.id) ?? 0,
+            hullFraction: c.hull.fraction,
+            world: { x: c.physics.curr.p.x, y: c.physics.curr.p.y + 2.6, z: c.physics.curr.p.z },
+            visible: !c.hull.wrecked,
+          })),
+        120,
+      );
+    }
     this.fpvHud.update(frameDt, this.fpvBuild);
     this.skidmarks.update(dt, this.skidEmitters);
     this.emitTireSmoke(dt);
@@ -2049,6 +2058,65 @@ export class Game {
     this.dev?.end();
   }
 
+  /** The rivals' name tags (online): anchor above the collider, the gun-lock target, and a wall test every 100 ms. */
+  private onlineTagList(): OnlineTag[] {
+    const now = performance.now();
+    const cam = this.chase.camera.position;
+    const me = this.car.physics.curr.p;
+    const yaw = this.car.physics.yaw;
+    const fwd = { x: Math.sin(yaw), y: 0, z: Math.cos(yaw) };
+    const rivals = this.cars.filter((c) => c.kind !== 'player' && !c.hull.wrecked);
+    const cfg = WEAPONS.pulse_mg;
+    const lock = userSettings.aimAssist
+      ? pickAimTarget(
+          { x: me.x, y: me.y + 0.8, z: me.z },
+          fwd,
+          rivals.map((c) => ({
+            id: c.id,
+            pos: { x: c.physics.curr.p.x, y: c.physics.curr.p.y + 0.8, z: c.physics.curr.p.z },
+          })),
+          cfg.autoAimConeDeg,
+          cfg.rangeM,
+        )
+      : null;
+    return rivals.map((c) => {
+      const p = c.physics.curr.p;
+      const col = c.def.collider;
+      const world = {
+        x: p.x,
+        y: p.y + col.center[1] + col.halfExtents[1] + (c.def.vehicleType === 'bike' ? 0.35 : 0.45),
+        z: p.z,
+      };
+      let seen = this.tagSeen.get(c.id);
+      if (!seen || now - seen.at >= 100) {
+        const dx = world.x - cam.x;
+        const dy = world.y - cam.y;
+        const dz = world.z - cam.z;
+        const dist = Math.hypot(dx, dy, dz);
+        // Static world only (walls, buildings, the road ribbon): other cars never hide a tag.
+        const hit =
+          dist > 2 &&
+          this.world.castRay(
+            new RAPIER.Ray(cam, { x: dx / dist, y: dy / dist, z: dz / dist }),
+            dist - 1,
+            true,
+            RAPIER.QueryFilterFlags.EXCLUDE_DYNAMIC | RAPIER.QueryFilterFlags.EXCLUDE_SENSORS,
+          );
+        seen = { at: now, occluded: !!hit };
+        this.tagSeen.set(c.id, seen);
+      }
+      return {
+        id: c.id,
+        name: this.nameOf(c.id),
+        place: this.places.get(c.id) ?? 0,
+        hullFraction: c.hull.fraction,
+        targeted: lock?.id === c.id,
+        occluded: seen.occluded,
+        world,
+      };
+    });
+  }
+
   private resize(): void {
     this.renderer.setSize(innerWidth, innerHeight, false);
     this.postfx.setSize(innerWidth, innerHeight);
@@ -2057,7 +2125,7 @@ export class Game {
 
   /** Disposes geometries, materials, textures and the Rapier world. */
   dispose(): void {
-    this.online?.client.close();
+    if (this.online?.closeOnDispose) this.online.client.close();
     this.loop.stop();
     window.removeEventListener('resize', this.onResize);
     this.unbindSfx?.();
@@ -2075,6 +2143,7 @@ export class Game {
     this.fpvHud.dispose();
     this.minimap.dispose();
     this.nameTags.dispose();
+    this.onlineTags?.dispose();
     this.dev?.dispose();
     this.combat.dispose();
     this.particles.dispose();

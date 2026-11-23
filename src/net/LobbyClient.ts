@@ -95,6 +95,7 @@ export class LobbyClient {
     const lobby = new LobbyClient(client, events);
     return new Promise((resolve) => {
       let settled = false;
+      let entered = false;
       const done = (r: { lobby: LobbyClient } | HubFailure): void => {
         if (settled) return;
         settled = true;
@@ -109,12 +110,14 @@ export class LobbyClient {
       };
       client.events.onState = (m) => {
         lobby.onState(m);
+        entered = true;
         done({ lobby });
       };
       client.events.onSnapshot = (m) => events.onSnapshot?.(m);
       client.events.onClose = () => {
+        // Closing after a reject is the server hanging up on a refused join, not a lost connection.
         if (!settled) done({ err: 'down' });
-        else events.onClosed?.();
+        else if (entered) events.onClosed?.();
       };
       client.connect().then(
         () => client.join(opts.name, opts.car, opts.room ?? '', dataHash(), opts.track, opts.laps, mode),
@@ -145,6 +148,7 @@ export class LobbyClient {
     if (m.phase === 'loading' && m.grid) {
       if (!this.gridAnnounced) {
         this.gridAnnounced = true;
+        this.client.snap = null; // a rematch must not start from the last race's final snapshot
         this.events.onGrid?.(m.grid, m.track, m.laps);
       }
     } else if (m.phase !== 'loading') {

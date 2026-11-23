@@ -10,4 +10,6 @@ export interface OnlineRace {
   selfId: string;
   /** The grid announced by the server (humans and bots, with their grid slots). */
   grid: GridEntry[];
+  /** Close the connection when the game is disposed (the dev `?online=` entry). The lobby flow owns its own and keeps it. */
+  closeOnDispose?: boolean;
 }

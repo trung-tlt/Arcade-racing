@@ -157,6 +157,16 @@ describe('lobby rules', () => {
     expect(b.state()?.roster.map((r) => r.ping)).toEqual([42, -1]);
   });
 
+  it('re-sends the lobby every two seconds so pings stay fresh', () => {
+    const room = new Room({ code: 'ABCDEF', trackId: 'cat_lai', laps: 1, hash: dataHash() });
+    const a = seat(room);
+    const before = a.inbox.filter((m) => m.t === 'state').length;
+    for (let i = 0; i < 119; i++) room.tick();
+    expect(a.inbox.filter((m) => m.t === 'state').length).toBe(before);
+    room.tick();
+    expect(a.inbox.filter((m) => m.t === 'state').length).toBe(before + 1);
+  });
+
   it('is open for quick match only while public, in the lobby and not full', () => {
     const room = new Room({ code: 'ABCDEF', trackId: 'cat_lai', laps: 1, hash: dataHash(), isPublic: true });
     expect(room.open).toBe(true);
