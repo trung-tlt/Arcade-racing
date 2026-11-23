@@ -974,6 +974,53 @@
     font-size: 15px;
   }
 }
+/* Phone landscape lobby: the racer's name needs the width, and START must stay on screen (no keyboard hints, no ping column,
+   one line for the empty slots). */
+@media (max-height: 560px) {
+  .mn-lobby .mn-keybar {
+    display: none;
+  }
+  .mn-lobby .ol-cols,
+  .mn-lobby .ol-row:not(.empty) {
+    grid-template-columns: 22px minmax(0, 1fr) 40px 96px;
+  }
+  .mn-lobby .ol-cols > :nth-child(4),
+  .mn-lobby .ol-row .ping,
+  .mn-lobby .ol-row .car .cn {
+    display: none;
+  }
+  .mn-lobby .ol-row.empty {
+    display: none;
+  }
+  .mn-lobby .ol-row:not(.empty) + .ol-row.empty {
+    display: flex;
+    min-height: 26px;
+    padding: 4px 10px;
+  }
+  .mn-lobby .ol-ready small,
+  .mn-lobby .ol-lock {
+    display: none;
+  }
+  .mn-lobby .ol-trackimg img {
+    height: 52px;
+  }
+  .mn-lobby .ol-arrow {
+    top: 9px;
+  }
+  .mn-lobby .ol-side {
+    gap: 4px;
+  }
+  .mn-lobby .ol-mycar {
+    padding: 4px 10px;
+  }
+  .mn-lobby .ol-ready,
+  .mn-lobby .ol-start {
+    padding: 5px 14px;
+  }
+  .mn-lobby .ol-leave {
+    padding: 6px 14px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .ol-spin,
   .ol-wait {
