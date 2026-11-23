@@ -32,3 +32,6 @@ pnpm-debug.log*
 !.vscode/extensions.json
 *.pem
 dist-server
+
+# Claude Design handoff bundles (textures, audio, boards): local reference only
+docs/design-handoff/
