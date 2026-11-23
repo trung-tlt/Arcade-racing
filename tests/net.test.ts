@@ -134,6 +134,15 @@ describe('websocket server', () => {
     expect(again.players).toBe(0);
     expect(again.rooms).toBe(0);
   });
+
+  it('serves Prometheus /metrics with tick percentiles and reject counters', async () => {
+    await rejection({ ...goodJoin(roomCode()), hash: 'deadbeef' });
+    const text = await (await fetch(url.replace('ws://', 'http://') + '/metrics')).text();
+    expect(text).toContain('# TYPE voltline_tick_ms gauge');
+    expect(text).toContain('voltline_tick_ms{stat="p99"}');
+    expect(text).toMatch(/voltline_rejects_total\{reason="data"\} [1-9]/);
+    expect(text).toMatch(/voltline_rooms_max \d+/);
+  });
 });
 
 describe.skipIf(!process.env.NET_LAP)('a full lap over the websocket (real time, ~90 s)', () => {
