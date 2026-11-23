@@ -357,7 +357,12 @@ export class NetServer {
       } else if (room.phase === 'results' && meta.phase !== 'lobby') {
         this.racesRun++;
         const durationSec = meta.raceStartedAt > 0 ? (now - meta.raceStartedAt) / 1000 : 0;
-        this.logEvent('info', 'race_end', { room: code, track: room.trackId, durationSec: +durationSec.toFixed(1) });
+        this.logEvent('info', 'race_end', {
+          room: code,
+          track: room.trackId,
+          durationSec: +durationSec.toFixed(1),
+          players: room.playerStats(),
+        });
       }
       meta.phase = room.phase;
     }

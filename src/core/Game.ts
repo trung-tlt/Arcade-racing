@@ -21,6 +21,7 @@ import { CombatHud } from '../ui/combatHud';
 import { Minimap } from '../ui/minimap';
 import { NameTags } from '../ui/nameTags';
 import { OnlineNameTags, type OnlineTag } from '../ui/onlineTags';
+import { NetDebugPanel } from '../ui/netDebug';
 import { pickAimTarget } from '../combat/AutoAim';
 import { type CarRaceView, effectiveT, rankCars, rubberBandSignal } from '../race/Standings';
 import { RaceManager } from '../race/RaceManager';
@@ -226,6 +227,12 @@ export class Game {
   private nameTags!: NameTags;
   /** Online only: the rival tags of board 40 (the offline game keeps `nameTags`). */
   private onlineTags: OnlineNameTags | null = null;
+  /** F8 network panel (online only) and the counters it reads. */
+  private netDebug: NetDebugPanel | null = null;
+  private netDebugAcc = 0;
+  private netDebugLogIdx = 0;
+  private extrapFrames = 0;
+  private renderFrames = 0;
   private readonly tagSeen = new Map<string, { at: number; occluded: boolean }>();
   private drawCalls = 0;
   private triangles = 0;
@@ -665,7 +672,10 @@ export class Game {
       this.trackDef.roadWidthM,
     );
     this.nameTags = new NameTags(document.getElementById('hud') as HTMLElement);
-    if (this.online) this.onlineTags = new OnlineNameTags(document.getElementById('hud') as HTMLElement);
+    if (this.online) {
+      this.onlineTags = new OnlineNameTags(document.getElementById('hud') as HTMLElement);
+      this.netDebug = new NetDebugPanel(document.body);
+    }
     this.restartRace();
   }
 
@@ -1724,9 +1734,11 @@ export class Game {
   private updatePuppets(dt: number): void {
     const net = this.online as OnlineRace;
     const now = performance.now() / 1000;
+    let extrapolating = false;
     for (const [id, car] of this.puppets) {
       const r = net.session.remotePose(id, now, dt);
       if (!r) continue;
+      if (r.pose.extrapolating) extrapolating = true;
       const fl = r.pose.fl;
       car.physics.puppetTo(r.shown, r.pose.q, r.pose.v, r.pose.st, {
         braking: (fl & FLAG_BRAKING) !== 0,
@@ -1734,6 +1746,31 @@ export class Game {
         airborne: (fl & FLAG_AIRBORNE) !== 0,
       });
     }
+    this.renderFrames++;
+    if (extrapolating) this.extrapFrames++;
+  }
+
+  /** Feed the F8 panel: every frame's duration, and a fresh sample about twice a second. */
+  private updateNetDebug(frameDt: number): void {
+    const panel = this.netDebug as NetDebugPanel;
+    const net = this.online as OnlineRace;
+    panel.frame(frameDt);
+    this.netDebugAcc += frameDt;
+    if (this.netDebugAcc < 0.5) return;
+    this.netDebugAcc = 0;
+    const log = net.session.log;
+    const recon = log.slice(this.netDebugLogIdx).map((r) => ({ kind: r.kind, errM: r.errM }));
+    this.netDebugLogIdx = log.length;
+    panel.refresh({
+      pingMs: net.client.pingMs,
+      snapGaps: net.client.snapGaps,
+      steps: net.session.stepStats,
+      margin: net.session.lastMargin,
+      minMargin: Number.isFinite(net.session.minMargin) ? net.session.minMargin : 0,
+      recon,
+      extrapFrames: this.extrapFrames,
+      frames: this.renderFrames,
+    });
   }
 
   private stepCore(dt: number): void {
@@ -2037,6 +2074,7 @@ export class Game {
       this.car.physics.yaw,
     );
     if (this.onlineTags) this.onlineTags.update(this.chase.camera, this.onlineTagList(), frameDt);
+    if (this.netDebug) this.updateNetDebug(frameDt);
     else {
       this.nameTags.update(
         this.chase.camera,
@@ -2151,6 +2189,7 @@ export class Game {
     this.minimap.dispose();
     this.nameTags.dispose();
     this.onlineTags?.dispose();
+    this.netDebug?.dispose();
     this.dev?.dispose();
     this.combat.dispose();
     this.particles.dispose();

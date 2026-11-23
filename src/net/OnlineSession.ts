@@ -56,6 +56,8 @@ export class OnlineSession {
 
   /** Lowest margin seen in the last review window (diagnostics). */
   minMargin = Infinity;
+  /** The newest margin report: ticks our newest input frame was ahead of the server's tick (diagnostics). */
+  lastMargin = 0;
   localTick = 0;
 
   constructor(
@@ -127,7 +129,8 @@ export class OnlineSession {
   private steerLead(m: Snap): void {
     // The server's view (how far ahead of its tick our newest frame arrived); until it has seen a frame from us, our own
     // lead over its tick less an assumed trip time stands in, so a client that starts far behind still finds its way.
-    this.margins.push(m.ack >= 0 ? m.ack - m.tick : this.localTick - m.tick - FALLBACK_LATENCY_TICKS);
+    this.lastMargin = m.ack >= 0 ? m.ack - m.tick : this.localTick - m.tick - FALLBACK_LATENCY_TICKS;
+    this.margins.push(this.lastMargin);
     const newLate = m.late > this.lastLate;
     this.lastLate = m.late;
     if (Math.abs(this.advance) >= 1) {
@@ -148,6 +151,17 @@ export class OnlineSession {
 
   /** How many sim steps to run this frame: 0 holds a tick, 1 is normal, more catches up. */
   planSteps(): number {
+    const n = this.plan();
+    this.stepStats.frames++;
+    if (n === 0) this.stepStats.holds++;
+    else if (n > 1) this.stepStats.catchUps++;
+    return n;
+  }
+
+  /** Frames the lead controller held (0 steps) or caught up (extra steps) since the counters were last read: visible hitches. */
+  readonly stepStats = { frames: 0, holds: 0, catchUps: 0 };
+
+  private plan(): number {
     if (this.advance >= 1) {
       // Small gaps close at +3 steps a frame; a large one (> 30 ticks) catches up in chunks of 16.
       const per = this.advance > 30 ? 16 : 3;

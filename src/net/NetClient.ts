@@ -1,3 +1,4 @@
+import { RollingWindow } from './RollingWindow';
 import {
   PROTOCOL_VERSION,
   encode,
@@ -33,6 +34,8 @@ export class NetClient {
   /** Latest snapshot from the server. */
   snap: Extract<ServerMsg, { t: 'snap' }> | null = null;
   private snapAt = 0;
+  /** Milliseconds between consecutive snapshot arrivals (nominally 50): the network-diagnostics panel reads it. */
+  readonly snapGaps = new RollingWindow(200);
   /** Diagnostics: input frames handed to `sendInput` and the newest tick among them. */
   sentFrames = 0;
   closeInfo = '';
@@ -147,7 +150,11 @@ export class NetClient {
         break;
       case 'snap':
         this.snap = m;
-        this.snapAt = performance.now();
+        {
+          const now = performance.now();
+          if (this.snapAt > 0) this.snapGaps.push(now - this.snapAt);
+          this.snapAt = now;
+        }
         this.phase = m.phase;
         this.events.onSnapshot?.(m);
         break;

@@ -77,6 +77,10 @@ export interface Player {
   ackTick: number;
   late: number;
   repeats: number;
+  /** Race totals for the end-of-race log: ticks with no frame, the longest run of them, ticks stepped. */
+  missed: number;
+  maxRepeats: number;
+  stepped: number;
   tokens: number;
   tokenStamp: number;
   dropped: number;
@@ -193,6 +197,9 @@ export class Room {
       ackTick: -1,
       late: 0,
       repeats: 0,
+      missed: 0,
+      maxRepeats: 0,
+      stepped: 0,
       tokens: BURST_TOKENS,
       tokenStamp: this.now(),
       dropped: 0,
@@ -417,12 +424,15 @@ export class Room {
     const tick = sim.tick;
     for (const p of this.players.values()) {
       const frame = p.frames.get(tick);
+      if (p.ackTick >= 0) p.stepped++;
       if (frame) {
         p.repeats = 0;
         sim.setInput(p.id, frame);
         sim.setViewTick(p.id, frame.vt);
       } else if (p.ackTick >= 0) {
         p.repeats++;
+        p.missed++;
+        if (p.repeats > p.maxRepeats) p.maxRepeats = p.repeats;
       }
       for (const k of p.frames.keys()) if (k <= tick) p.frames.delete(k);
     }
@@ -459,6 +469,18 @@ export class Room {
     for (const p of this.players.values()) p.vote = null;
     this.broadcastState();
     sim.dispose();
+  }
+
+  /** How well each human's input stream kept up this race (for the race-end log): late frames, ticks that had to repeat the last frame, longest such run. */
+  playerStats(): { name: string; rttMs: number; stepped: number; late: number; missed: number; maxRun: number }[] {
+    return [...this.players.values()].map((p) => ({
+      name: p.name,
+      rttMs: p.rtt,
+      stepped: p.stepped,
+      late: p.late,
+      missed: p.missed,
+      maxRun: p.maxRepeats,
+    }));
   }
 
   roster(): RosterEntry[] {
@@ -512,6 +534,9 @@ export class Room {
       p.ackTick = -1;
       p.late = 0;
       p.repeats = 0;
+      p.missed = 0;
+      p.maxRepeats = 0;
+      p.stepped = 0;
     }
     this.phase = 'lobby';
     if (this.players.size > 0 && ![...this.players.values()].some((p) => p.host)) this.migrateHost();
