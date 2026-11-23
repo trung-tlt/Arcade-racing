@@ -221,3 +221,7 @@ Boards 49–55 (`data/online_ui.json` now 125 strings): racer name entry (first 
 - Late loaders **join** the race when they finish loading (server starts the countdown at 20 s and keeps their seat), so `loading.anyway.join` is used.
 - Deviations: no per-player load percentage (the server only knows loaded or not), so a racer shows loading, READY or SLOW. `finished.autopilot` was reworded to match the server (a finished car coasts to a stop, weapons off, can still be hit).
 - e2e: the "finished, waiting" layer is asserted on at least one page (the client's own sim can lag the server's close under software GL).
+
+### 18.2 Phase 6 security pass (2026-11-23)
+
+Adversarial review of every client-controlled input on the race server; findings, enforcement points, env knobs and residual risks are in `docs/server-security.md`. Fixed: per-type control-message rate limit (state-broadcast amplification), far-future ticks poisoning `ack`, parser tick ceiling, name sanitising (bidi/zero-width/C1/lone surrogates/zalgo, code-point cap), room-code brute-force throttle per IP, per-IP room cap and creation rate, global connection cap, opt-in `TRUST_PROXY` for the client IP behind Caddy, slow-loris timeouts, `terminate()` for half-open sockets, write-buffer cap for non-reading clients, and exception containment per message and per room tick. Covered by `tests/security.test.ts`, which includes seeded fuzz runs against the parser and a live room. Before launch: set `TRUST_PROXY=1` and `LEGACY_JOIN=0`.

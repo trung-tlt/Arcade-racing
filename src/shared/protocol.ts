@@ -224,14 +224,30 @@ const bad: { ok: false; reason: 'bad_message' } = { ok: false, reason: 'bad_mess
 const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const clamp = (v: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, v));
 
-/** Printable ASCII/Latin text only, trimmed, at most `max` chars; empty -> the fallback. */
+/** Largest input frame tick the parser accepts (~9 days at 60 Hz); anything bigger is garbage or an attack. */
+export const MAX_INPUT_TICK = 2 ** 31 - 1;
+
+/** Invisible or direction-changing code points: zero-width, bidi marks/overrides/isolates, BOM, soft hyphen, C1, line/paragraph separators. */
+const HIDDEN_CHARS =
+  /[\u0000-\u001f\u007f-\u009f\u00ad\u034f\u061c\u115f\u1160\u17b4\u17b5\u180b-\u180e\u200b-\u200f\u2028-\u202e\u2060-\u206f\u3164\ufe00-\ufe0e\ufeff\uffa0\ufff9-\ufffb]/g;
+const MARKUP_CHARS = /[<>&"'`\\]/g;
+const MAX_MARKS_IN_A_ROW = 3;
+
+/** Display name: no controls, bidi/zero-width tricks, markup characters or lone surrogates; capped by code points. */
 export function sanitizeName(raw: string, max: number, fallback: string): string {
-  const cleaned = raw
-    .replace(/[\u0000-\u001f\u007f<>&"'`\\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, max);
-  return cleaned.length > 0 ? cleaned : fallback;
+  const flat = raw.normalize('NFC').replace(HIDDEN_CHARS, '').replace(MARKUP_CHARS, '').replace(/\s+/g, ' ').trim();
+  const out: string[] = [];
+  let marks = 0;
+  for (const ch of flat) {
+    const c = ch.codePointAt(0) as number;
+    if (c >= 0xd800 && c <= 0xdfff) continue; // lone surrogate (iterating by code point keeps pairs whole)
+    marks = /\p{M}/u.test(ch) ? marks + 1 : 0;
+    if (marks > MAX_MARKS_IN_A_ROW) continue;
+    out.push(ch);
+    if (out.length >= max) break;
+  }
+  const name = out.join('').trim();
+  return name.length > 0 ? name : fallback;
 }
 
 /**
@@ -251,7 +267,7 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
   switch (m.t) {
     case 'input': {
       const { tick, throttle, brake, steer } = m;
-      if (!isNum(tick) || !Number.isInteger(tick) || tick < 0) return bad;
+      if (!isNum(tick) || !Number.isInteger(tick) || tick < 0 || tick > MAX_INPUT_TICK) return bad;
       if (!isNum(throttle) || !isNum(brake) || !isNum(steer)) return bad;
       const vt = m.vt === undefined ? undefined : isNum(m.vt) ? clamp(m.vt, 0, 1e9) : null;
       if (vt === null) return bad;
