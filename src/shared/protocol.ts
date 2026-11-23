@@ -77,8 +77,8 @@ export type ClientMsg =
   | { t: 'car'; car: string }
   | { t: 'settings'; track?: string; laps?: number }
   | { t: 'start' }
-  /** Results screen: vote for a rematch (`true`) or ask to go back to the lobby (`false`). */
-  | { t: 'rematch'; vote: boolean }
+  /** Results screen: vote for a rematch ('yes'), ask to go back to the lobby ('lobby'), or withdraw the vote ('none'). */
+  | { t: 'rematch'; vote: RematchVote }
   | ({ t: 'input' } & InputFrame)
   | { t: 'reset' }
   | { t: 'ping'; c: number; rtt?: number }
@@ -173,6 +173,10 @@ export type RejectReason =
   | 'not_found'
   /** The server cannot open another room (quick match found nothing and the room cap is reached). */
   | 'no_rooms';
+
+/** What a client can say on the results screen. */
+export type RematchVote = 'yes' | 'lobby' | 'none';
+const REMATCH_VOTES: readonly unknown[] = ['yes', 'lobby', 'none'];
 
 /** The rematch vote while the results are up. */
 export interface RematchState {
@@ -335,7 +339,7 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
     case 'car':
       return typeof m.car === 'string' && m.car.length <= 32 ? { ok: true, msg: { t: 'car', car: m.car } } : bad;
     case 'rematch':
-      return typeof m.vote === 'boolean' ? { ok: true, msg: { t: 'rematch', vote: m.vote } } : bad;
+      return REMATCH_VOTES.includes(m.vote) ? { ok: true, msg: { t: 'rematch', vote: m.vote as RematchVote } } : bad;
     case 'start':
     case 'reset':
     case 'leave':

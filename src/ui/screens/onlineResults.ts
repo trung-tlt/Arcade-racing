@@ -9,6 +9,8 @@ import './online.css';
 
 export interface OnlineResultsDeps {
   onRematch(): void;
+  /** Click REMATCH again: take the vote back. */
+  onWithdraw(): void;
   onLobby(): void;
   onLeave(): void;
 }
@@ -67,8 +69,8 @@ export class OnlineResultsScreen implements Screen {
   }
 
   private vote(): void {
-    if (this.voted()) return;
-    this.deps.onRematch();
+    if (this.voted()) this.deps.onWithdraw();
+    else this.deps.onRematch();
   }
 
   update(view: RoomView): void {
@@ -133,8 +135,8 @@ export class OnlineResultsScreen implements Screen {
               <div class="note">${esc(str('results.vote.rule'))}</div>
               <div class="back ol-backin mn-mono"></div>
             </div>
-            <button type="button" class="ol-rematch${voted ? ' voted' : ''}" data-act="rematch" data-hotkey="enter r" data-sfx="toggle_on" data-autofocus${voted ? ' aria-disabled="true"' : ''}>
-              <span class="lbl2"><span>${esc(str('results.rematch'))}${voted ? ' ✓' : ''}</span><small>${esc(str('results.rematch.sub'))}</small></span>${kc('Enter', !voted)}
+            <button type="button" class="ol-rematch${voted ? ' voted' : ''}" data-act="rematch" data-hotkey="enter r" data-sfx="toggle_on" data-autofocus${voted ? ' aria-pressed="true"' : ' aria-pressed="false"'}>
+              <span class="lbl2"><span>${esc(str('results.rematch'))}${voted ? ' ✓' : ''}</span><small>${esc(str('results.rematch.sub'))}</small></span>${kc('Enter', true)}
             </button>
             <button type="button" class="ol-lobbybtn" data-act="lobby" data-hotkey="l" data-sfx="screen_transition"><span>${esc(str('results.lobby'))}</span>${kc('L')}</button>
             <button type="button" class="ol-leave" data-act="leave" data-hotkey="esc" data-back><span>${esc(str('results.leave'))}</span>${kc('Esc')}</button>

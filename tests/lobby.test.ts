@@ -48,8 +48,12 @@ describe('room codes and lobby messages', () => {
     const p = (o: object) => parseClientMessage(JSON.stringify(o));
     expect(p({ t: 'settings', track: 'cat_lai', laps: 40 })).toMatchObject({ ok: true, msg: { laps: 9 } });
     expect(p({ t: 'settings', laps: 'x' }).ok).toBe(false);
-    expect(p({ t: 'rematch', vote: true })).toEqual({ ok: true, msg: { t: 'rematch', vote: true } });
-    expect(p({ t: 'rematch', vote: 'yes' }).ok).toBe(false);
+    expect(p({ t: 'rematch', vote: 'yes' })).toEqual({ ok: true, msg: { t: 'rematch', vote: 'yes' } });
+    expect(p({ t: 'rematch', vote: 'none' })).toEqual({ ok: true, msg: { t: 'rematch', vote: 'none' } });
+    expect(p({ t: 'rematch', vote: 'lobby' }).ok).toBe(true);
+    expect(p({ t: 'rematch', vote: true }).ok).toBe(false); // the old boolean is no longer accepted
+    expect(p({ t: 'rematch', vote: 'maybe' }).ok).toBe(false);
+    expect(p({ t: 'rematch' }).ok).toBe(false);
     expect(p({ t: 'ping', c: 1, rtt: 99999 })).toMatchObject({ ok: true, msg: { rtt: 5000 } });
     expect(p({ t: 'ping', c: 1, rtt: 'fast' }).ok).toBe(false);
   });
@@ -199,21 +203,45 @@ describe('results and rematch', () => {
 
   it('everyone voting yes loads the same race again with the room ready', () => {
     const { room, a, b } = mk(() => 0);
-    send(room, a, { t: 'rematch', vote: true });
+    send(room, a, { t: 'rematch', vote: 'yes' });
     expect(room.phase).toBe('results');
     expect(a.state()?.rematch?.yes).toEqual(['p1']);
-    send(room, b, { t: 'rematch', vote: true });
+    send(room, b, { t: 'rematch', vote: 'yes' });
     expect(room.phase).toBe('loading');
     expect(room.trackId).toBe('cat_lai');
     expect(room.results).toBeNull();
     room.dispose();
   });
 
+  it('withdrawing a vote clears it, and a cleared vote counts as no vote', () => {
+    const { room, a, b } = mk(() => 0);
+    send(room, a, { t: 'rematch', vote: 'yes' });
+    expect(a.state()?.rematch?.yes).toEqual(['p1']);
+    send(room, a, { t: 'rematch', vote: 'none' });
+    expect(a.state()?.rematch).toMatchObject({ yes: [], no: [] });
+    // b alone voting yes must not start the race: a has no vote.
+    send(room, b, { t: 'rematch', vote: 'yes' });
+    expect(room.phase).toBe('results');
+    // A withdrawn lobby request is not a lobby request either.
+    send(room, a, { t: 'rematch', vote: 'lobby' });
+    expect(room.phase).toBe('lobby');
+    room.dispose();
+  });
+
+  it('withdrawing a lobby request keeps the vote open', () => {
+    const { room, a, b } = mk(() => 0);
+    send(room, a, { t: 'rematch', vote: 'none' }); // no vote yet: a no-op
+    send(room, b, { t: 'rematch', vote: 'yes' });
+    send(room, a, { t: 'rematch', vote: 'yes' });
+    expect(room.phase).toBe('loading');
+    room.dispose();
+  });
+
   it('one lobby request ends the vote and sends everyone back, un-readied', () => {
     const { room, a, b } = mk(() => 0);
-    send(room, a, { t: 'rematch', vote: true });
+    send(room, a, { t: 'rematch', vote: 'yes' });
     expect(room.phase).toBe('results');
-    send(room, b, { t: 'rematch', vote: false });
+    send(room, b, { t: 'rematch', vote: 'lobby' });
     expect(room.phase).toBe('lobby');
     expect([...room.players.values()].every((p) => !p.ready && p.vote === null)).toBe(true);
     expect(a.state()?.results).toBeUndefined();
@@ -222,7 +250,7 @@ describe('results and rematch', () => {
   it('the timer runs out into the lobby', () => {
     let now = 0;
     const { room, a } = mk(() => now);
-    send(room, a, { t: 'rematch', vote: true });
+    send(room, a, { t: 'rematch', vote: 'yes' });
     now = 29_000;
     room.tick();
     expect(room.phase).toBe('results');
@@ -244,7 +272,7 @@ describe('results and rematch', () => {
     (room as unknown as { finish(sim: RaceSim): void }).finish(room.sim as RaceSim);
     const row = a.state()?.results?.find((r) => r.id === 'p2');
     expect(row?.leftLap).toBeGreaterThanOrEqual(1);
-    send(room, a, { t: 'rematch', vote: true }); // b is gone: a alone decides
+    send(room, a, { t: 'rematch', vote: 'yes' }); // b is gone: a alone decides
     expect(room.phase).toBe('loading');
     expect([...room.players.keys()]).toEqual(['p1']);
     room.dispose();

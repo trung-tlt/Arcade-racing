@@ -5,6 +5,7 @@ import {
   type JoinMode,
   type RejectReason,
   type RematchState,
+  type RematchVote,
   type ResultRow,
   type RoomPhase,
   type RosterEntry,
@@ -170,7 +171,7 @@ export class LobbyClient {
   settings(track?: string, laps?: number): void {
     this.client.settings(track, laps);
   }
-  rematch(vote: boolean): void {
+  rematch(vote: RematchVote): void {
     this.client.rematch(vote);
   }
 
