@@ -156,15 +156,47 @@
   .orr-list li {
     padding: 4px 8px;
   }
+  /* Phone: below the pause buttons, one line; the order panel sits between the minimap and the speedo, clear of the pads. */
   .orr-banner {
-    top: 8px;
-    padding: 6px 14px;
-    font-size: 17px;
+    top: 58px;
+    padding: 4px 14px;
+    font-size: 16px;
+    flex-direction: row;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .orr-banner small {
+    font-size: 12px;
   }
   .orr-side {
-    top: 64px;
-    right: 8px;
-    min-width: 200px;
-    padding: 8px 10px;
+    top: 104px;
+    right: 130px;
+    min-width: 0;
+    width: 220px;
+    padding: 6px 8px;
+    gap: 4px;
+  }
+  .orr-side .orr-list {
+    gap: 2px;
+  }
+  .orr-side .orr-list li {
+    padding: 1px 6px;
+    font-size: 12px;
+  }
+  .orr-side .orr-foot {
+    min-height: 40px;
+    font-size: 12px;
+    gap: 8px;
+  }
+  .orr-side .orr-ring {
+    width: 40px;
+    height: 40px;
+  }
+  .orr-side .orr-ring + .orr-sec {
+    width: 40px;
+    font-size: 13px;
+  }
+  .orr-side .orr-rule {
+    display: none;
   }
 }

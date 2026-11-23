@@ -154,3 +154,65 @@ test('phone landscape: name, hub, lobby fit the screen; a 6-car online race stay
   expect(peak.desktop.triangles).toBeLessThan(400_000);
   await Promise.all([phone.close(), desktop.close()]);
 });
+
+test('phone landscape: the finished-waiting layer and the results screen', async ({ browser }) => {
+  test.setTimeout(700_000);
+  const phone = await (
+    await browser.newContext({ viewport: { width: 844, height: 390 }, isMobile: true, hasTouch: true })
+  ).newPage();
+  const other = await browser.newPage();
+  await openOnline(phone, true);
+  await phone.getByRole('button', { name: /^CREATE ROOM/ }).click();
+  const code = (await phone.locator('.ol-code-val').innerText()).replace('·', '');
+  await phone.getByRole('button', { name: '1', exact: true }).click(); // one lap
+  await openOnline(other, true);
+  await other.getByLabel(/Room code/).fill(code);
+  await other.getByRole('button', { name: 'JOIN', exact: true }).click();
+  await other.getByRole('button', { name: /Enter lobby/ }).click();
+  await expect(phone.locator('.mn-lobby .ol-row:not(.empty)')).toHaveCount(2);
+  await phone.getByRole('button', { name: /^READY UP/ }).click();
+  await other.getByRole('button', { name: /^READY UP/ }).click();
+  await phone.getByRole('button', { name: /START RACE/ }).click();
+
+  // Only the phone drives: it finishes first and waits for the other racer (who never moves) until the server closes the race.
+  await expect(phone.locator('canvas#game')).toBeVisible({ timeout: 60_000 });
+  await phone.waitForFunction(() => !!(window as unknown as { __voltline?: unknown }).__voltline);
+  await phone.evaluate(() =>
+    (
+      window as unknown as { __voltline: { debugAutopilot(on: boolean, fight: boolean): void } }
+    ).__voltline.debugAutopilot(true, false),
+  );
+  await phone.locator('.orr-finished .orr-banner').waitFor({ timeout: 300_000 });
+  await phone.waitForTimeout(1500);
+  await shot(phone, 'phone-finished');
+  const fits = await phone.evaluate(() =>
+    [...document.querySelectorAll('.orr-banner, .orr-side')].map((e) => {
+      const r = e.getBoundingClientRect();
+      return {
+        cls: e.className,
+        right: Math.round(r.right),
+        bottom: Math.round(r.bottom),
+        w: innerWidth,
+        h: innerHeight,
+      };
+    }),
+  );
+  console.log('FINISHED LAYER', JSON.stringify(fits));
+  for (const f of fits) {
+    expect(f.right, f.cls).toBeLessThanOrEqual(f.w);
+    expect(f.bottom, f.cls).toBeLessThanOrEqual(f.h);
+  }
+  // The grace period runs out: the layer says the race closed, then the results replace the game.
+  await expect(phone.getByText(/ONLINE RESULTS/)).toBeVisible({ timeout: 300_000 });
+  await shot(phone, 'phone-results');
+  {
+    const o = await overflow(phone);
+    console.log('RESULTS OVERFLOW', JSON.stringify(o));
+    expect(o.sideways).toEqual([]);
+    expect(o.below).toEqual([]);
+  }
+  await phone.getByRole('button', { name: /^REMATCH/ }).click();
+  await expect(phone.getByText(/1 of 2 want a rematch/)).toBeVisible();
+  await shot(phone, 'phone-results-vote');
+  await Promise.all([phone.close(), other.close()]);
+});

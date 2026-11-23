@@ -1021,6 +1021,27 @@
     padding: 6px 14px;
   }
 }
+/* Phone landscape results: the racer's name and LEAVE must stay on screen. */
+@media (max-height: 560px) {
+  .mn-oresults .ol-ocols,
+  .mn-oresults .ol-orow {
+    grid-template-columns: 30px minmax(0, 1fr) 64px 72px 72px 26px 84px;
+    gap: 4px;
+  }
+  .mn-oresults .ol-votebox .note,
+  .mn-oresults .ol-rematch small {
+    display: none;
+  }
+  .mn-oresults .ol-rematch,
+  .mn-oresults .ol-lobbybtn,
+  .mn-oresults .ol-leave {
+    padding: 6px 14px;
+    font-size: 15px;
+  }
+  .mn-oresults .ol-vote {
+    gap: 4px;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
   .ol-spin,
   .ol-wait {
