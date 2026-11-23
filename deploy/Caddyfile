@@ -9,7 +9,7 @@ race.example.com {
 		# Drop the backend from rotation when /health stops answering (single backend: this only makes the failure fast).
 		health_uri /health
 		health_interval 10s
-		# Do not cut live races when Caddy reloads its config.
+		# Do not cut live races when Caddy reloads its config (needs Caddy 2.7+; Ubuntu 26.04 ships 2.6, so omit it there).
 		stream_close_delay 5m
 	}
 

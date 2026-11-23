@@ -79,3 +79,13 @@ Rolling back the server also needs a compatible client: the client and server mu
 ## 8. Not covered
 
 TLS and DNS were not exercised from this repository (no VM was touched). First deploy should be rehearsed on a throwaway VM; see the "could not verify" list in section 19 of the release plan.
+
+## 9. First real deployment (2026-11-23)
+
+Rehearsal notes from the first VM (AWS EC2, ap-southeast-1, Ubuntu 26.04, **1 vCPU / 951 MB**, x86_64), installed as this runbook says with these differences:
+- Deploy user is `ubuntu` (already has sudo) instead of `voltline-deploy`; the service still runs as the `voltline` system user. A 2 GB swap file was added.
+- Node 22.22 and Caddy 2.6.2 come from the Ubuntu repos (`apt install nodejs npm caddy`). Caddy 2.6 does not know `stream_close_delay`; the line was removed from the VM's Caddyfile (a Caddy reload can then cut live races, so reload only when the server is empty).
+- **No domain yet.** Let's Encrypt refuses `*.amazonaws.com` names ("forbidden by policy"), so the Caddyfile host is `47-129-48-111.sslip.io` (resolves to the IP; the certificate was issued). Client build variable: `VITE_RACE_SERVER=wss://47-129-48-111.sslip.io`. Some local resolvers return a wrong address for sslip.io: test with `curl --resolve` or `--host-resolver-rules`. A real domain is the proper fix (change the Caddyfile host and `VITE_RACE_SERVER`).
+- Release uploaded with rsync (`dist-server/index.mjs`, `data/colliders`, `package.json`, `package-lock.json`) and `deploy/activate.sh`; the GitHub workflow was not used.
+- Load test from a laptop through an SSH tunnel (port 8080 stays closed): see section 18.5 of the release plan. `MAX_ROOMS=6` in production.
+- Ports 80, 443 and 22 are open in the security group; 8080 is not.

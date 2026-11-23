@@ -271,3 +271,18 @@ After merging weather, security, lobby UI and load-test branches the full Playwr
 `tests/onlinePhone.spec.ts` (phone landscape 844x390 against the real server, a desktop page as the second player) checks that the name, hub and lobby screens do not stick out and that a 6-car online race stays in the draw budget. Peak over 10 samples in an online race with combat: phone (Low preset) 112-141 draw calls and 119-131k triangles, desktop 139 draw calls and 161k triangles (budget 350 / 400k). The check found a real layout problem: the phone lobby had START and LEAVE below the fold and the racer's own name squeezed out by the ping and car-name columns. Fixed in `online.css` (phone only: no key hints, no ping column, car as a thumbnail, one line for the empty slots). Screenshots of the name, hub, lobby, loading layer and race look right; the "finished, waiting" layer and the results screen were not captured on a phone. Frame rate was not measured (software GL).
 
 Phone, second pass: the "finished, waiting" layer and the results screen were captured on the phone viewport (`onlinePhone.spec.ts`, second test: only the phone drives, so it finishes first and waits out the 30 s grace). Found and fixed: the finished banner wrapped onto three lines over the pause buttons and the side panel ran 24 px off the bottom (now one line below the pause buttons, and a compact panel between the minimap and the speedo); on the results screen LEAVE was below the fold and the player's own name was cut to "P…" (phone-only column and spacing changes). The last tweak (wider POS / REMATCH columns) was not re-run in the browser.
+
+### 18.5 First deployment and load test on the real VM (2026-11-23)
+VM: EC2 ap-southeast-1, 1 vCPU, 951 MB RAM, Ubuntu 26.04, Node 22.22, Caddy 2.6 (details in `docs/server-deploy.md` section 9). Load test (`scripts/loadtest.mjs`, 6 bots per room, 40 s per step, bots on a laptop in HCMC through an SSH tunnel to the VM, abuse limits raised for the test and restored afterwards; combat-free bots):
+
+| rooms | players | tick p50 ms | tick p99 ms | tick max ms | snapshots Hz | RSS MB |
+|---|---|---|---|---|---|---|
+| 1 | 6 | 0.48 | 4.0 (worst sample 7.7) | 121 | 20.0 | 223 |
+| 2 | 12 | 0.72 | 2.0 | 9.3 | 20.0 | 231 |
+| 4 | 24 | 1.53 | 3.0 | 8.9 | 20.0 | 233 |
+| 6 | 36 | 2.48 | 3.9 | 21.6 | 20.0 | 238 |
+| 8 | 48 | 3.01 | 6.4 | 21.9 | 20.0 | 243 |
+| 10 | 60 | 4.62 | 7.0 | 21.9 | 20.0 | 249 |
+| 12 | 72 | 5.58 | 8.6 (fails the 8 ms rule) | 27.2 | 20.0 | 255 |
+
+About 0.46 ms of tick time per busy room on this VM (4-5x the laptop). No late or rate-limited input frames. `MAX_ROOMS=6` in production: well inside the p99 rule with room for combat (bots do not fire) and for Caddy and the OS sharing the single core. End-to-end check: two real Chromium pages on the deployed server over `wss` (create, join by code, ready, start, race with name tags). Not done: a client served from a real domain, a soak longer than 40 s, real players on separate networks.
