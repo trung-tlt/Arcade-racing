@@ -286,3 +286,5 @@ VM: EC2 ap-southeast-1, 1 vCPU, 951 MB RAM, Ubuntu 26.04, Node 22.22, Caddy 2.6 
 | 12 | 72 | 5.58 | 8.6 (fails the 8 ms rule) | 27.2 | 20.0 | 255 |
 
 About 0.46 ms of tick time per busy room on this VM (4-5x the laptop). No late or rate-limited input frames. `MAX_ROOMS=6` in production: well inside the p99 rule with room for combat (bots do not fire) and for Caddy and the OS sharing the single core. End-to-end check: two real Chromium pages on the deployed server over `wss` (create, join by code, ready, start, race with name tags). Not done: a client served from a real domain, a soak longer than 40 s, real players on separate networks.
+
+Update: the server is reachable at `wss://racing-server.craftmann.app` (certificate issued; two real browsers raced on it). The Amplify client build still needs `VITE_RACE_SERVER`.
