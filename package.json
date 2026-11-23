@@ -8,10 +8,10 @@
   "homepage": "https://racing.craftmann.app",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/trung-tlt/racing.git"
+    "url": "git+https://github.com/trung-tlt/Arcade-racing.git"
   },
   "bugs": {
-    "url": "https://github.com/trung-tlt/racing/issues"
+    "url": "https://github.com/trung-tlt/Arcade-racing/issues"
   },
   "keywords": [
     "racing-game",

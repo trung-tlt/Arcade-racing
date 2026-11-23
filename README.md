@@ -4,7 +4,7 @@
 line, finish first. Race five AI rivals offline, or race up to six players online. It runs in the browser with keyboard,
 gamepad or touch (phones, landscape): nothing to install.
 
-[![CI](https://github.com/trung-tlt/racing/actions/workflows/ci.yml/badge.svg)](https://github.com/trung-tlt/racing/actions/workflows/ci.yml)
+[![CI](https://github.com/trung-tlt/Arcade-racing/actions/workflows/ci.yml/badge.svg)](https://github.com/trung-tlt/Arcade-racing/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 ### [▶ Play it now: racing.craftmann.app](https://racing.craftmann.app)
@@ -73,8 +73,8 @@ network diagnostics panel (ping, snapshot gaps, frame hitches, prediction correc
 You need Node 20.19 or newer (22 recommended).
 
 ```bash
-git clone https://github.com/trung-tlt/racing.git
-cd racing
+git clone https://github.com/trung-tlt/Arcade-racing.git
+cd Arcade-racing
 npm install
 npm run dev          # http://localhost:5173
 ```

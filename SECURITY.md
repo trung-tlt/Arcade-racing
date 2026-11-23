@@ -3,7 +3,7 @@
 ## Reporting a vulnerability
 
 Please do **not** open a public issue for a security problem. Report it privately through GitHub's
-[private vulnerability reporting](https://github.com/trung-tlt/racing/security/advisories/new) for this repository
+[private vulnerability reporting](https://github.com/trung-tlt/Arcade-racing/security/advisories/new) for this repository
 (Security tab, "Report a vulnerability"). Include what you found, how to reproduce it and the impact you expect. You
 can expect an acknowledgement within a few days.
 

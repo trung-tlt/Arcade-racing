@@ -8,8 +8,8 @@ bigger than a small fix, please open an issue first so we can agree on the direc
 Needs Node 20.19 or newer (22 recommended).
 
 ```bash
-git clone https://github.com/trung-tlt/racing.git
-cd racing
+git clone https://github.com/trung-tlt/Arcade-racing.git
+cd Arcade-racing
 npm install
 npm run dev          # http://localhost:5173
 ```
