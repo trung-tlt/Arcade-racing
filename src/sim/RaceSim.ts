@@ -24,6 +24,7 @@ import { pickupPositions } from './pickupPositions';
 import { PvdTrafficSim } from './PvdTrafficSim';
 import { hasFallen, StuckWatch, upY } from './Recovery';
 import { buildTrackColliders, computeTrackShape } from './TrackColliders';
+import { WeatherSim } from './WeatherSim';
 import { XaLoTrafficSim } from './XaLoTrafficSim';
 
 export type SlotKind = 'human' | 'ai' | 'pilot';
@@ -115,6 +116,8 @@ export class RaceSim {
   private readonly cars: CarSim[] = [];
   private readonly traffic: { update(dt: number): void; time: number }[] = [];
   private combat: CombatSim | null = null;
+  /** The map's weather (grip, puddles, flood); null on a dry map. Visual weather is the browser's. */
+  private readonly weather: WeatherSim | null;
   /** Lag compensation: every car's recent poses by tick, and the tick each human's client was drawing the others at. */
   private readonly poseHist = new Map<string, PoseHistory>();
   private readonly viewTicks = new Map<string, number>();
@@ -155,6 +158,8 @@ export class RaceSim {
       if (def.id === 'cong_hoa') this.traffic.push(new CongHoaTrafficSim(RAPIER, world, def, path));
       if (def.id === 'pham_van_dong') this.traffic.push(new PvdTrafficSim(RAPIER, world, def, path));
     }
+
+    this.weather = def.weather ? new WeatherSim(def.weather, path, RACE.track.roadY) : null;
 
     const events = this.events;
     // Rivals are balanced against the first human (or the autopilot standing in for one), else the first car.
@@ -273,6 +278,9 @@ export class RaceSim {
       skill,
       difficulty: 'normal',
       handling: carDef.handling,
+      wet: def.weather
+        ? { gripMul: def.weather.grip.wetMul, brakeDistanceMul: def.weather.grip.brakeDistanceMul }
+        : undefined,
       topSpeedMps: carDef.topSpeedKmh / 3.6,
       self: () => ({
         x: phys.curr.p.x,
@@ -420,6 +428,7 @@ export class RaceSim {
         if (!e.car.hull.wrecked && e.race.phase !== 'finished') e.car.respawn(respawnPose(path, e.race.respawnT, 0));
       }
     }
+    if (this.weather) for (const e of this.entries) this.weather.stepCar(e.id, e.car.physics, STEP);
     for (const e of this.entries) e.car.preStep(STEP);
     world.step();
     for (const e of this.entries) e.car.postStep();

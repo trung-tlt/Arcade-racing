@@ -5,18 +5,17 @@ import type { Assets } from '../core/Assets';
 import { AUDIO, RACE, type TrackDef, type WeatherDef } from '../core/Data';
 import { userSettings } from '../core/Settings';
 import { touchInput } from '../core/TouchInput';
+import { WeatherSim } from '../sim/WeatherSim';
 import type { Car } from '../vehicle/Car';
 import type { Lighting } from '../world/Lighting';
 import type { TrackPath } from '../world/TrackPath';
 import { WEATHER_FX } from './config';
 import { coversFromTrack } from './cover';
-import { inFlood } from './flood';
 import { FloodWater } from './FloodWater';
 import { rearAnchor, rotateByQuat } from './geom';
-import { composeSurface } from './grip';
 import { LightningFx } from './LightningFx';
 import { PuddleDecals } from './PuddleDecals';
-import { PuddleTracker, puddleSpots } from './puddleSpots';
+import { puddleSpots } from './puddleSpots';
 import { Rain } from './Rain';
 import { rainIntensityAt, rainParticleCount } from './rainConfig';
 import { SplashPool } from './SplashPool';
@@ -70,11 +69,10 @@ export class WeatherSystem {
   private readonly flood: FloodWater;
   private readonly lightning: LightningFx;
   private readonly sound: WeatherAudio;
-  private readonly tracker: PuddleTracker;
+  private readonly sim: WeatherSim;
   private readonly envTex: THREE.Texture;
   private readonly reduced: boolean;
   private intensity: number;
-  private readonly carT = new Map<string, number>();
   private readonly sprayAcc = new Map<string, number>();
   private readonly lat = { x: 0, y: 0, z: 0 } as Scratch;
   private readonly fwd = { x: 0, y: 0, z: 0 } as Scratch;
@@ -111,7 +109,7 @@ export class WeatherSystem {
     this.puddles.setEnvMap(this.envTex, WEATHER_FX.envMapIntensity);
     this.flood = new FloodWater(scene, track, deps.path);
     this.flood.setEnvMap(this.envTex, WEATHER_FX.envMapIntensity);
-    this.tracker = new PuddleTracker(spots, WEATHER_FX.puddle);
+    this.sim = new WeatherSim(def, deps.path, RACE.track.roadY);
 
     const W = AUDIO.weather;
     this.sound = new WeatherAudio(
@@ -135,7 +133,7 @@ export class WeatherSystem {
    * (the first lap is 0); the camera position is read from `deps.camera`.
    */
   update(dt: number, lap: number): void {
-    const { camera, path, getCars } = this.deps;
+    const { camera, getCars } = this.deps;
     const def = this.def;
     camera.getWorldPosition(this.cam);
     const target = rainIntensityAt(def, lap);
@@ -143,7 +141,7 @@ export class WeatherSystem {
     this.intensity += Math.max(-fade, Math.min(fade, target - this.intensity));
 
     const cars = getCars();
-    for (const c of cars) this.updateCar(c, dt, path);
+    for (const c of cars) this.updateCar(c, dt);
 
     this.rain.update(dt, this.cam, this.intensity);
     this.lightning.update(dt, this.cam, camera);
@@ -159,7 +157,7 @@ export class WeatherSystem {
 
   /** Where the puddles are (tests): world x, z and radius. */
   debugPuddles(): { x: number; z: number; r: number }[] {
-    return this.tracker.spotList().map((s) => ({ x: s.x, z: s.z, r: s.radiusM }));
+    return this.sim.spots.map((s) => ({ x: s.x, z: s.z, r: s.radiusM }));
   }
 
   /** Current surface multipliers of a car (tests). */
@@ -170,7 +168,7 @@ export class WeatherSystem {
       grip: c.physics.surfaceGripMul,
       drag: c.physics.dragMul,
       brake: c.physics.brakeDistanceMul,
-      puddle: this.tracker.gripActive(carId),
+      puddle: this.sim.puddleActive(carId),
     };
   }
 
@@ -181,22 +179,15 @@ export class WeatherSystem {
     return this.size.y / (2 * Math.tan((fov * Math.PI) / 360));
   }
 
-  private updateCar(c: Car, dt: number, path: TrackPath): void {
+  private updateCar(c: Car, dt: number): void {
     const ph = c.physics;
     const p = ph.curr.p;
-    const t = this.alongTrack(path, c.id, p.x, p.z);
     const speed = ph.speedMps;
 
-    const entered = this.tracker.update(c.id, p.x, p.z, dt);
-    const flooded = inFlood(this.def, t, p.y, WEATHER_FX.flood.depthTestMarginM);
-    const m = composeSurface(this.def, this.tracker.gripActive(c.id), flooded);
-    ph.surfaceGripMul = m.grip;
-    ph.brakeDistanceMul = m.brakeDistance;
-    ph.dragMul = m.drag;
+    // Remote cars online (puppets) take the same step: their multipliers do nothing, but the splash and spray show.
+    const { entered, flooded } = this.sim.stepCar(c.id, ph, dt);
 
-    if (entered && speed > WEATHER_FX.puddle.splashMinSpeedMps) {
-      const k = (Math.random() * 2 - 1) * ((WEATHER_FX.puddle.yawKickDegS * Math.PI) / 180);
-      ph.addYawKick(k);
+    if (entered) {
       this.burst(p.x, entered.y, p.z, speed, WEATHER_FX.puddle.burstParticles, 1);
       const range = AUDIO.weather.splashRangeM;
       const d = Math.hypot(p.x - this.cam.x, p.y - this.cam.y, p.z - this.cam.z);
@@ -218,20 +209,6 @@ export class WeatherSystem {
       const k = Math.min(1, Math.max(0.15, (speed - from) / Math.max(1, top - from)));
       this.emitRate(c.id, dt, sp.particlesPerSecAtTop * k, () => this.spray(c, speed));
     }
-  }
-
-  /**
-   * Along-track t of a car: a windowed search around its last t, redone over the whole lap after a jump (respawn,
-   * reset, teleport) when the windowed answer is nowhere near the car.
-   */
-  private alongTrack(path: TrackPath, id: string, x: number, z: number): number {
-    let t = path.project(x, z, this.carT.get(id));
-    const i = Math.floor((t - Math.floor(t)) * path.count) % path.count;
-    const dx = x - path.px[i];
-    const dz = z - path.pz[i];
-    if (dx * dx + dz * dz > 400) t = path.project(x, z);
-    this.carT.set(id, t);
-    return t;
   }
 
   /** Accumulate fractional emissions per car so any frame rate gives the same rate. */

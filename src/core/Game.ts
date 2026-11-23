@@ -887,6 +887,12 @@ export class Game {
     });
   }
 
+  /** 0-based lap that sets the rain: ours offline, the server's count for our car online (the server owns the race). */
+  private weatherLap(): number {
+    const own = this.online?.session.snap?.cars.find((c) => c.id === this.online?.selfId);
+    return Math.max(0, (own ? own.lap : this.race.laps.lap) - 1);
+  }
+
   /** Rain: rivals assume the wet grip and brake earlier, as the weather's multipliers apply to them too. */
   private wetForAi(): { gripMul: number; brakeDistanceMul: number } | undefined {
     const g = this.trackDef.weather?.grip;
@@ -1734,7 +1740,7 @@ export class Game {
     this.handleViewKeys();
     if (this.input.wasPressed('restart') && !this.online) this.restartRace();
     if (this.input.wasPressed('reset')) this.resetPlayer();
-    if (!this.online) this.weather?.update(dt, Math.max(0, this.race.laps.lap - 1));
+    this.weather?.update(dt, this.weatherLap());
     this.updateMonteCarlo(dt);
     this.startLights?.update(dt);
     this.updateWeaponLocks();

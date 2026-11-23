@@ -180,7 +180,7 @@ v1 total roughly **10-11 weeks** (est.), with the first two-player racing build 
 
 Done: `src/sim/` runs a 6-car AI race with full combat in Node (no three.js, no DOM) on all 5 maps: road/wall colliders (verified against the browser to 2 mm), baked scenery colliders (`scripts/bake-colliders.mjs` -> `data/colliders/`), all ambient traffic, pickups, guns, rockets, wrecks and respawns (`CombatSim`, `RocketSim`, `HitRules`, `CarSim`), stuck/fall recovery. The browser draws from the same sim classes (`Car extends CarSim`, `CombatSystem` wraps `CombatSim` with an fx sink, traffic scenery draws from the traffic sims).
 Measured: 0.08-0.10 ms mean per 60 Hz tick for a 6-car combat race (p99 under 0.3 ms), so CPU alone would allow dozens of rooms per core; the real cap must be measured with networking and snapshot encoding (Phase 6). Parity vs the browser (`scripts/parity-browser.mjs`, FIGHT=1 for combat): mean lap-1 time across the 6 cars within ~11% on every map (0-3% on four of five); total wrecks over 3 laps on all maps 109 headless vs 105 browser. Individual finishing order is chaotic (traffic, wrecks), so the tolerance is statistical.
-Open: weather (Pham Van Dong's storm slows traffic and grip) is not in the headless race and must become server state; Low preset skips traffic bodies in the browser (the server must always build them); the room cap needs a networked load test.
+Open: weather (see "Server-owned weather" under section 18; done); Low preset skips traffic bodies in the browser (the server must always build them); the room cap needs a networked load test.
 
 ## 15. Phase 2 status (2026-11-21): net core
 
@@ -221,3 +221,11 @@ Boards 49–55 (`data/online_ui.json` now 125 strings): racer name entry (first 
 - Late loaders **join** the race when they finish loading (server starts the countdown at 20 s and keeps their seat), so `loading.anyway.join` is used.
 - Deviations: no per-player load percentage (the server only knows loaded or not), so a racer shows loading, READY or SLOW. `finished.autopilot` was reworded to match the server (a finished car coasts to a stop, weapons off, can still be hit).
 - e2e: the "finished, waiting" layer is asserted on at least one page (the client's own sim can lag the server's close under software GL).
+
+### Server-owned weather
+
+What the storm (Map 4 only) changes: **simulation** = wet-road grip x0.9 everywhere, braking distance x1.2, a puddle's grip x0.65 for 0.4 s plus a small yaw kick, the flooded dip's grip x0.55 and drag x1.6 (all functions of where the car is, not of rain intensity). **Visual/audio only** = rain intensity (0.9 on lap 1, 0.6 after), particles, spray, lightning, puddle and flood meshes, rain ambience. Traffic is not slowed by the storm: `setWetSpeedMul` exists but nothing calls it, so the earlier "slows traffic" note was wrong and the server's traffic already matched.
+
+Design: the sim part moved into the three-free `src/sim/WeatherSim.ts` (puddle tracker, flood test, multipliers, per-car along-track t), stepped by `RaceSim` before each car's `preStep` and by the browser's `WeatherSystem` (which now only adds visuals). The one random input, the puddle yaw kick, is now fixed per puddle (`puddleYawKick`), so server and predicting client apply the same kick. Server AI drivers also get the wet braking/grip assumptions the browser rivals had. Protocol delta: none. Rain intensity is a pure function of the lap, and every snapshot already carries each car's `lap`; online `Game` feeds its own car's server lap to `WeatherSystem` (offline still uses the local lap). Offline behaviour is unchanged apart from the fixed kick.
+
+Evidence: `tests/weatherSim.test.ts` (schedule, determinism, effects, RaceSim on Pham Van Dong vs a dry map, and an in-process client predicting a full rainy lap: worst alone reconcile error 2.8 m, 1.4% hard snaps, inside the dry-map bounds of 3 m and 3%). Not verified: a real browser (no Playwright run), and puddle timer state across a server-side respawn (the timer runs on, the client's does too).
