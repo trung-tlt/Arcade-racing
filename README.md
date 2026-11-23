@@ -7,6 +7,13 @@ gamepad or touch (phones, landscape): nothing to install.
 [![CI](https://github.com/trung-tlt/Arcade-racing/actions/workflows/ci.yml/badge.svg)](https://github.com/trung-tlt/Arcade-racing/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
+<a href="https://craftmann.app/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/assets/brand/endorsement_craftmann_app_on_dark.svg">
+    <img alt="a CraftMann app" src="public/assets/brand/endorsement_craftmann_app_on_light.svg" width="150">
+  </picture>
+</a>
+
 ### [▶ Play it now: racing.craftmann.app](https://racing.craftmann.app)
 
 ![A rainy night on Pham Van Dong Boulevard](docs/screenshots/race-pham-van-dong.jpg)
@@ -169,6 +176,20 @@ for a year: rename a file or add a `?v=` query to its URL when it changes.
 Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the ground rules and what a pull request needs.
 Please read the [code of conduct](CODE_OF_CONDUCT.md), and report security problems privately as described in
 [SECURITY.md](SECURITY.md).
+
+## Made by CraftMann
+
+<a href="https://craftmann.app/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="public/assets/brand/craftmann_mark_on_dark.svg">
+    <img alt="CraftMann" src="public/assets/brand/craftmann_mark_on_light.svg" width="56" align="left" hspace="12">
+  </picture>
+</a>
+
+VOLTLINE is a [CraftMann](https://craftmann.app/) app, open-sourced for anyone to learn from, mod and build on. See what
+else CraftMann makes at [craftmann.app](https://craftmann.app/).
+
+<br clear="left">
 
 ## License and credits
 
