@@ -21,7 +21,8 @@ frontend:
     paths:
       - node_modules/**/*
 customHeaders:
-  # Security headers for every file (same policy as staticwebapp.config.json / public/_headers).
+  # Security headers for every file (same policy as public/_headers). connect-src must list the race server's wss:// origin
+  # (the one in VITE_RACE_SERVER) or the browser blocks the online WebSocket.
   - pattern: '**/*'
     headers:
       - key: 'X-Content-Type-Options'
@@ -29,7 +30,7 @@ customHeaders:
       - key: 'Referrer-Policy'
         value: 'strict-origin-when-cross-origin'
       - key: 'Content-Security-Policy'
-        value: "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' blob: data:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        value: "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' blob: data:; media-src 'self' blob:; connect-src 'self' blob: data: wss://racing-server.craftmann.app; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
   # Models, sounds, music and textures are served from /assets with fixed names: cache for a year (brief: immutable).
   - pattern: '/assets/**'
     headers:

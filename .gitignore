@@ -33,5 +33,5 @@ pnpm-debug.log*
 *.pem
 dist-server
 
-# Claude Design handoff bundles (textures, audio, boards): local reference only
+# local design reference bundles (large, not part of the project)
 docs/design-handoff/

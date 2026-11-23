@@ -2,6 +2,30 @@
   "name": "voltline",
   "private": true,
   "version": "0.0.0",
+  "description": "VOLTLINE: a browser 3D arcade combat racer (three.js + Rapier) with online multiplayer",
+  "license": "MIT",
+  "author": "Trung Tran",
+  "homepage": "https://racing.craftmann.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/trung-tlt/racing.git"
+  },
+  "bugs": {
+    "url": "https://github.com/trung-tlt/racing/issues"
+  },
+  "keywords": [
+    "racing-game",
+    "arcade",
+    "three.js",
+    "rapier",
+    "webgl",
+    "multiplayer",
+    "typescript",
+    "vite"
+  ],
+  "engines": {
+    "node": ">=20.19"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",

@@ -1,15 +1,16 @@
 # CLAUDE.md — VOLTLINE
 
 Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro,
-shoot to clear the line, finish first. This file is the source of truth for how to build it.
+shoot to clear the line, finish first. This file is the architecture and conventions guide for contributors and AI coding
+assistants; the README covers setup and CONTRIBUTING.md covers the pull request rules.
 
 ## Your role
-- **You write code only.** All art, audio and design data are already done and live in
-  `public/assets/` and `data/`. Never create, redraw or replace models, textures or sounds,
-  and never put placeholder art over real assets. If an asset seems missing or wrong, stop and ask.
+- **Code first.** The art, audio and design data already live in `public/assets/` and `data/`. Do not redraw, replace or
+  re-generate existing models, textures or sounds, and never put placeholder art over real assets. If an asset seems
+  missing or wrong, ask. New assets are welcome in pull requests, with their source and license stated.
 - Read `public/assets/ASSETS.md` before touching anything that loads a model, texture or sound.
-- Build **one milestone per session** (see Milestones). Stay inside its scope, and make sure the game
-  runs and is playable at the end of every milestone.
+- Keep changes focused, and make sure the game runs and is playable after every change (the milestones below are the
+  original build order and are all done).
 - Every gameplay number comes from `data/*.json`. Don't hard-code tuning values in TypeScript.
 
 ## Commands
@@ -186,7 +187,7 @@ Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Onlin
 - Use the SVGs as `<img>`; never re-type the wordmark in a font. Mono marks are for watermarks and one-colour UI.
 
 ## Sponsor brands
-Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner (`brand/*.svg`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
+Emesoft, CaptureMann and CraftMann are real sponsor logos (`public/assets/brand/*.svg`); they are trademarks and are not covered by the MIT license (see `NOTICE.md`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 
 **Studio endorsement:** VOLTLINE is "a CraftMann app". Show `brand/endorsement_craftmann_app_on_dark.svg` (use `_on_light` only on light backgrounds) directly under the VOLTLINE wordmark on the Loading and Title screens, desktop and mobile (mobile: also the rotate-device screen). Keep it at least 120 px wide, unaltered, no tint or effects, and never larger than the VOLTLINE wordmark.
 
@@ -206,7 +207,7 @@ Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner 
 - Smoke test: the game boots, a race starts, the car drives forward for 5 s, and no console errors appear.
 - After changing driving physics, play-test it in `npm run dev` and say what you tuned and why.
 
-## Milestones
+## Milestones (the original build order; all done)
 | # | Scope | Done when |
 |---|---|---|
 | M0 | Vite scaffold, loop, input, Kestrel GT on a flat plane with Rapier raycast vehicle, chase camera, drift, nitro, lil-gui tuning | driving is fun on an empty plane at 60 fps |
@@ -216,10 +217,11 @@ Emesoft, CaptureMann and CraftMann are real sponsor logos supplied by the owner 
 | M4 | HUD, menu → car select → race → results, pause, settings, all SFX | a new player can play with no explanation |
 | M5 | City dressing (buildings, cranes, tunnel, lights, water), all VFX, quality presets, perf pass, deploy | every MVP criterion passes |
 
-## Out of scope for the MVP (don't build unless asked)
-Multiplayer, career and upgrades, more tracks, dynamic weather changes (only Phạm Văn Đồng's fixed storm is in scope), paint editor, mobile touch controls,
-leaderboards, music system.
+## Not built yet (open an issue before starting)
+Career and upgrades, a paint editor, leaderboards, accounts, reconnecting into a race in progress, per-player tints online,
+dynamic weather beyond Phạm Văn Đồng's storm. Multiplayer (v1) is built: see `docs/multiplayer-release-plan.md`.
 
 ## Deploy
-Static build, deployed by GitHub Actions to Azure Static Web Apps (or Cloudflare Pages).
-Give `/assets/*` long-term immutable cache headers.
+The game is a static build (`dist/`): `amplify.yml` for AWS Amplify, `public/_headers` for Cloudflare Pages / Netlify. Give
+`/assets/*` long-term immutable cache headers. The online race server is a separate Node process: `docs/server-deploy.md`.
+The Content-Security-Policy `connect-src` must list the race server's `wss://` origin.

@@ -1,21 +1,41 @@
 # VOLTLINE
 
-Browser 3D arcade combat racer. Neon night city, every car has a roof gun. Drift to charge nitro, shoot to clear the
-line, finish first. Pick one of 11 vehicles and one of 5 maps, then race 5 AI rivals: 2-3 laps, pickups, rockets, wrecks
-and respawns. Plays with keyboard, gamepad or touch (phones, landscape).
+**A browser 3D arcade combat racer.** Neon cities, a roof gun on every car, drift to charge nitro, shoot to clear the
+line, finish first. Race five AI rivals offline, or race up to six players online. It runs in the browser with keyboard,
+gamepad or touch (phones, landscape): nothing to install.
 
-## Maps
+[![CI](https://github.com/trung-tlt/racing/actions/workflows/ci.yml/badge.svg)](https://github.com/trung-tlt/racing/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-| Map | Setting | Notes |
-|---|---|---|
-| Cat Lai Port | Night | Container yard, port gate, truck queue, quay cranes, a Reefer-lane shortcut |
-| Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
-| Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
-| Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps. 12-lane boulevard with a tree median: out on the car lanes, back on the motorbike lanes with poncho scooters. Binh Loi bridge, a small hop at Go Dua, ring-road overpass, a U-turn flyover and a flooded dip. Weather: heavy rain (easing on lap 2), wet grip, 13 puddles, tyre spray, lightning and thunder |
-| Monte-Carlo Harbour | Day | 3.3 km, 3 laps. Harbour street circuit, 12 m wide between Armco and catch fences: Sainte Dévote, the climb to Casino Square (+42 m), the hairpin, the tunnel, the harbour chicane and La Rascasse. Five-light start, no-fire zones in the tunnel and the chicane, yachts on a reflective harbour and the Fulmine FX open-wheel racer |
+### [▶ Play it now: racing.craftmann.app](https://racing.craftmann.app)
 
-Built with Vite + TypeScript (strict), three.js, Rapier (`DynamicRayCastVehicleController`), the Web Audio API and a
-plain HTML/CSS overlay for the HUD and menus.
+![A rainy night on Pham Van Dong Boulevard](docs/screenshots/race-pham-van-dong.jpg)
+
+## Features
+
+- **11 vehicles, 5 maps**, from a balanced coupe to a heavy brawler, an open-wheel racer, scooters and motorbikes. Each
+  has its own stats, hull, handling and roof gun.
+- **Combat racing:** Pulse machine gun (aim assist, heat), homing rockets, repair and nitro pickups, damage states,
+  wrecks and respawns. Drifting and takedowns charge the nitro.
+- **Five hand-built maps:** a container port at night, a daytime HCMC boulevard, Hanoi at dusk with a bridge and
+  underpass, a 4.8 km monsoon storm with puddles and a flooded dip, and a Monte-Carlo style harbour circuit.
+- **Online multiplayer:** quick match, private rooms with a six-character code, a lobby, up to six racers, name tags,
+  a rematch vote. The server is authoritative; the client predicts your own car, so steering stays instant.
+- **Every number in data files** (`data/*.json`): cars, weapons, AI, tracks, audio. Tune the game without touching code.
+- **Built for the web:** under 350 draw calls and 400k triangles, quality presets, a Low preset for phones, installable
+  as a PWA, keyboard-and-gamepad menus.
+
+## Screenshots
+
+| | |
+|---|---|
+| ![Title screen](docs/screenshots/title.jpg) | ![Garage](docs/screenshots/car-select.jpg) |
+| ![Cat Lai Port at night](docs/screenshots/race-cat-lai.jpg) | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg) |
+| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg) | ![Online lobby](docs/screenshots/online-lobby.jpg) |
+
+Phone, landscape, with the on-screen pads:
+
+![Phone landscape](docs/screenshots/race-phone.jpg)
 
 ## Controls
 
@@ -29,105 +49,132 @@ plain HTML/CSS overlay for the HUD and menus.
 | Fire rocket | K or right mouse | LB |
 | Reset to track | R | Y |
 | Pause | Esc | Start |
-| Restart race | Enter | L3 |
 | Camera: chase / hood / cockpit | V | View |
 | HUD: full / minimal / off | H | D-pad down |
-| Rear-view mirror on / off | M | |
+| Rear-view mirror | M | |
 | Look back (hold) | C | R3 |
 
-Every menu works from the keyboard or gamepad (arrows, Enter, Esc, hotkey chips).
+Every menu works from the keyboard or a gamepad (arrows, Enter, Esc, hotkey chips). On phones the game is landscape only:
+on-screen pads with auto-gas by default; tilt and swipe-wheel steering are in Settings. In an online race press **F8** for a
+network diagnostics panel (ping, snapshot gaps, frame hitches, prediction corrections) and **F9** to copy its report.
 
-**Mobile:** landscape only (portrait shows a rotate screen). Default is on-screen pads with auto-gas; tilt and
-swipe-wheel are in Settings. Phones default to the Low preset, a 1.5 DPR cap and no ambient traffic. Layout and sizes
-come from `data/touch.json`.
-## Commands
+## Maps
+
+| Map | Setting | Notes |
+|---|---|---|
+| Cat Lai Port | Night | Container yard, port gate, truck queue, quay cranes, a shortcut lane |
+| Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
+| Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
+| Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning |
+| Monte-Carlo Harbour | Day | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start |
+
+## Run it locally
+
+You need Node 20.19 or newer (22 recommended).
 
 ```bash
+git clone https://github.com/trung-tlt/racing.git
+cd racing
 npm install
-npm run dev        # Vite dev server (http://localhost:5173)
-npm run build      # tsc --noEmit && vite build -> dist/
-npm run preview    # serve the production build
-npm run test       # Vitest unit tests
-npm run lint       # ESLint + Prettier check
-npx playwright test   # browser tests (starts the dev server itself)
+npm run dev          # http://localhost:5173
 ```
 
-Playwright needs a Chromium. Install one with `npx playwright install chromium`, or point at an existing binary with
-`CHROMIUM_PATH=/path/to/chrome npx playwright test`. Tests run serially (software WebGL is slow).
+Other commands:
 
-Before finishing any change, `npm run build` and `npm run test` must pass and the browser console must stay clean.
+```bash
+npm run build        # type-check + production build -> dist/
+npm run preview      # serve the production build
+npm test             # Vitest unit tests
+npm run lint         # ESLint + Prettier check
+npx playwright test  # browser tests (starts the dev server itself; needs a Chromium)
+```
 
-## Dev URL parameters
+Playwright needs a Chromium: `npx playwright install chromium`, or `CHROMIUM_PATH=/path/to/chrome npx playwright test`.
+The browser tests run serially because software WebGL is slow.
 
-- `?quick=1` skips the menus and starts a race with defaults.
-- `?mode=practice` skips the menus and starts solo with dummy targets (no AI).
-- `?car=<vehicle id>` picks the car for quick starts (e.g. `kestrel_gt`, `wisp_r`, `mantis_650r`).
-- `?track=cat_lai|cong_hoa|xa_lo_ha_noi|pham_van_dong` picks the map for quick starts.
+Dev URL parameters: `?quick=1` skips the menus and starts a race, `?mode=practice` starts solo with dummy targets,
+`?car=<id>` and `?track=<id>` pick the car and the map (`cat_lai`, `cong_hoa`, `xa_lo_ha_noi`, `pham_van_dong`,
+`monte_carlo`). In dev builds `window.__voltline` exposes test helpers (fast-forward, teleport, autopilot).
 
-In dev builds `window.__voltline` exposes `debugState()` and test helpers used by the Playwright tests (fast-forward,
-teleport, autopilot, collider and ray queries). They are not in production builds.
+## Online multiplayer
+
+The hosted game connects to a public race server. To play with friends: **ONLINE → Create room**, share the six-character
+code, everybody picks a car and presses READY, the host starts. **Quick match** drops you into an open public room.
+
+**How it works.** A Node server (`src/server/`) runs the full race simulation at 60 Hz and sends snapshots at 20 Hz over
+WebSocket. The simulation (`src/sim/`) has no browser dependencies, so the same code runs in the client for prediction.
+The client sends tick-stamped inputs and predicts its own car (reconciling smoothly with the server), draws the other cars
+100 ms in the past by interpolation, and the server rewinds targets for shots (lag compensation, capped at 250 ms). More in
+[docs/multiplayer-release-plan.md](docs/multiplayer-release-plan.md).
+
+**Run your own server:**
+
+```bash
+npm run server:build
+PORT=8080 npm run server:start       # then open http://localhost:5173/?server=ws://localhost:8080
+```
+
+For a deployed client set `VITE_RACE_SERVER=wss://your-server.example.com` at build time, and add that origin to
+`connect-src` in the Content-Security-Policy (`amplify.yml`, `public/_headers`). Production setup (systemd, Caddy, limits,
+rollback) is in [docs/server-deploy.md](docs/server-deploy.md), and the hardening notes are in
+[docs/server-security.md](docs/server-security.md). `node scripts/loadtest.mjs` measures how many rooms a server holds.
 
 ## Project layout
 
 ```
 src/
   main.ts            boot: load assets -> menus -> race
-  core/              Game, Loop (60 Hz fixed step), Events, Input, TouchInput, Assets, Settings, Data, Records
-  world/             Track (spline -> road, barriers), TrackPath, Environment, Lighting, per-map dressing
-                     (CatLai*, CongHoa*, XaLo*, Pvd*), Windowed/InstancedModel (draw-call budget)
-  weather/           Map 4's storm: rain, wet road, puddles, flood, spray, lightning and rain audio
-  vehicle/           Car, CarPhysics, CarVisual, ChaseCamera, Nitro, Turret
-  combat/            Pulse MG, rockets, damage, pickups, CombatSystem
-  ai/                RacingLine, AIDriver, AIGunner
-  race/              RaceManager, Laps, Positions, Standings, Respawn
-  fx/                Particles, Tracers, PostFX
-  audio/             AudioBus (UI / music / game buses, underpass reverb), EngineSound, Sfx
-  ui/                HUD, screens, results, minimap, name tags, touch HUD and rotate screen, styles
-public/assets/       models/ textures/ sfx/ (the art and sound pack; code never edits these)
-data/                tuning and design data (below)
+  core/              Game, Loop (60 Hz fixed step), Input, TouchInput, Assets, Settings, Data
+  sim/               DOM-free race simulation shared by the client and the server (RaceSim, CombatSim, weather)
+  shared/            network protocol (validation, constants)
+  net/               online client: prediction, reconciliation, interpolation, clock sync, lobby client
+  server/            the race server (WebSocket front end, rooms, limits, metrics)
+  world/             tracks (spline -> road, barriers), environment, lighting, per-map dressing
+  weather/           the monsoon storm: rain, puddles, spray, lightning, audio
+  vehicle/           Car, CarPhysics (Rapier raycast vehicle), CarVisual, chase camera, nitro, turret
+  combat/            Pulse MG, rockets, damage, pickups
+  ai/                racing line, AI driver, AI gunner
+  race/              laps, positions, standings, respawn
+  fx/  audio/        particles, tracers, post-processing; the audio buses, engine and sound effects
+  ui/                HUD, menu screens (hub, lobby, results), name tags, touch HUD, styles
+public/assets/       models, textures, sound effects, music
+data/                tuning and design data (see below)
 tests/               Vitest unit tests (*.test.ts) and Playwright tests (*.spec.ts)
+scripts/             collider baking, headless-vs-browser parity check, load test, screenshot capture
+deploy/ docs/        server deployment files and the documentation
 ```
 
-## Data-driven tuning (`data/*.json`)
+## Data-driven tuning
 
-Every gameplay number lives in data, not in TypeScript.
+Every gameplay number lives in `data/`, not in TypeScript: `cars.json` (stats, colliders, wheel layout), `weapons.json`,
+`handling.json` (driving model), `combat.json`, `ai.json`, `race.json`, `audio.json`, `lighting.json`, `touch.json`,
+`online_ui.json` (online menu strings and rules) and one file per map in `tracks/` (spline, road, checkpoints, pickups,
+dressing; the storm map also has a `weather` block).
 
-- `cars.json` - per-car stats, collider, wheel layout, HP, mass, grip, drift, nitro.
-- `weapons.json` - Pulse MG, Hornet rockets, pickups, damage states, wreck/respawn rules.
-- `handling.json` - driving model: suspension, engine, steering, grip/drift, nitro, camera.
-- `combat.json` - muzzle offset, pickup radius, rocket pool, damage FX, camera shake, dummy targets.
-- `ai.json` - AI steering, pace, rubber-banding, gunner behaviour, difficulty, the 5 rivals.
-- `race.json` - countdown, track sampling, grid and AI race rules.
-- `audio.json` - volumes, loop regions, one-shots, thresholds.
-- `lighting.json` - hemisphere, moonlight and exposure.
-- `ui_sounds.json` - menu event -> sound map.
-- `touch.json` - touch control layout, sizes and mobile defaults.
-- `tracks/cat_lai.json`, `tracks/cong_hoa.json`, `tracks/xa_lo_ha_noi.json`, `tracks/pham_van_dong.json` - spline,
-  road layout, checkpoints, grid, pickups and dressing for each map. `pham_van_dong.json` also has an optional
-  `weather` block (rain per lap, wet grip, puddles, flood zone, spray, lightning, audio); no other map has one.
+## Performance
 
-## Performance budget
+Target: 60 fps at 1080p on an Apple M1 or Intel Iris Xe, under 350 draw calls and 400k triangles, first load under 5 s.
+Repeated props use `InstancedMesh`, particles, tracers and rockets are pooled, and there are at most four dynamic lights.
+Quality presets (Low / Medium / High) are in Settings; phones default to Low.
 
-60 fps at 1080p on Apple M1 / Intel Iris Xe, under 150 draw calls, under 400k triangles on screen, first load under
-5 s. Repeated props use `InstancedMesh`, particles/tracers/rockets are pooled, at most 4 dynamic lights.
-Quality presets (Low / Medium / High) are in Settings. Far dressing is distance-culled and windowed to stay inside the
-draw-call budget; Hanoi Highway near the start grid is the heaviest spot.
+## Deploying the game
 
-## Deployment
+The game is a static build (`dist/`). `amplify.yml` configures AWS Amplify Hosting (Node 22, `npm ci`, `npm run build`,
+long-cache headers for `/assets/**`, `no-cache` for `index.html`, a Content-Security-Policy); `public/_headers` carries the
+same headers for Cloudflare Pages or Netlify. Models, sounds and textures keep fixed names under `/assets/` and are cached
+for a year: rename a file or add a `?v=` query to its URL when it changes.
 
-A static build (`dist/`) hosted on **AWS Amplify Hosting**.
+## Contributing
 
-- **Git-connected (recommended):** in the Amplify console choose *Hosting → Deploy from Git*, pick this repository and
-  branch `main`. Amplify reads `amplify.yml` (Node 22, `npm ci`, `npm run build`, artifacts in `dist/`) and rebuilds on
-  every push. The same file sets the headers: `/assets/**` is cached for a year (`immutable`), `/index.html` is
-  `no-cache`, plus `nosniff`, a referrer policy and a CSP that allows only self, Google Fonts, `blob:` and WASM.
-- **Asset filenames:** models, sounds and textures keep fixed names under `/assets/` and are cached for a year. When art
-  or audio changes, rename the file or add a `?v=` query to its URL, or visitors will keep the old copy.
-- **Other hosts:** `staticwebapp.config.json` (Azure Static Web Apps) and `public/_headers` (Cloudflare Pages) carry the
-  same headers and are copied into `dist/`; they are harmless on Amplify.
+Contributions are welcome: see [CONTRIBUTING.md](CONTRIBUTING.md) for setup, the ground rules and what a pull request needs.
+Please read the [code of conduct](CODE_OF_CONDUCT.md), and report security problems privately as described in
+[SECURITY.md](SECURITY.md).
 
-## Credits
+## License and credits
 
-- Sound effects by [elevenlabs.io](https://elevenlabs.io/sound-effects/race-car) (free-plan attribution; files in
-  `public/assets/sfx/elevenlabs/`).
-- The models, textures and base sound pack in `public/assets/` are original assets made for this project.
+Code and the original models, textures and music: [MIT](LICENSE), © 2026 Trung Tran. **Not covered by the MIT license:** the
+CraftMann, CaptureMann and Emesoft brand marks, and the race-car sound effects by [ElevenLabs](https://elevenlabs.io/sound-effects/race-car)
+(free-plan attribution: *Sound effects by elevenlabs.io*). Details in [NOTICE.md](NOTICE.md).
+
+Built with [three.js](https://threejs.org), [Rapier](https://rapier.rs), [Vite](https://vite.dev), TypeScript and the Web
+Audio API.

@@ -1,6 +1,6 @@
-# VOLTLINE Online Multiplayer: Release Plan (DRAFT)
+# VOLTLINE Online Multiplayer: design, plan and build log
 
-Status: draft, owner decisions recorded (section 12). Nothing here is built. Numbers marked **(est.)** are estimates to be validated by the Phase 1 spike.
+Status: v1 is built and deployed. Sections 1-13 are the original plan (numbers marked **(est.)** were estimates, later measured); sections 14-18 record what each phase built, the evidence and the known gaps. Read the phase sections for how the system actually works today.
 
 **Release strategy: ship the smallest thing that works, as soon as possible.** The launch bar is: *at least 2 players can race each other online.* Everything else is a follow-up release.
 
@@ -153,7 +153,7 @@ v1 total roughly **10-11 weeks** (est.), with the first two-player racing build 
 | Server cost/ops burden | Budget | One small VM at launch, metrics, cap rooms |
 | Cheating via modified clients | Fairness | Server authority and input validation |
 
-## 12. Decisions (owner) and remaining questions
+## 12. Decisions and remaining questions
 
 **Decided**
 1. Bots fill empty slots in public matches: **yes**.
@@ -213,7 +213,7 @@ Built from the design handoff (canvas boards 40-48; `data/online_ui.json`, `ui/i
 - **Client**: `LobbyClient` (DOM-free: join modes, hub errors, room view, one grid announcement per race), `OnlineFlow` (hub -> lobby -> race -> results -> rematch/lobby; owns the connection; `Game.dispose` no longer closes it), screens `onlineHub`, `lobby`, `onlineResults` (+ `online.css`; phone landscape via a short-screen media query), title ONLINE entry (`O`). The server URL is `?server=`, else `VITE_RACE_SERVER`, else `ws(s)://<host>:8080`. Text fields now keep their keys in the menu navigation (`nav.ts`).
 - **Name tags** (`onlineTagLayout.ts` pure rules, `onlineTags.ts` DOM): within 60 m, full opacity to 25 m, scale 1.0 -> 0.8, nearest 5 (desktop) / 3 (phone), overlapping tags stack with a leader line, dim near the reticle, targeted ring and marker for the gun-lock target, a wall/building test every 100 ms with a 150 ms fade. Online only; the offline tags are unchanged.
 Evidence: 693 unit tests (new: `lobby`, `lobbyClient`, `onlineTagLayout`); `tests/onlineLobby.spec.ts` in real Chromium: hub (code filter incl. pasted `VX7·M4Q`, bad code, unreachable server), two players create/join/ready/start with name tags up, and a one-lap race to the flag -> results -> rematch -> second race. The e2e found three bugs that are fixed: a refused join showed "server down", a pasted code lost a character to `maxlength`, and ending a race closed the player's connection.
-Known gaps / decisions for the owner: lobby rows show car names, not thumbnails (the board has thumbnails); "Change car" reuses the offline car picker; no player-name entry yet (design item 5), names are generated `RACER-###`; a rematch vote cannot be withdrawn (the board toggles it); a player who finishes sees their race until the server closes it (up to 30 s grace); "race already started" is worded as "room full"; the lobby's "need 2 racers" and the quick-match "searching" counter ("N/6 in the best room") have no design strings, so the lobby says "waiting on another racer" and the hub shows only elapsed time; the disconnected-tag variant, ping in the HUD and teammate colours are not v1.
+Known gaps / open decisions: lobby rows show car names, not thumbnails (the board has thumbnails); "Change car" reuses the offline car picker; no player-name entry yet (design item 5), names are generated `RACER-###`; a rematch vote cannot be withdrawn (the board toggles it); a player who finishes sees their race until the server closes it (up to 30 s grace); "race already started" is worded as "room full"; the lobby's "need 2 racers" and the quick-match "searching" counter ("N/6 in the best room") have no design strings, so the lobby says "waiting on another racer" and the hub shows only elapsed time; the disconnected-tag variant, ping in the HUD and teammate colours are not v1.
 Flaky: `menus.spec.ts` logged "Cannot resume a context that has been closed" once under full-suite load (passes alone twice).
 
 ### 18.1 Design gaps wired in (2026-11-23)
