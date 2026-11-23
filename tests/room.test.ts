@@ -166,6 +166,33 @@ describe('Room input handling', () => {
     now += 5000;
     room.dispose();
   });
+
+  it('forgives bursts after a stall: drops only add up while the budget stays empty', () => {
+    let now = 0;
+    const room = mkRoom({ now: () => now, inputRatePerSec: 60 });
+    const a = seat(room);
+    send(room, a, { t: 'start' });
+    send(room, a, { t: 'ready', ready: true });
+    const frame = (tick: number): Extract<ClientMsg, { t: 'input' }> => ({
+      t: 'input',
+      tick,
+      throttle: 1,
+      brake: 0,
+      steer: 0,
+      drift: false,
+      nitro: false,
+      fire: false,
+      fireSecondary: false,
+    });
+    let tick = 5;
+    for (let burst = 0; burst < 5; burst++) {
+      // 400 frames in one instant: far over the budget, but each burst alone is not a flood
+      for (let i = 0; i < 400; i++) expect(room.handle(a.player as Player, frame(tick++))).toBeNull();
+      now += 3000; // the client recovers: the budget refills
+      room.handle(a.player as Player, frame(tick++));
+    }
+    room.dispose();
+  });
 });
 
 describe('a human drives a lap online (in-process, 60 Hz, 20 Hz snapshots)', () => {

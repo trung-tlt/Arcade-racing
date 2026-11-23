@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { execSync, spawn, type ChildProcess } from 'node:child_process';
+import { openSync } from 'node:fs';
 
 // The online menus through the real UI, against a real server with the strict lobby rules (no SOLO_START).
 const PORT = 18124;
@@ -9,8 +10,13 @@ let server: ChildProcess | null = null;
 test.beforeAll(async () => {
   execSync('npm run server:build', { stdio: 'ignore' });
   server = spawn('node', ['dist-server/index.mjs'], {
-    env: { ...process.env, PORT: String(PORT), REMATCH_SEC: '180' },
-    stdio: 'ignore',
+    env: {
+      ...process.env,
+      PORT: String(PORT),
+      REMATCH_SEC: '180',
+      LOG_LEVEL: process.env.SERVER_LOG ? 'debug' : 'silent',
+    },
+    stdio: process.env.SERVER_LOG ? ['ignore', openSync(process.env.SERVER_LOG, 'w'), 'inherit'] : 'ignore',
   });
   for (let i = 0; i < 50; i++) {
     try {

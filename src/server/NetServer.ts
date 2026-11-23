@@ -514,6 +514,9 @@ export class NetServer {
       return;
     }
     const abuse = s.room?.handle(s.player, msg) ?? null;
-    if (abuse) this.reject(s.ws, abuse);
+    if (abuse) {
+      this.logEvent('warn', 'abuse', { room: s.room?.code, player: s.player.id, msg: msg.t, reason: abuse });
+      this.reject(s.ws, abuse);
+    }
   }
 }

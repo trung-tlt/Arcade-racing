@@ -316,6 +316,9 @@ export class Room {
       return player.dropped > MAX_DROPPED_INPUTS ? 'rate' : null;
     }
     player.tokens -= 1;
+    // A stalled client (tab in the background, a slow frame) sends its backlog in one burst: forgive the drops once its
+    // budget has refilled, so only a sustained flood adds up to a disconnect.
+    if (player.tokens > BURST_TOKENS / 2) player.dropped = 0;
     const now = this.sim?.tick ?? 0;
     if (msg.tick < now) {
       player.late++; // arrived after its tick was simulated
