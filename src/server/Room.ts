@@ -80,9 +80,18 @@ export interface Player {
   tokens: number;
   tokenStamp: number;
   dropped: number;
+  /** Budget for every message that is not an input frame (each of them can fan out to the whole room). */
+  ctlTokens: number;
+  ctlStamp: number;
+  ctlDropped: number;
 }
 
 const MAX_DROPPED_INPUTS = 600;
+/** Control messages (ready, car, settings, rematch, ping, start, reset): a human taps a few per second at most. */
+const CONTROL_BURST = 30;
+const CONTROL_PER_SEC = 10;
+/** Control messages dropped for lack of budget before the player is disconnected as a flooder. */
+const MAX_DROPPED_CONTROL = 200;
 /** The lobby is re-sent this often (ticks) so the pings in it stay current. */
 const LOBBY_REFRESH_TICKS = SIM_HZ * 2;
 /** Token bucket for input frames: a short catch-up burst after a stall is legitimate, a sustained flood is not. */
@@ -187,6 +196,9 @@ export class Room {
       tokens: BURST_TOKENS,
       tokenStamp: this.now(),
       dropped: 0,
+      ctlTokens: CONTROL_BURST,
+      ctlStamp: this.now(),
+      ctlDropped: 0,
     };
     this.players.set(player.id, player);
     this.send(player, {
@@ -231,6 +243,13 @@ export class Room {
 
   /** Handle one validated message from a seated player. Returns a reject reason for a protocol abuse (caller closes). */
   handle(player: Player, msg: ClientMsg): RejectReason | null {
+    if (msg.t !== 'input' && msg.t !== 'leave') {
+      const t = this.now();
+      player.ctlTokens = Math.min(CONTROL_BURST, player.ctlTokens + ((t - player.ctlStamp) / 1000) * CONTROL_PER_SEC);
+      player.ctlStamp = t;
+      if (player.ctlTokens < 1) return ++player.ctlDropped > MAX_DROPPED_CONTROL ? 'rate' : null;
+      player.ctlTokens -= 1;
+    }
     switch (msg.t) {
       case 'input':
         return this.onInput(player, msg);
@@ -286,7 +305,9 @@ export class Room {
   private onInput(player: Player, msg: Extract<ClientMsg, { t: 'input' }>): RejectReason | null {
     // The newest tick we have seen from this client (even if the frame is then dropped or late): the client steers its
     // lead from it, so it must never be held back by the rate limiter.
-    if (msg.tick > player.ackTick) player.ackTick = msg.tick;
+    // A tick far beyond the server's own is garbage: it must not stick as the ack (and it is refused below anyway).
+    const ahead = (this.sim?.tick ?? 0) + MAX_AHEAD_TICKS;
+    if (msg.tick > player.ackTick && msg.tick <= ahead) player.ackTick = msg.tick;
     const t = this.now();
     player.tokens = Math.min(BURST_TOKENS, player.tokens + ((t - player.tokenStamp) / 1000) * this.inputRate);
     player.tokenStamp = t;
