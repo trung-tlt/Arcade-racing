@@ -6,7 +6,10 @@ let server: ChildProcess | null = null;
 
 test.beforeAll(async () => {
   execSync('npm run server:build', { stdio: 'ignore' });
-  server = spawn('node', ['dist-server/index.mjs'], { env: { ...process.env, PORT: String(PORT) }, stdio: 'ignore' });
+  server = spawn('node', ['dist-server/index.mjs'], {
+    env: { ...process.env, PORT: String(PORT), SOLO_START: '1' },
+    stdio: 'ignore',
+  });
   for (let i = 0; i < 50; i++) {
     try {
       const r = await fetch(`http://127.0.0.1:${PORT}/health`);

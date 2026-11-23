@@ -5,6 +5,8 @@ const server = new NetServer({
   port,
   host: process.env.HOST ?? '0.0.0.0',
   maxRooms: Number(process.env.MAX_ROOMS ?? 20),
+  // Dev and the browser e2e: start a race alone, without waiting for everyone to be ready.
+  soloStart: process.env.SOLO_START === '1',
   log: (line) => console.log(JSON.stringify({ at: new Date().toISOString(), msg: line })),
 });
 

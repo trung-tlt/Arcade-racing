@@ -2,7 +2,18 @@ import { createServer, type Server as HttpServer } from 'node:http';
 import { WebSocketServer, type WebSocket } from 'ws';
 import { TRACKS } from '../core/Data';
 import { dataHash } from '../shared/dataHash';
-import { MAX_MESSAGE_CHARS, SIM_HZ, encode, parseClientMessage, type RejectReason } from '../shared/protocol';
+import { randomInt } from 'node:crypto';
+import {
+  MAX_MESSAGE_CHARS,
+  PROTOCOL_VERSION,
+  ROOM_CODE_ALPHABET,
+  ROOM_CODE_LENGTH,
+  SIM_HZ,
+  encode,
+  parseClientMessage,
+  type ClientMsg,
+  type RejectReason,
+} from '../shared/protocol';
 import { initSim } from '../sim/RaceSim';
 import { Room, type Player } from './Room';
 
@@ -17,6 +28,8 @@ export interface NetServerOptions {
   joinTimeoutMs?: number;
   defaultTrack?: string;
   defaultLaps?: number;
+  /** Let the host start a race alone and without everyone being ready (dev and tests; the lobby rule is 2+ ready). */
+  soloStart?: boolean;
   log?: (line: string) => void;
 }
 
@@ -52,6 +65,7 @@ export class NetServer {
       joinTimeoutMs: 5_000,
       defaultTrack: TRACKS[0].id,
       defaultLaps: 3,
+      soloStart: false,
       log: () => undefined,
       ...o,
     };
@@ -132,8 +146,44 @@ export class NetServer {
     }
   }
 
+  /** Which room a `join` lands in (opening one when the mode allows), or why not. */
+  private pickRoom(msg: Extract<ClientMsg, { t: 'join' }>): Room | RejectReason {
+    if (msg.mode === 'join') return this.rooms.get(msg.room) ?? 'not_found';
+    if (msg.mode === 'quick') {
+      // The fullest open public room fills up first.
+      let best: Room | null = null;
+      for (const r of this.rooms.values()) if (r.open && (!best || r.players.size > best.players.size)) best = r;
+      if (best) return best;
+    } else if (msg.mode === undefined) {
+      const existing = this.rooms.get(msg.room);
+      if (existing) return existing;
+    }
+    if (this.rooms.size >= this.opts.maxRooms) return msg.mode === 'quick' ? 'no_rooms' : 'full';
+    const code = msg.mode === undefined ? msg.room : this.newCode();
+    const track = TRACKS.some((t) => t.id === msg.track) ? (msg.track as string) : this.opts.defaultTrack;
+    const room = new Room({
+      code,
+      trackId: track,
+      laps: msg.laps ?? this.opts.defaultLaps,
+      hash: this.hash,
+      isPublic: msg.mode === 'quick',
+      ...(this.opts.soloStart ? { minPlayers: 1, needAllReady: false } : {}),
+    });
+    this.rooms.set(code, room);
+    this.opts.log(`room ${code} opened (${track}${msg.mode === 'quick' ? ', public' : ''})`);
+    return room;
+  }
+
+  private newCode(): string {
+    for (;;) {
+      let code = '';
+      for (let i = 0; i < ROOM_CODE_LENGTH; i++) code += ROOM_CODE_ALPHABET[randomInt(ROOM_CODE_ALPHABET.length)];
+      if (!this.rooms.has(code)) return code;
+    }
+  }
+
   private reject(ws: WebSocket, reason: RejectReason): void {
-    ws.send(encode({ t: 'reject', reason }));
+    ws.send(encode({ t: 'reject', reason, v: PROTOCOL_VERSION }));
     ws.close(1008, reason);
   }
 
@@ -178,19 +228,9 @@ export class NetServer {
     const msg = parsed.msg;
     if (!s.player) {
       if (msg.t !== 'join') return this.reject(s.ws, 'bad_message');
-      let room = this.rooms.get(msg.room);
-      if (!room) {
-        if (this.rooms.size >= this.opts.maxRooms) return this.reject(s.ws, 'full');
-        const track = TRACKS.some((t) => t.id === msg.track) ? (msg.track as string) : this.opts.defaultTrack;
-        room = new Room({
-          code: msg.room,
-          trackId: track,
-          laps: msg.laps ?? this.opts.defaultLaps,
-          hash: this.hash,
-        });
-        this.rooms.set(msg.room, room);
-        this.opts.log(`room ${msg.room} opened (${track})`);
-      }
+      const found = this.pickRoom(msg);
+      if (typeof found === 'string') return this.reject(s.ws, found);
+      const room = found;
       const conn = {
         send: (text: string): void => {
           if (s.ws.readyState === s.ws.OPEN) s.ws.send(text);

@@ -60,7 +60,15 @@ function seat(room: Room, over: Partial<Extract<ClientMsg, { t: 'join' }>> = {})
 }
 
 const mkRoom = (extra: Partial<ConstructorParameters<typeof Room>[0]> = {}): Room =>
-  new Room({ code: 'TEST', trackId: 'cat_lai', laps: 1, hash: dataHash(), ...extra });
+  new Room({
+    code: 'TEST',
+    trackId: 'cat_lai',
+    laps: 1,
+    hash: dataHash(),
+    minPlayers: 1,
+    needAllReady: false,
+    ...extra,
+  });
 
 describe('Room lobby', () => {
   it('seats players, makes the first the host and rejects bad joins', () => {

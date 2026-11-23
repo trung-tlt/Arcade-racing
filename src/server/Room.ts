@@ -1,6 +1,7 @@
 import { AI, CARS, TRACKS } from '../core/Data';
 import {
   PROTOCOL_VERSION,
+  REMATCH_SECONDS,
   SIM_HZ,
   SNAPSHOT_EVERY_TICKS,
   encode,
@@ -11,6 +12,7 @@ import {
   type SnapRocket,
   type InputFrame,
   type RejectReason,
+  type RematchState,
   type ResultRow,
   type RoomPhase,
   type RosterEntry,
@@ -44,6 +46,13 @@ export interface RoomOptions {
   loadTimeoutMs?: number;
   /** Input messages allowed per second per player (default 180, burst 120: 60 Hz plus catch-up). */
   inputRatePerSec?: number;
+  /** Quick match may send people here (rooms opened by quick match; a "create room" room is private). */
+  isPublic?: boolean;
+  /** The host may start with at least this many humans (default 2; the lobby rule), and only once all are ready. */
+  minPlayers?: number;
+  needAllReady?: boolean;
+  /** Seconds the rematch vote runs on the results screen (default 30). */
+  rematchSec?: number;
 }
 
 export interface Player {
@@ -56,6 +65,12 @@ export interface Player {
   loaded: boolean;
   host: boolean;
   connected: boolean;
+  /** Round trip as the client last reported it (ms, -1 = not yet). */
+  rtt: number;
+  /** Results screen: 'yes' = wants a rematch, 'no' = asked for the lobby. */
+  vote: 'yes' | 'no' | null;
+  /** The lap the player was on when they left mid-race. */
+  leftLap: number | null;
   /** Frames received for ticks not yet simulated, by tick. */
   frames: Map<number, InputFrame>;
   /** Newest frame tick received, frames that arrived after their tick, and ticks that reused the previous frame. */
@@ -79,8 +94,9 @@ const MAX_AHEAD_TICKS = 90;
  */
 export class Room {
   readonly code: string;
-  readonly trackId: string;
-  readonly laps: number;
+  trackId: string;
+  laps: number;
+  readonly isPublic: boolean;
   phase: RoomPhase = 'lobby';
   readonly players = new Map<string, Player>();
   sim: RaceSim | null = null;
@@ -93,6 +109,11 @@ export class Room {
   private readonly finishGraceSec: number;
   private readonly inputRate: number;
   private readonly loadTimeoutMs: number;
+  private readonly minPlayers: number;
+  private readonly needAllReady: boolean;
+  private readonly rematchSec: number;
+  private resultsAt = 0;
+  private readonly takedowns = new Map<string, number>();
   private loadStartedAt = 0;
   private grid: GridEntry[] = [];
   private firstFinishAt: number | null = null;
@@ -113,6 +134,22 @@ export class Room {
     this.finishGraceSec = o.finishGraceSec ?? 30;
     this.inputRate = o.inputRatePerSec ?? 180;
     this.loadTimeoutMs = o.loadTimeoutMs ?? 20_000;
+    this.isPublic = o.isPublic ?? false;
+    this.minPlayers = o.minPlayers ?? 2;
+    this.needAllReady = o.needAllReady ?? true;
+    this.rematchSec = o.rematchSec ?? REMATCH_SECONDS;
+  }
+
+  /** Quick match can send a newcomer here: waiting in the lobby with a free seat. */
+  get open(): boolean {
+    return this.isPublic && this.phase === 'lobby' && this.players.size < this.maxPlayers;
+  }
+
+  /** The host's START: enough humans, and every one of them ready. */
+  canStart(): boolean {
+    const humans = [...this.players.values()].filter((p) => p.connected);
+    if (humans.length < this.minPlayers) return false;
+    return !this.needAllReady || humans.every((p) => p.ready);
   }
 
   get humanCount(): number {
@@ -137,6 +174,9 @@ export class Room {
       loaded: false,
       host: this.players.size === 0,
       connected: true,
+      rtt: -1,
+      vote: null,
+      leftLap: null,
       frames: new Map(),
       ackTick: -1,
       late: 0,
@@ -165,15 +205,25 @@ export class Room {
     player.connected = false;
     if (this.phase === 'lobby') {
       this.players.delete(player.id);
-      if (player.host) {
-        const next = [...this.players.values()][0];
-        if (next) next.host = true;
-      }
+      if (player.host) this.migrateHost();
       this.broadcastState();
+    } else if (this.phase === 'results') {
+      if (player.host) this.migrateHost();
+      this.broadcastState();
+      this.evalRematch();
     } else {
       // Mid-race: the car carries on under the AI (v1 rule; reconnect is v1.1).
+      const i = this.sim?.entries.findIndex((e) => e.id === player.id) ?? -1;
+      player.leftLap = i >= 0 && this.sim ? this.sim.views[i].lap : null;
       this.sim?.handToAI(player.id);
     }
+  }
+
+  /** The lowest-numbered connected player becomes host (the lobby rule). */
+  private migrateHost(): void {
+    for (const p of this.players.values()) if (!p.connected) p.host = false;
+    const next = [...this.players.values()].find((p) => p.connected);
+    if (next) next.host = true;
   }
 
   /** Handle one validated message from a seated player. Returns a reject reason for a protocol abuse (caller closes). */
@@ -189,13 +239,36 @@ export class Room {
           player.loaded = msg.ready;
         }
         return null;
+      case 'car':
+        if (this.phase === 'lobby' && CARS.some((c) => c.id === msg.car)) {
+          player.car = msg.car;
+          this.broadcastState();
+        }
+        return null;
+      case 'settings':
+        if (this.phase === 'lobby' && player.host) {
+          if (msg.track !== undefined && TRACKS.some((t) => t.id === msg.track)) this.trackId = msg.track;
+          if (msg.laps !== undefined) this.laps = msg.laps;
+          // Changing the race un-readies everyone: they agreed to a different one.
+          for (const p of this.players.values()) p.ready = false;
+          this.broadcastState();
+        }
+        return null;
       case 'start':
-        if (this.phase === 'lobby' && player.host) this.startRace();
+        if (this.phase === 'lobby' && player.host && this.canStart()) this.startRace();
+        return null;
+      case 'rematch':
+        if (this.phase === 'results') {
+          player.vote = msg.vote ? 'yes' : 'no';
+          this.broadcastState();
+          this.evalRematch();
+        }
         return null;
       case 'reset':
         this.sim?.requestReset(player.id);
         return null;
       case 'ping':
+        if (msg.rtt !== undefined) player.rtt = Math.round(msg.rtt);
         this.send(player, { t: 'pong', c: msg.c, s: Date.now() });
         return null;
       case 'leave':
@@ -258,7 +331,12 @@ export class Room {
     ev.on('rocketLaunched', (e) => this.pending.push({ k: 'rkt', c: e.carId, p: v3(e.pos) }));
     ev.on('explosion', (e) => this.pending.push({ k: 'boom', p: v3(e.pos), r: e.radius }));
     ev.on('carHit', (e) => this.pending.push({ k: 'hit', c: e.carId, by: e.attackerId, d: Math.round(e.damage) }));
-    ev.on('carWrecked', (e) => this.pending.push({ k: 'wreck', c: e.carId, by: e.attackerId }));
+    ev.on('carWrecked', (e) => {
+      this.pending.push({ k: 'wreck', c: e.carId, by: e.attackerId });
+      if (e.attackerId && e.attackerId !== e.carId) {
+        this.takedowns.set(e.attackerId, (this.takedowns.get(e.attackerId) ?? 0) + 1);
+      }
+    });
     ev.on('pickupTaken', (e) => this.pending.push({ k: 'pick', c: e.carId, kind: e.kind, p: v3(e.pos) }));
     ev.on('nitroBarEarned', (e) => this.pending.push({ k: 'nitro', c: e.carId, src: e.source }));
     this.grid = slots.map((sp) => ({
@@ -276,7 +354,11 @@ export class Room {
   /** One fixed 60 Hz step. */
   tick(): void {
     const sim = this.sim;
-    if (!sim || this.phase === 'results') return;
+    if (this.phase === 'results') {
+      if (this.now() - this.resultsAt > this.rematchSec * 1000) this.resetToLobby(false);
+      return;
+    }
+    if (!sim) return;
     if (this.phase === 'loading') {
       // The sim waits (no ticks) until every human has built the race, or the timeout passes.
       const everyone = [...this.players.values()].every((p) => p.loaded || !p.connected);
@@ -334,9 +416,14 @@ export class Room {
         timeSec: e?.race.finishTimeSec ?? null,
         bestLapSec: e ? (e.race.laps.lapTimes.length > 0 ? Math.min(...e.race.laps.lapTimes) : null) : null,
         bot: this.slotOf.get(id)?.kind !== 'human',
+        car: this.grid.find((g) => g.id === id)?.car ?? '',
+        takedowns: this.takedowns.get(id) ?? 0,
+        leftLap: this.players.get(id)?.leftLap ?? null,
       };
     });
     this.phase = 'results';
+    this.resultsAt = this.now();
+    for (const p of this.players.values()) p.vote = null;
     this.broadcastState();
     sim.dispose();
   }
@@ -344,9 +431,57 @@ export class Room {
   roster(): RosterEntry[] {
     const out: RosterEntry[] = [];
     for (const p of this.players.values()) {
-      out.push({ id: p.id, name: p.name, car: p.car, ready: p.ready, bot: false, host: p.host });
+      if (!p.connected) continue; // left mid-race or on the results screen: gone from the roster
+      out.push({ id: p.id, name: p.name, car: p.car, ready: p.ready, bot: false, host: p.host, ping: p.rtt });
     }
     return out;
+  }
+
+  private rematchState(): RematchState {
+    const ids = (v: 'yes' | 'no'): string[] =>
+      [...this.players.values()].filter((p) => p.connected && p.vote === v).map((p) => p.id);
+    const left = this.rematchSec - (this.now() - this.resultsAt) / 1000;
+    return { yes: ids('yes'), no: ids('no'), secLeft: Math.max(0, Math.round(left)) };
+  }
+
+  /** Everyone still here voted yes: race again. Anyone asking for the lobby ends the vote: everybody goes back. */
+  private evalRematch(): void {
+    if (this.phase !== 'results') return;
+    const here = [...this.players.values()].filter((p) => p.connected);
+    if (here.length === 0) return;
+    if (here.some((p) => p.vote === 'no')) this.resetToLobby(false);
+    else if (here.every((p) => p.vote === 'yes')) this.resetToLobby(true);
+  }
+
+  /** Back to the lobby (or, for a rematch, straight into loading the same race with everyone ready). */
+  private resetToLobby(rematch: boolean): void {
+    this.sim = null;
+    this.results = null;
+    this.firstFinishAt = null;
+    this.pending = [];
+    this.resets.clear();
+    this.slotOf.clear();
+    this.names.clear();
+    this.takedowns.clear();
+    this.grid = [];
+    for (const [id, p] of this.players) {
+      if (!p.connected) {
+        this.players.delete(id);
+        continue;
+      }
+      p.ready = rematch;
+      p.loaded = false;
+      p.vote = null;
+      p.leftLap = null;
+      p.frames.clear();
+      p.ackTick = -1;
+      p.late = 0;
+      p.repeats = 0;
+    }
+    this.phase = 'lobby';
+    if (this.players.size > 0 && ![...this.players.values()].some((p) => p.host)) this.migrateHost();
+    if (rematch && this.players.size > 0) this.startRace();
+    else this.broadcastState();
   }
 
   private broadcastState(): void {
@@ -356,8 +491,11 @@ export class Room {
       track: this.trackId,
       laps: this.laps,
       roster: this.roster(),
+      code: this.code,
+      open: this.open,
       ...(this.phase === 'loading' ? { grid: this.grid } : {}),
       ...(this.results ? { results: this.results } : {}),
+      ...(this.phase === 'results' ? { rematch: this.rematchState() } : {}),
     };
     const text = encode(msg);
     for (const p of this.players.values()) if (p.connected) p.conn.send(text);

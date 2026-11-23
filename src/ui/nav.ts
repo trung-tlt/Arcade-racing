@@ -103,6 +103,9 @@ function activate(inst: Instance): void {
   else inst.root.querySelector<HTMLElement>('[data-hotkey~="enter"]')?.click();
 }
 
+/** Keys a focused text field still lets the menu handle: Enter submits, Esc leaves, up/down move focus. */
+const TEXT_FIELD_PASS = new Set(['enter', 'escape', 'arrowup', 'arrowdown']);
+
 function onKeyDown(e: KeyboardEvent): void {
   const inst = top();
   if (!inst || hasChord(e)) return;
@@ -118,6 +121,8 @@ function onKeyDown(e: KeyboardEvent): void {
   // must never re-activate whatever got focus after the screen changed).
   if (e.repeat && !token.startsWith('arrow')) return stop();
 
+  // Typing in a text field (the room code): letters, Backspace and the caret keys belong to the field.
+  if (ae && inst.root.contains(ae) && ae.matches('input[type="text"]') && !TEXT_FIELD_PASS.has(token)) return;
   if (inst.opts.onKey?.(token, e)) return stop();
 
   const onActivator = !!ae && inst.root.contains(ae) && ae.matches('a,button');

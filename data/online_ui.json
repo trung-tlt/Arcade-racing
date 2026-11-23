@@ -1,0 +1,169 @@
+{
+  "version": 1,
+  "note": "Online v1 UI data for VOLTLINE. Screens: Screen_Online / Screen_Lobby / Screen_OnlineHUD / Screen_OnlineResults (+ Mobile_*) on the design canvas, boards 40–48.",
+  "roomCode": {
+    "length": 6,
+    "alphabet": "ABCDEFGHJKLMNPQRSTUVWXYZ23456789",
+    "display": "XXX·XXX",
+    "inputFilter": "uppercase, drop anything not in the alphabet"
+  },
+  "maxPlayers": 6,
+  "colors": {
+    "own": "#FF6A1A",
+    "enemy": "#FF3D6E",
+    "teammate": "#2EC5FF",
+    "disconnected": "#6B7585",
+    "ready": "#C6FF3D",
+    "warning": "#F2C14E",
+    "panel": "#161B23",
+    "line": "#2A3240",
+    "muted": "#9AA4B5"
+  },
+  "ping": {
+    "bars4": "< 60 ms",
+    "bars3": "60–99 ms",
+    "bars2": "100–179 ms (amber)",
+    "bars1": "≥ 180 ms (pink)"
+  },
+  "nameTags": {
+    "showWithinM": 60,
+    "fullOpacityWithinM": 25,
+    "fadeOut": "linear opacity 1 → 0 between 25 m and 60 m",
+    "scale": {
+      "atOrBelowM": 10,
+      "max": 1.0,
+      "atM": 60,
+      "min": 0.8
+    },
+    "anchor": "collider top + 0.45 m (bikes: helmet top + 0.35 m); project to screen every frame; hide when behind the camera or off screen",
+    "occlusion": "raycast camera → anchor against track walls/buildings every 100 ms; hidden → fade out over 150 ms",
+    "maxTags": {
+      "desktop": 5,
+      "phone": 3
+    },
+    "sort": "nearest drawn last (on top)",
+    "overlap": "if two tag boxes overlap, move the farther one up by its height + 4 px and draw a 1 px leader line in its colour",
+    "reticle": "tag box inside 60 px of the reticle centre → opacity × 0.35 so it never hides the target",
+    "own": "never in chase / hood / FPV; shown in orange only in replays, spectate and the results podium",
+    "fonts": {
+      "desktop": {
+        "name": "15px Space Grotesk 700",
+        "chip": "12px"
+      },
+      "phone": {
+        "name": "13px (min 12px)",
+        "chip": "10px"
+      }
+    },
+    "content": [
+      "position chip P1–P6 (tag colour background, #0E1116 text)",
+      "name, uppercase, max 12 chars, ellipsis",
+      "hull bar 4 px, tag colour on 18% white",
+      "pointer triangle 12×7 px in tag colour"
+    ],
+    "targeted": "when the local player has gun lock on this car: 2 px pink ring + glow and \"◆ TARGET\"",
+    "disconnected": "grey #6B7585 tag, plug icon, \"RECONNECTING\" for up to 10 s, then the car is removed (later, not v1)"
+  },
+  "rematch": {
+    "timeoutSec": 30,
+    "rule": "all connected players vote yes → countdown; timer 0 → everyone back to lobby"
+  },
+  "lobby": {
+    "startRule": "host only; ≥ 2 players; all present players ready",
+    "hostMigration": "host leaves → lowest slot number becomes host",
+    "guestLocks": [
+      "track",
+      "laps"
+    ]
+  },
+  "icons": {
+    "ready": "ui/icons/ready.svg",
+    "waiting": "ui/icons/waiting.svg",
+    "host": "ui/icons/host.svg",
+    "disconnected": "ui/icons/disconnected.svg",
+    "copy": "ui/icons/copy.svg",
+    "lock": "ui/icons/lock.svg",
+    "globe": "ui/icons/globe.svg",
+    "ping_1": "ui/icons/ping_1.svg",
+    "ping_2": "ui/icons/ping_2.svg",
+    "ping_3": "ui/icons/ping_3.svg",
+    "ping_4": "ui/icons/ping_4.svg"
+  },
+  "sfx": {
+    "join_room": "sfx/ui/ui_whoosh.wav",
+    "player_joined": "sfx/ui/ui_select.wav",
+    "player_left": "sfx/ui/ui_back.wav",
+    "ready_on": "sfx/ui/ui_toggle_on.wav",
+    "ready_off": "sfx/ui/ui_toggle_off.wav",
+    "all_ready": "sfx/ui/ui_car_confirm.wav",
+    "room_found": "sfx/ui/ui_car_confirm.wav",
+    "error": "sfx/ui/ui_error.wav",
+    "copy_code": "sfx/ui/ui_toggle_on.wav",
+    "track_change": "sfx/ui/ui_track_switch.wav",
+    "start": "sfx/ui/ui_start_race.wav",
+    "countdown_beep": "sfx/countdown_beep.wav",
+    "countdown_go": "sfx/countdown_go.wav",
+    "rematch_vote": "sfx/ui/ui_toggle_on.wav"
+  },
+  "strings": {
+    "title.online": "ONLINE",
+    "title.online.sub": "Quick match or room code",
+    "hub.title": "Race online",
+    "hub.quick": "QUICK MATCH",
+    "hub.quick.sub": "Join the next open room · any track",
+    "hub.create": "CREATE ROOM",
+    "hub.create.sub": "Private room · you pick the track · share the code",
+    "hub.join": "JOIN WITH CODE",
+    "hub.join.button": "JOIN",
+    "hub.join.hint": "Got a code from a friend? Type it here.",
+    "hub.join.short": "Enter all 6 characters.",
+    "hub.join.count": "{n} / 6 · letters and numbers, no O/0 or I/1",
+    "search.title": "Finding a room…",
+    "search.msg": "Looking for an open room near you. Rooms start when everyone is ready.",
+    "search.cancel": "Cancel",
+    "found.title": "Room found · {code}",
+    "found.enter": "Enter lobby",
+    "err.full.title": "That room is full",
+    "err.full.msg": "Room {code} already has 6 racers. Ask the host for a new room, or jump into quick match.",
+    "err.version.title": "Update needed",
+    "err.version.msg": "This room runs {roomVersion} and you have {myVersion}. Reload the page to update — it takes a few seconds.",
+    "err.down.title": "Can’t reach the race server",
+    "err.down.msg": "Check your connection. We’ll try again in {s} s. You can still race offline.",
+    "err.notfound.title": "No room with that code",
+    "err.notfound.msg": "Codes are 6 letters and numbers, no O / 0 or I / 1. Check it with the host.",
+    "err.empty.title": "No open rooms right now",
+    "err.empty.msg": "Nobody is waiting at the moment. Create a room and share the code — friends can join with it.",
+    "lobby.title": "Lobby",
+    "lobby.host": "ONLINE ROOM · YOU ARE HOST",
+    "lobby.guest": "ONLINE ROOM · HOST: {host}",
+    "lobby.code": "ROOM CODE",
+    "lobby.copy": "Copy",
+    "lobby.copied": "Copied!",
+    "lobby.open": "Open slot · share code {code} to fill it",
+    "lobby.ready": "READY",
+    "lobby.notready": "NOT READY",
+    "lobby.readyup": "READY UP",
+    "lobby.readyup.sub": "Tell the room you’re set",
+    "lobby.unready.sub": "Press again to un-ready",
+    "lobby.start": "START RACE",
+    "lobby.start.ok": "Everyone is ready · countdown starts for all",
+    "lobby.start.wait": "{n}/{total} ready · waiting on {missing}",
+    "lobby.hostonly": "Only the host can change the track and laps.",
+    "lobby.waitHost": "Waiting for {host} to start…",
+    "lobby.leave": "LEAVE ROOM",
+    "lobby.sameCar": "Two racers in the same car? They’re told apart in the race by name tag and colour.",
+    "results.title": "You finished {place}",
+    "results.fastest": "FASTEST LAP",
+    "results.dnf": "DNF",
+    "results.left": "LEFT LAP {lap}",
+    "results.rematch": "REMATCH",
+    "results.rematch.sub": "Same track, same laps, same room",
+    "results.votes": "{n} of {total} want a rematch",
+    "results.vote.rule": "Starts as soon as everyone still in the room says yes. Otherwise everybody goes back to the lobby when the timer runs out.",
+    "results.backIn": "Back to lobby in {mm:ss}",
+    "results.lobby": "BACK TO LOBBY",
+    "results.leave": "LEAVE ROOM",
+    "tag.target": "◆ TARGET",
+    "tag.reconnecting": "RECONNECTING"
+  }
+}

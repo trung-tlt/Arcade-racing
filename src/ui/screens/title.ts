@@ -1,5 +1,6 @@
 import { TRACKS } from '../../core/Data';
 import { keyBar, labelWithKeys } from '../hotkeys';
+import { str } from './onlineCommon';
 import { enableMenuNav, focusFirst } from '../nav';
 import type { CarPreview, PreviewFactory, Screen } from '../types';
 import './menus.css';
@@ -8,6 +9,7 @@ export interface TitleDeps {
   createPreview: PreviewFactory;
   bestLapText: () => string;
   onRace(): void;
+  onOnline(): void;
   onGarage(): void;
   onSettings(): void;
   onControls(): void;
@@ -35,6 +37,7 @@ export class TitleScreen implements Screen {
         </div>
         <nav aria-label="Main menu">
           <button type="button" class="item primary" data-act="race" data-hotkey="enter r" data-autofocus>${labelWithKeys('RACE', ['Enter', 'R'], true, `${TRACKS[0].name} · ${TRACKS[0].laps} laps`)}</button>
+          <button type="button" class="item" data-act="online" data-hotkey="o">${labelWithKeys(str('title.online'), ['O'], false, str('title.online.sub'))}</button>
           <button type="button" class="item" data-act="garage" data-hotkey="g">${labelWithKeys('GARAGE', ['G'])}</button>
           <button type="button" class="item" data-act="settings" data-hotkey="s">${labelWithKeys('SETTINGS', ['S'])}</button>
           <button type="button" class="item" data-act="controls" data-hotkey="c">${labelWithKeys('CONTROLS', ['C'])}</button>
@@ -59,6 +62,7 @@ export class TitleScreen implements Screen {
           { keys: ['↑', '↓'], label: 'Navigate' },
           { keys: ['Enter'], label: 'Select' },
           { keys: ['R'], label: 'Race' },
+          { keys: ['O'], label: 'Online' },
           { keys: ['G'], label: 'Garage' },
           { keys: ['S'], label: 'Settings' },
           { keys: ['C'], label: 'Controls' },
@@ -70,6 +74,7 @@ export class TitleScreen implements Screen {
     this.preview = deps.createPreview(this.el.querySelector('.stage') as HTMLElement, 'kestrel_gt');
     const act: Record<string, () => void> = {
       race: deps.onRace,
+      online: deps.onOnline,
       garage: deps.onGarage,
       settings: deps.onSettings,
       controls: deps.onControls,

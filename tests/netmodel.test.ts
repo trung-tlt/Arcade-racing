@@ -245,7 +245,16 @@ function race(
   seconds: number;
 } {
   const net = new VirtualNet(seed);
-  const room = new Room({ code: 'NET', trackId, laps: 1, hash: dataHash(), now: () => net.now, ...roomOpts });
+  const room = new Room({
+    code: 'NET',
+    trackId,
+    laps: 1,
+    hash: dataHash(),
+    minPlayers: 1,
+    needAllReady: false,
+    now: () => net.now,
+    ...roomOpts,
+  });
   const clients = Array.from(
     { length: humans },
     (_, i) =>
@@ -389,6 +398,8 @@ describe('a client whose frame rate is far below 60 fps', () => {
         trackId: 'monte_carlo',
         laps: 1,
         hash: dataHash(),
+        minPlayers: 1,
+        needAllReady: false,
         now: () => net.now,
         finishGraceSec: 200,
       });
@@ -430,6 +441,8 @@ describe('combat over the network', () => {
       trackId: 'monte_carlo',
       laps: 1,
       hash: dataHash(),
+      minPlayers: 1,
+      needAllReady: false,
       now: () => net.now,
       finishGraceSec: 300,
     });

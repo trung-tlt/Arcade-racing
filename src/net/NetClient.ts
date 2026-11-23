@@ -3,6 +3,7 @@ import {
   encode,
   parseServerMessage,
   type ClientMsg,
+  type JoinMode,
   type RejectReason,
   type RoomPhase,
   type ServerMsg,
@@ -14,7 +15,7 @@ export interface NetClientEvents {
   onWelcome?(m: Extract<ServerMsg, { t: 'welcome' }>): void;
   onState?(m: Extract<ServerMsg, { t: 'state' }>): void;
   onSnapshot?(m: Extract<ServerMsg, { t: 'snap' }>): void;
-  onReject?(reason: RejectReason): void;
+  onReject?(reason: RejectReason, serverV?: number): void;
   onClose?(): void;
 }
 
@@ -52,7 +53,9 @@ export class NetClient {
       const ws = new this.Ctor(this.url);
       this.ws = ws;
       ws.onopen = () => {
-        this.pingTimer = setInterval(() => this.send({ t: 'ping', c: performance.now() }), 2000);
+        const ping = (): void =>
+          this.send({ t: 'ping', c: performance.now(), ...(this.pingMs > 0 ? { rtt: Math.round(this.pingMs) } : {}) });
+        this.pingTimer = setInterval(ping, 2000);
         resolve();
       };
       ws.onerror = () => reject(new Error('connection failed'));
@@ -68,8 +71,28 @@ export class NetClient {
     });
   }
 
-  join(name: string, car: string, room: string, hash: string, track?: string, laps?: number): void {
-    this.send({ t: 'join', v: PROTOCOL_VERSION, hash, name, car, room, track, laps });
+  join(name: string, car: string, room: string, hash: string, track?: string, laps?: number, mode?: JoinMode): void {
+    this.send({ t: 'join', v: PROTOCOL_VERSION, hash, name, car, room, track, laps, ...(mode ? { mode } : {}) });
+  }
+
+  /** Lobby: pick another vehicle. */
+  car(car: string): void {
+    this.send({ t: 'car', car });
+  }
+
+  /** Host only: change the track and/or laps (this un-readies everyone). */
+  settings(track?: string, laps?: number): void {
+    this.send({ t: 'settings', track, laps });
+  }
+
+  /** Results screen: `true` votes for a rematch, `false` asks for the lobby. */
+  rematch(vote: boolean): void {
+    this.send({ t: 'rematch', vote });
+  }
+
+  /** Leave the room (the server drops the seat; the socket is closed by the caller). */
+  leave(): void {
+    this.send({ t: 'leave' });
   }
 
   ready(ready: boolean): void {
@@ -133,7 +156,7 @@ export class NetClient {
         break;
       }
       case 'reject':
-        this.events.onReject?.(m.reason);
+        this.events.onReject?.(m.reason, m.v);
         break;
     }
   }

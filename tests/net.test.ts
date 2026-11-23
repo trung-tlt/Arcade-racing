@@ -9,7 +9,7 @@ let server: NetServer;
 let url = '';
 
 beforeAll(async () => {
-  server = new NetServer({ port: 0, host: '127.0.0.1', joinTimeoutMs: 1500, defaultLaps: 1 });
+  server = new NetServer({ port: 0, host: '127.0.0.1', joinTimeoutMs: 1500, defaultLaps: 1, soloStart: true });
   const port = await server.listen();
   url = `ws://127.0.0.1:${port}`;
 });
@@ -138,7 +138,7 @@ describe('websocket server', () => {
 
 describe.skipIf(!process.env.NET_LAP)('a full lap over the websocket (real time, ~90 s)', () => {
   it('drives one lap of Cat Lai solo and gets results', async () => {
-    const s2 = new NetServer({ port: 0, host: '127.0.0.1', defaultLaps: 1 });
+    const s2 = new NetServer({ port: 0, host: '127.0.0.1', defaultLaps: 1, soloStart: true });
     const port = await s2.listen();
     let results: unknown;
     const c = new NetClient(`ws://127.0.0.1:${port}`, {

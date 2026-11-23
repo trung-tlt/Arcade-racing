@@ -154,6 +154,15 @@ All bindings go through one action map in `Input.ts`.
 - **Instancing:** Armco/fence/kerb/palms/yachts/buildings are InstancedMesh per model; the whole map must stay inside the 350 draw-call budget.
 - **Audio:** ambience/crowd zones and events from `audio`; the helicopter follows the leader; yacht horn when P1 crosses the line.
 
+## Online multiplayer UI (v1)
+Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Online results for desktop and phone). Every state can be clicked through in Play. The data lives in `data/online_ui.json`: colours, room-code alphabet, ping thresholds, name-tag numbers, the lobby and rematch rules, the sound for each event, and every UI string. The icons are in `ui/icons/*.svg`.
+- **Entry:** the title screen has ONLINE (`O`; on phone it is the row under RACE).
+- **Hub:** shows errors in place, never in pop-ups. The states are searching, found, room full, update needed, server down, bad code and no rooms. The room-code input accepts only `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, upper-cases what's typed, takes 6 characters and is shown as `XXX·XXX`.
+- **Lobby:** only the host can start, and only when there are at least 2 players and every present player is ready. Guests see the track and laps locked. If the host leaves, the lowest slot number becomes host. Ready uses `Space`; Copy shows "Copied!" for 1.6 s.
+- **Name tags:** follow `nameTags` exactly. Show a tag within 60 m only when it is on screen and not occluded. Fade it from 25 m to 60 m and scale it from 1.0 to 0.8. Cap tags at 5 on desktop and 3 on phone; stack overlapping tags and dim tags near the reticle. Own car never gets a tag. Rivals are pink, you are orange (only in replays and spectate), and teammates are cyan (later). Tags are DOM or canvas 2D over the WebGL canvas, not 3D sprites, so the text stays sharp.
+- **Results:** the rematch vote uses a 30 s timer. If every connected player votes yes, go to the countdown; otherwise everyone returns to the lobby. A player who left shows DNF with the disconnected icon.
+- **Not in v1:** name entry, per-player tints, ping in the HUD and the reconnecting banner. The disconnected tag variant is already designed on board 40.
+
 ## Driver FPV (cockpit view)
 - Camera cycle with **V**: chase → hood → cockpit. **H** cycles HUD full / minimal / off. **C** looks back.
 - `cars.json[*].fpv`: `mode` is `cockpit` (7 cars) or `helmet` (Mantis, Mira, AV8, Fulmine — open cockpit, so the halo stays visible); `eye` = camera position in car space; `fovDeg`; `tint` = paint/accent for the rig.

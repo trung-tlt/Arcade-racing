@@ -3,6 +3,7 @@ import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
 import { AI, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { NetClient } from './net/NetClient';
+import { OnlineFlow } from './ui/onlineFlow';
 import type { OnlineRace } from './net/OnlineRace';
 import { OnlineSession } from './net/OnlineSession';
 import { dataHash } from './shared/dataHash';
@@ -48,7 +49,18 @@ const FX_TEXTURES = ['spark', 'smoke', 'explosion_4x4', 'glow', 'muzzle_flash', 
   (n) => `textures/fx_${n}.png`,
 );
 
-type State = 'title' | 'carSelect' | 'raceSetup' | 'settings' | 'controls' | 'racing' | 'paused' | 'results';
+type State =
+  | 'title'
+  | 'carSelect'
+  | 'raceSetup'
+  | 'settings'
+  | 'controls'
+  | 'racing'
+  | 'paused'
+  | 'results'
+  | 'online'
+  | 'lobby'
+  | 'oresults';
 
 const DEFAULT_SETUP: RaceSetup = { carId: CARS[0].id, trackId: TRACKS[0].id, laps: 3, difficulty: 'normal' };
 
@@ -146,6 +158,8 @@ async function boot(): Promise<void> {
   const createPreview = makeShowroomFactory(assets);
   const bestText = (trackId: string = setup.trackId): string => bestLapText(loadBestLap(trackId));
 
+  /** Where the car picker returns to: the race setup, or the online lobby (changing car in a room). */
+  let carSelectFor: 'race' | 'lobby' = 'race';
   const all: Screen[] = [];
   const reg = <T extends Screen>(s: T): T => {
     all.push(s);
@@ -174,6 +188,7 @@ async function boot(): Promise<void> {
       createPreview,
       bestLapText: bestText,
       onRace: () => show('carSelect', carSelect),
+      onOnline: () => online.open(),
       onGarage: () => show('carSelect', carSelect),
       onSettings: () => {
         returnTo = 'title';
@@ -190,9 +205,10 @@ async function boot(): Promise<void> {
       createPreview,
       createThumbs: () => makeThumbnailRenderer(assets),
       initialCarId: setup.carId,
-      onBack: () => show('title', title),
+      onBack: () => (carSelectFor === 'lobby' ? backToLobby() : show('title', title)),
       onConfirm: (id) => {
         setup = { ...setup, carId: id };
+        if (carSelectFor === 'lobby') return backToLobby(id);
         rollFor(id);
         show('raceSetup', raceSetupScreen);
       },
@@ -248,7 +264,51 @@ async function boot(): Promise<void> {
     }),
   );
 
+  /** The race server: `?server=ws://host:port` for testing, else the build's `VITE_RACE_SERVER`, else a local one. */
+  const serverUrl =
+    params.get('server') ??
+    (import.meta.env.VITE_RACE_SERVER as string | undefined) ??
+    `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.hostname}:8080`;
+  const online: OnlineFlow = new OnlineFlow({
+    screensRoot,
+    serverUrl,
+    show: (id, screen) => show(id, screen),
+    getSetup: () => setup,
+    startRace: (race, track, laps) => {
+      const mine = race.grid.find((g) => g.id === race.selfId);
+      const rivals: Rival[] = race.grid
+        .filter((g) => g.id !== race.selfId)
+        .map((g) => ({ id: g.id, name: g.name, car: g.car, laneOffsetM: 0, skill: 0.9 }));
+      game?.dispose();
+      game = null;
+      void startRace({ ...setup, carId: mine?.car ?? setup.carId, trackId: track, laps }, 'race', {
+        online: race,
+        rivals,
+      });
+    },
+    stopRace: () => {
+      game?.dispose();
+      game = null;
+      stage.replaceChildren();
+      resultsShown = false;
+    },
+    changeCar: () => {
+      carSelectFor = 'lobby';
+      show('carSelect', carSelect);
+    },
+    onBackToTitle: () => show('title', title),
+    onOffline: () => show('carSelect', carSelect),
+  });
+  reg(online.hub);
+  reg(online.lobbyScreen);
+  reg(online.results);
+  const backToLobby = (carId?: string): void => {
+    carSelectFor = 'race';
+    online.returnToLobby(carId);
+  };
+
   function quitRace(next: 'title' | 'carSelect'): void {
+    online.leaveQuiet(); // an online race: give the seat up
     game?.dispose();
     game = null;
     stage.replaceChildren();
@@ -342,6 +402,8 @@ async function boot(): Promise<void> {
           show('paused', pause);
         },
         onResults: (data) => {
+          // Online, the server's results (all racers, rematch vote) replace the single-player summary.
+          if (extra?.online) return;
           if (state !== 'racing' && state !== 'results') return;
           if (!resultsShown) {
             resultsShown = true;

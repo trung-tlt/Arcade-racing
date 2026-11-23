@@ -10,6 +10,25 @@ export const SNAPSHOT_EVERY_TICKS = 3; // 20 Hz
 export const MAX_MESSAGE_CHARS = 600;
 export const MAX_NAME_CHARS = 16;
 export const MAX_ROOM_CODE_CHARS = 8;
+/** Room codes shown to players (`data/online_ui.json` roomCode): 6 characters, no O/0 or I/1. */
+export const ROOM_CODE_ALPHABET = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+export const ROOM_CODE_LENGTH = 6;
+/** The rematch vote on the results screen runs this long before everyone goes back to the lobby. */
+export const REMATCH_SECONDS = 30;
+
+/** `VX7M4Q` as shown to players: `VX7·M4Q`. */
+export const formatRoomCode = (code: string): string =>
+  code.length === ROOM_CODE_LENGTH ? `${code.slice(0, 3)}·${code.slice(3)}` : code;
+
+/** Upper-case a typed code and drop anything outside the room-code alphabet (the hub's input filter). */
+export function cleanRoomCode(raw: string): string {
+  return raw
+    .toUpperCase()
+    .split('')
+    .filter((c) => ROOM_CODE_ALPHABET.includes(c))
+    .join('')
+    .slice(0, ROOM_CODE_LENGTH);
+}
 
 /** `loading`: the grid is announced and clients are building the race; the countdown starts when all have said ready. */
 export type RoomPhase = 'lobby' | 'loading' | 'countdown' | 'racing' | 'results';
@@ -22,7 +41,12 @@ export interface RosterEntry {
   /** Bots fill empty slots. */
   bot: boolean;
   host: boolean;
+  /** Round-trip time in ms as the player last reported it (-1 = not measured yet). */
+  ping: number;
 }
+
+/** How a `join` picks its room: `create` opens a private one, `join` needs an existing code, `quick` takes the next open public room (or opens one). Without a mode the room is joined or created by the given name (dev/tests). */
+export type JoinMode = 'create' | 'join' | 'quick';
 
 /**
  * One control frame (60 Hz). `tick` is the server sim tick the frame is for: the client runs a few ticks ahead of the
@@ -38,12 +62,26 @@ export interface InputFrame extends CarControls {
 }
 
 export type ClientMsg =
-  | { t: 'join'; v: number; hash: string; name: string; car: string; room: string; track?: string; laps?: number }
+  | {
+      t: 'join';
+      v: number;
+      hash: string;
+      name: string;
+      car: string;
+      room: string;
+      track?: string;
+      laps?: number;
+      mode?: JoinMode;
+    }
   | { t: 'ready'; ready: boolean }
+  | { t: 'car'; car: string }
+  | { t: 'settings'; track?: string; laps?: number }
   | { t: 'start' }
+  /** Results screen: vote for a rematch (`true`) or ask to go back to the lobby (`false`). */
+  | { t: 'rematch'; vote: boolean }
   | ({ t: 'input' } & InputFrame)
   | { t: 'reset' }
-  | { t: 'ping'; c: number }
+  | { t: 'ping'; c: number; rtt?: number }
   | { t: 'leave' };
 
 /** Car flag bits in a snapshot. */
@@ -95,6 +133,11 @@ export interface ResultRow {
   timeSec: number | null;
   bestLapSec: number | null;
   bot: boolean;
+  car: string;
+  /** Cars this one wrecked. */
+  takedowns: number;
+  /** The lap a human was on when they left the race (null = stayed). */
+  leftLap: number | null;
 }
 
 /** A rocket in flight. */
@@ -118,11 +161,32 @@ export type NetEvent =
   | { k: 'pick'; c: string; kind: 'rocket' | 'repair' | 'nitro'; p: [number, number, number] }
   | { k: 'nitro'; c: string; src: 'drift' | 'pickup' | 'takedown' | 'hit' };
 
-export type RejectReason = 'version' | 'data' | 'full' | 'bad_message' | 'race_started' | 'rate' | 'unknown_car';
+export type RejectReason =
+  | 'version'
+  | 'data'
+  | 'full'
+  | 'bad_message'
+  | 'race_started'
+  | 'rate'
+  | 'unknown_car'
+  /** `join` with a code no room has. */
+  | 'not_found'
+  /** The server cannot open another room (quick match found nothing and the room cap is reached). */
+  | 'no_rooms';
+
+/** The rematch vote while the results are up. */
+export interface RematchState {
+  /** Player ids that voted yes / that asked to go back to the lobby. */
+  yes: string[];
+  no: string[];
+  /** Seconds left when this message was sent. */
+  secLeft: number;
+}
 
 export type ServerMsg =
   | { t: 'welcome'; id: string; room: string; tick: number; ms: number; track: string; laps: number; hz: number }
-  | { t: 'reject'; reason: RejectReason }
+  /** `v` is the server's protocol version, so a client can say "this room runs v2 and you have v1". */
+  | { t: 'reject'; reason: RejectReason; v?: number }
   | {
       t: 'state';
       phase: RoomPhase;
@@ -131,6 +195,10 @@ export type ServerMsg =
       roster: RosterEntry[];
       grid?: GridEntry[];
       results?: ResultRow[];
+      rematch?: RematchState;
+      /** The room's code and whether quick match may send people to it. */
+      code: string;
+      open: boolean;
     }
   | {
       t: 'snap';
@@ -205,13 +273,23 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
     }
     case 'join': {
       if (!isNum(m.v) || typeof m.hash !== 'string' || typeof m.name !== 'string') return bad;
-      if (typeof m.car !== 'string' || typeof m.room !== 'string') return bad;
+      if (typeof m.car !== 'string') return bad;
       if (m.hash.length > 16 || m.car.length > 32) return bad;
-      const room = m.room
-        .toUpperCase()
-        .replace(/[^A-Z0-9]/g, '')
-        .slice(0, MAX_ROOM_CODE_CHARS);
-      if (room.length === 0) return bad;
+      if (m.mode !== undefined && m.mode !== 'create' && m.mode !== 'join' && m.mode !== 'quick') return bad;
+      const mode = m.mode as JoinMode | undefined;
+      // `create` and `quick` name no room; the other forms must.
+      if (typeof m.room !== 'string' && (mode === undefined || mode === 'join')) return bad;
+      const rawRoom = typeof m.room === 'string' ? m.room : '';
+      const room =
+        mode === 'create' || mode === 'quick'
+          ? ''
+          : mode === 'join'
+            ? cleanRoomCode(rawRoom)
+            : rawRoom
+                .toUpperCase()
+                .replace(/[^A-Z0-9]/g, '')
+                .slice(0, MAX_ROOM_CODE_CHARS);
+      if (room.length === 0 && mode === undefined) return bad;
       const laps = m.laps === undefined ? undefined : isNum(m.laps) ? clamp(Math.round(m.laps), 1, 9) : null;
       if (laps === null) return bad;
       if (m.track !== undefined && (typeof m.track !== 'string' || m.track.length > 32)) return bad;
@@ -226,17 +304,30 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
           room,
           track: m.track as string | undefined,
           laps,
+          ...(mode ? { mode } : {}),
         },
       };
     }
     case 'ready':
       return typeof m.ready === 'boolean' ? { ok: true, msg: { t: 'ready', ready: m.ready } } : bad;
+    case 'settings': {
+      if (m.track !== undefined && (typeof m.track !== 'string' || m.track.length > 32)) return bad;
+      const laps = m.laps === undefined ? undefined : isNum(m.laps) ? clamp(Math.round(m.laps), 1, 9) : null;
+      if (laps === null) return bad;
+      return { ok: true, msg: { t: 'settings', track: m.track as string | undefined, laps } };
+    }
+    case 'car':
+      return typeof m.car === 'string' && m.car.length <= 32 ? { ok: true, msg: { t: 'car', car: m.car } } : bad;
+    case 'rematch':
+      return typeof m.vote === 'boolean' ? { ok: true, msg: { t: 'rematch', vote: m.vote } } : bad;
     case 'start':
     case 'reset':
     case 'leave':
       return { ok: true, msg: { t: m.t } };
     case 'ping':
-      return isNum(m.c) ? { ok: true, msg: { t: 'ping', c: m.c } } : bad;
+      if (!isNum(m.c)) return bad;
+      if (m.rtt !== undefined && !isNum(m.rtt)) return bad;
+      return { ok: true, msg: { t: 'ping', c: m.c, ...(m.rtt === undefined ? {} : { rtt: clamp(m.rtt, 0, 5000) }) } };
     default:
       return bad;
   }
