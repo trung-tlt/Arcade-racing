@@ -1,0 +1,21 @@
+# /etc/caddy/Caddyfile. Caddy gets and renews the TLS certificate by itself (DNS A/AAAA record must point at this VM,
+# ports 80 and 443 open). Replace the host name. The client is built with VITE_RACE_SERVER=wss://race.example.com.
+race.example.com {
+	# WebSocket upgrade needs no special config in Caddy 2; long-lived connections are fine.
+	@internal path /metrics
+	respond @internal 404
+
+	reverse_proxy 127.0.0.1:8080 {
+		# Drop the backend from rotation when /health stops answering (single backend: this only makes the failure fast).
+		health_uri /health
+		health_interval 10s
+		# Do not cut live races when Caddy reloads its config.
+		stream_close_delay 5m
+	}
+
+	encode zstd gzip
+	log {
+		output file /var/log/caddy/voltline-access.log
+		format json
+	}
+}

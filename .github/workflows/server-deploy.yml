@@ -1,0 +1,81 @@
+name: server-deploy
+
+# Builds and tests the race server on demand and ships it to the VM. There is no automatic deploy: run it from the
+# Actions tab. The `deploy` job uses the `production-server` environment; add required reviewers to that environment
+# (Settings > Environments) so a person approves every release before any secret is released to the job.
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref (branch, tag or SHA) to deploy
+        required: false
+        default: main
+
+concurrency:
+  group: server-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npx vitest run
+      - run: npm run server:build
+      - name: Assemble release (dist-server, baked colliders, manifests)
+        run: |
+          mkdir -p release/data
+          cp -r dist-server release/dist-server
+          cp -r data/colliders release/data/colliders
+          cp package.json package-lock.json release/
+          cp deploy/activate.sh release/activate.sh
+          echo "${GITHUB_SHA}" > release/REVISION
+      - uses: actions/upload-artifact@v4
+        with:
+          name: voltline-server-release
+          path: release
+          retention-days: 14
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    # Required reviewers on this environment are the manual approval gate.
+    environment: production-server
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: voltline-server-release
+          path: release
+      - name: SSH setup
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+      - name: Upload and activate
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/voltline' }}
+        run: |
+          id="$(date -u +%Y%m%d-%H%M%S)-${GITHUB_SHA::7}"
+          ssh_cmd="ssh -i ~/.ssh/id_deploy -o StrictHostKeyChecking=yes"
+          rsync -az --delete -e "$ssh_cmd" release/ "$DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH/releases/$id/"
+          $ssh_cmd "$DEPLOY_USER@$DEPLOY_HOST" "bash $DEPLOY_PATH/releases/$id/activate.sh $DEPLOY_PATH/releases/$id"
+      - name: Remove key
+        if: always()
+        run: rm -f ~/.ssh/id_deploy

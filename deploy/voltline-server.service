@@ -1,0 +1,37 @@
+# systemd unit for the VOLTLINE race server (install to /etc/systemd/system/voltline-server.service).
+# Layout (see docs/server-deploy.md): /opt/voltline/current -> releases/<id>, which holds dist-server/, data/colliders/,
+# package.json and node_modules/. The server reads data/colliders relative to its WORKING DIRECTORY, so keep it as below.
+[Unit]
+Description=VOLTLINE race server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=voltline
+Group=voltline
+WorkingDirectory=/opt/voltline/current
+EnvironmentFile=/etc/voltline/server.env
+ExecStart=/usr/bin/node dist-server/index.mjs
+Restart=always
+RestartSec=2
+# The race loop is one thread; a stuck process is better restarted than left half dead.
+TimeoutStopSec=10
+KillSignal=SIGTERM
+LimitNOFILE=65536
+# Caps a leak well before the VM starts swapping (2 GB VM; the measured load is far below this).
+MemoryMax=1500M
+# Sandbox: it only listens on a port and reads its own directory.
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+CapabilityBoundingSet=
+SystemCallArchitectures=native
+
+[Install]
+WantedBy=multi-user.target
