@@ -59,6 +59,7 @@ type State =
   | 'paused'
   | 'results'
   | 'online'
+  | 'oname'
   | 'lobby'
   | 'oresults';
 
@@ -300,6 +301,7 @@ async function boot(): Promise<void> {
     onOffline: () => show('carSelect', carSelect),
   });
   reg(online.hub);
+  reg(online.nameScreen);
   reg(online.lobbyScreen);
   reg(online.results);
   const backToLobby = (carId?: string): void => {
@@ -403,7 +405,10 @@ async function boot(): Promise<void> {
         },
         onResults: (data) => {
           // Online, the server's results (all racers, rematch vote) replace the single-player summary.
-          if (extra?.online) return;
+          if (extra?.online) {
+            online.finished(data);
+            return;
+          }
           if (state !== 'racing' && state !== 'results') return;
           if (!resultsShown) {
             resultsShown = true;

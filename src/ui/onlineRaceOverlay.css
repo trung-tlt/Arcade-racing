@@ -1,0 +1,170 @@
+/* Online race overlays: "getting everyone ready" and "finished, waiting" (boards 50-55). Above the HUD, below the menus. */
+.orr {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  pointer-events: none;
+  font-family: inherit;
+  color: #f2f4f8;
+}
+.orr[hidden] {
+  display: none;
+}
+.orr-loading {
+  display: grid;
+  place-items: center;
+  background: rgba(8, 10, 14, 0.72);
+}
+.orr-card,
+.orr-side {
+  background: rgba(22, 27, 35, 0.94);
+  border: 1px solid #2a3340;
+  border-radius: 14px;
+  padding: 22px 26px;
+  min-width: min(440px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.orr-card h2 {
+  margin: 0;
+  font-size: 28px;
+}
+.orr-me {
+  color: #9aa6b6;
+  font-size: 15px;
+}
+.orr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.orr-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, 0.8);
+}
+.orr-list li.me {
+  border: 1px solid #ff6a1a;
+}
+.orr-list li b,
+.orr-list li > span:first-of-type:not(.orr-st) {
+  flex: 1;
+}
+.orr-list li.racing {
+  color: #9aa6b6;
+}
+.orr-st {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: #9aa6b6;
+  font-size: 14px;
+}
+.orr-st.ready {
+  color: #5be3a0;
+}
+.orr-st.slow {
+  color: #ffb02e;
+}
+.orr-list .badge {
+  font-style: normal;
+  font-size: 11px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #ff6a1a;
+  color: #111;
+}
+.orr-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  min-height: 52px;
+}
+.orr-ring {
+  width: 52px;
+  height: 52px;
+  flex: none;
+}
+.orr-ring .bg {
+  fill: none;
+  stroke: #2a3340;
+  stroke-width: 4;
+}
+.orr-ring .fg {
+  fill: none;
+  stroke: #2ec5ff;
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.orr-ring.warn .fg {
+  stroke: #ffb02e;
+}
+.orr-ring + .orr-sec {
+  position: absolute;
+  left: 0;
+  width: 52px;
+  text-align: center;
+  font-size: 15px;
+}
+.orr-rule {
+  color: #7d8a9b;
+  font-size: 13px;
+}
+/* Finished: banner on top, side panel on the right; nothing covers the race. */
+.orr-banner {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px 22px;
+  border-radius: 12px;
+  border: 1px solid #ff6a1a;
+  background: rgba(14, 17, 22, 0.88);
+  font-size: 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.orr-banner small {
+  color: #9aa6b6;
+  font-size: 13px;
+}
+.orr-side {
+  position: absolute;
+  right: 18px;
+  top: 96px;
+  min-width: 270px;
+  padding: 14px 16px;
+}
+@media (max-height: 560px) {
+  .orr-card {
+    padding: 12px 16px;
+    gap: 6px;
+  }
+  .orr-card h2 {
+    font-size: 20px;
+  }
+  .orr-list li {
+    padding: 4px 8px;
+  }
+  .orr-banner {
+    top: 8px;
+    padding: 6px 14px;
+    font-size: 17px;
+  }
+  .orr-side {
+    top: 64px;
+    right: 8px;
+    min-width: 200px;
+    padding: 8px 10px;
+  }
+}

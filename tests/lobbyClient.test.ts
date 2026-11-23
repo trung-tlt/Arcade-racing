@@ -32,7 +32,7 @@ describe('LobbyClient', () => {
     expect(hubErrorOf('not_found')).toBe('notfound');
     expect(hubErrorOf('no_rooms')).toBe('empty');
     expect(hubErrorOf('full')).toBe('full');
-    expect(hubErrorOf('race_started')).toBe('full');
+    expect(hubErrorOf('race_started')).toBe('started');
   });
 
   it('creates a room, a friend joins by code, the host picks the race and the room starts when all are ready', async () => {

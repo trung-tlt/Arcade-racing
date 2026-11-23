@@ -13,7 +13,7 @@ import {
 import { NetClient } from './NetClient';
 
 /** What the online hub shows in place of a pop-up (`err.*` strings in data/online_ui.json). */
-export type HubError = 'full' | 'version' | 'down' | 'notfound' | 'empty';
+export type HubError = 'full' | 'started' | 'version' | 'down' | 'notfound' | 'empty';
 
 export interface HubFailure {
   err: HubError;
@@ -59,7 +59,7 @@ export interface EnterOptions {
 
 const CONNECT_TIMEOUT_MS = 6000;
 
-/** Server reject reasons as the hub words them. A race that already started is "full" to a latecomer. */
+/** Server reject reasons as the hub words them. */
 export function hubErrorOf(reason: RejectReason): HubError {
   switch (reason) {
     case 'version':
@@ -69,6 +69,8 @@ export function hubErrorOf(reason: RejectReason): HubError {
       return 'notfound';
     case 'no_rooms':
       return 'empty';
+    case 'race_started':
+      return 'started';
     default:
       return 'full';
   }

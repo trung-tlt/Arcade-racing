@@ -240,6 +240,7 @@ export class Room {
           this.broadcastState();
         } else if (this.phase === 'loading') {
           player.loaded = msg.ready;
+          this.broadcastState(); // the loading screens show who is still building the race
         }
         return null;
       case 'car':
@@ -440,7 +441,9 @@ export class Room {
     const out: RosterEntry[] = [];
     for (const p of this.players.values()) {
       if (!p.connected) continue; // left mid-race or on the results screen: gone from the roster
-      out.push({ id: p.id, name: p.name, car: p.car, ready: p.ready, bot: false, host: p.host, ping: p.rtt });
+      // While the race loads, `ready` means "has built the race" (the lobby's ready flags are all set by then).
+      const ready = this.phase === 'loading' ? p.loaded : p.ready;
+      out.push({ id: p.id, name: p.name, car: p.car, ready, bot: false, host: p.host, ping: p.rtt });
     }
     return out;
   }

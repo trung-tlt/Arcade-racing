@@ -37,16 +37,38 @@ export const trackPreview = (id: string): string => `/assets/ui/previews/${id}.j
 /** The laps a host can pick for a map: the same set as the single-player setup. */
 export const lapOptions = (t: TrackDef): number[] => [...new Set([1, t.laps, 3, 5])].sort((a, b) => a - b);
 
-const NAME_KEY = 'voltline.online.name';
-/** The player's online name: saved, else a generated `RACER-123` (name entry is not in v1). */
-export function playerName(): string {
+const NAME_KEY = 'voltline.name';
+const FALLBACK_KEY = 'voltline.online.suggest';
+
+/** The name the player saved in name entry, or null when they never did (the first ONLINE then asks). */
+export function savedName(): string | null {
   try {
-    const saved = localStorage.getItem(NAME_KEY);
-    if (saved) return saved;
-    const made = `RACER-${100 + Math.floor(Math.random() * 900)}`;
-    localStorage.setItem(NAME_KEY, made);
-    return made;
+    return localStorage.getItem(NAME_KEY) || null;
   } catch {
-    return 'RACER';
+    return null;
   }
 }
+
+export function saveName(name: string): void {
+  try {
+    localStorage.setItem(NAME_KEY, name);
+  } catch {
+    /* private mode: the name lasts until the page closes */
+  }
+}
+
+/** A generated `RACER-123`, kept for the session so the pre-filled field and the lobby agree until a name is saved. */
+export function suggestedName(): string {
+  try {
+    const kept = sessionStorage.getItem(FALLBACK_KEY);
+    if (kept) return kept;
+    const made = `RACER-${100 + Math.floor(Math.random() * 900)}`;
+    sessionStorage.setItem(FALLBACK_KEY, made);
+    return made;
+  } catch {
+    return 'RACER-100';
+  }
+}
+
+/** The name sent when joining: the saved one, else the generated suggestion. */
+export const playerName = (): string => savedName() ?? suggestedName();

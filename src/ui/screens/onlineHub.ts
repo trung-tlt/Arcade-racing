@@ -12,7 +12,11 @@ export type HubState =
   | { kind: 'idle' }
   | { kind: 'search'; startedAt: number }
   | { kind: 'found'; code: string; racers: number; trackName: string; laps: number }
-  | { kind: 'error'; err: HubError; code?: string; roomV?: string; myV?: string; retryIn?: number };
+  | { kind: 'error'; err: HubError; code?: string; roomV?: string; myV?: string; retryIn?: number }
+  /** The connection dropped while in a room (`err.lost`): where the player was decides the wording. */
+  | { kind: 'lost'; code: string; where: 'lobby' | 'race' | 'results' }
+  /** The room emptied while the player was away (`err.closed`). */
+  | { kind: 'closed'; code: string };
 
 export interface OnlineHubDeps {
   playerName: () => string;
@@ -25,6 +29,7 @@ export interface OnlineHubDeps {
   onOffline(): void;
   onReload(): void;
   onBack(): void;
+  onEditName(): void;
 }
 
 interface Action {
@@ -57,7 +62,7 @@ export class OnlineHubScreen implements Screen {
         <header class="ol-head">
           <button type="button" class="ol-back" data-back data-hotkey="esc" aria-label="Back"><span aria-hidden="true">←</span></button>
           <h2>${esc(str('hub.title'))}</h2>
-          <div class="ol-as">as <b class="ol-name"></b></div>
+          <div class="ol-as">as <b class="ol-name"></b><button type="button" class="ol-editname" data-act="name" data-hotkey="n" data-sfx="screen_transition">${esc(str('hub.editName'))} ${kc('N')}</button></div>
         </header>
         <div class="ol-hub">
           <div class="ol-hub-left">
@@ -106,6 +111,7 @@ export class OnlineHubScreen implements Screen {
     (this.el.querySelector('[data-act="quick"]') as HTMLElement).addEventListener('click', () => deps.onQuick());
     (this.el.querySelector('[data-act="create"]') as HTMLElement).addEventListener('click', () => deps.onCreate());
     (this.el.querySelector('[data-back]') as HTMLElement).addEventListener('click', () => deps.onBack());
+    (this.el.querySelector('[data-act="name"]') as HTMLElement).addEventListener('click', () => deps.onEditName());
     this.joinBtn.addEventListener('click', () => this.submit());
     this.input.addEventListener('input', () => {
       const v = cleanRoomCode(this.input.value);
@@ -120,6 +126,10 @@ export class OnlineHubScreen implements Screen {
             return true;
           }
           return false;
+        }
+        if (token === 'n' && (this.state.kind === 'idle' || this.state.kind === 'error')) {
+          deps.onEditName();
+          return true;
         }
         if (token === 'j') {
           this.focusCode();
@@ -166,8 +176,23 @@ export class OnlineHubScreen implements Screen {
     if (s.kind === 'search')
       return [{ label: str('search.cancel'), key: 'Esc', hotkey: 'esc', run: d.onCancel, back: true }];
     if (s.kind === 'found') return [{ label: str('found.enter'), key: 'Enter', hotkey: 'enter', run: d.onEnterLobby }];
+    if (s.kind === 'lost')
+      return [
+        { label: str('err.lost.back'), key: 'Enter', hotkey: 'enter', run: () => this.setState({ kind: 'idle' }) },
+        { label: str('err.lost.offline'), key: 'O', hotkey: 'o', run: d.onOffline },
+      ];
+    if (s.kind === 'closed')
+      return [
+        { label: 'Create room', key: 'C', hotkey: 'c', run: d.onCreate },
+        { label: 'Quick match', key: 'Q', hotkey: 'q', run: d.onQuick },
+      ];
     if (s.kind === 'error') {
       switch (s.err) {
+        case 'started':
+          return [
+            { label: 'Quick match', key: 'Q', hotkey: 'q', run: d.onQuick },
+            { label: 'Try another code', key: 'J', hotkey: 'j', run: () => this.focusCode() },
+          ];
         case 'full':
           return [
             { label: 'Quick match', key: 'Q', hotkey: 'q', run: d.onQuick },
@@ -215,9 +240,9 @@ export class OnlineHubScreen implements Screen {
         ? 'ok'
         : s.kind === 'search'
           ? 'wait'
-          : s.kind === 'error' && s.err === 'full'
+          : s.kind === 'lost'
             ? 'bad'
-            : s.kind === 'error' && s.err === 'down'
+            : s.kind === 'error' && (s.err === 'full' || s.err === 'down')
               ? 'bad'
               : 'warn';
     this.panel.dataset.tone = tone;
@@ -232,7 +257,7 @@ export class OnlineHubScreen implements Screen {
     this.panel.innerHTML = `
       <div class="ol-state-head">${mark}<div class="ol-state-title">${title}</div></div>
       <div class="ol-state-msg">${msg}</div>
-      ${s.kind === 'search' ? '<div class="ol-elapsed mn-mono">0:00</div>' : ''}
+      ${s.kind === 'search' ? `<div class="ol-elapsed mn-mono">0:00</div><div class="ol-wait-note">${esc(str('search.wait'))}</div>` : ''}
       <div class="ol-state-acts">${acts
         .map(
           (a, i) =>
@@ -260,8 +285,19 @@ export class OnlineHubScreen implements Screen {
         msg: `${s.racers} racer${s.racers === 1 ? '' : 's'} waiting · ${esc(s.trackName)} · ${s.laps} lap${s.laps === 1 ? '' : 's'}`,
       };
     }
+    if (s.kind === 'lost') {
+      return {
+        title: str('err.lost.title'),
+        msg: str('err.lost.msg', { code: formatRoomCode(s.code), where: str(`err.lost.where.${s.where}`) }),
+      };
+    }
+    if (s.kind === 'closed') {
+      return { title: str('err.closed.title'), msg: str('err.closed.msg', { code: formatRoomCode(s.code) }) };
+    }
     const code = s.code ? formatRoomCode(s.code) : '';
     switch (s.err) {
+      case 'started':
+        return { title: str('err.started.title'), msg: str('err.started.msg', { code }) };
       case 'full':
         return { title: str('err.full.title'), msg: str('err.full.msg', { code }) };
       case 'version':

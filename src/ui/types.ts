@@ -28,6 +28,8 @@ export interface ResultRow {
   takedowns: number;
   score: number;
   isPlayer: boolean;
+  /** The lap this car is on (online "finished, waiting" panel). */
+  lap?: number;
 }
 
 export interface ResultsData {

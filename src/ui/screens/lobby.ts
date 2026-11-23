@@ -27,11 +27,13 @@ export interface LobbyDeps {
 }
 
 const COPIED_MS = 1600;
+const HOST_NOTICE_MS = 8000;
 
 /** Who the host is still waiting on, and whether START is allowed (the lobby rule in data/online_ui.json). */
 export function startStatus(view: Pick<RoomView, 'roster'>): { ok: boolean; text: string } {
   const humans = view.roster.filter((r) => !r.bot);
   const ready = humans.filter((r) => r.ready);
+  if (humans.length < 2) return { ok: false, text: str('lobby.needTwo') };
   if (humans.length >= 2 && ready.length === humans.length) return { ok: true, text: str('lobby.start.ok') };
   const missing = humans.filter((r) => !r.ready).map((r) => r.name);
   const total = Math.max(2, humans.length);
@@ -40,7 +42,7 @@ export function startStatus(view: Pick<RoomView, 'roster'>): { ok: boolean; text
     text: str('lobby.start.wait', {
       n: ready.length,
       total,
-      missing: humans.length < 2 ? 'another racer' : missing.join(', '),
+      missing: missing.join(', '),
     }),
   };
 }
@@ -51,6 +53,9 @@ export class LobbyScreen implements Screen {
   private view: RoomView | null = null;
   private copiedTimer: number | null = null;
   private prev: { ids: string[]; allReady: boolean; ready: boolean; track: string } | null = null;
+  /** The previous host, to word "X left · Y is now host" when the host changes. */
+  private lastHost: { id: string; name: string } | null = null;
+  private notice: { html: string; until: number } | null = null;
 
   constructor(
     root: HTMLElement,
@@ -154,6 +159,7 @@ export class LobbyScreen implements Screen {
     this.noteFocus();
     this.view = view;
     this.sounds(view);
+    this.hostChange(view);
     const me = this.me();
     const t = trackOf(view.track);
     const humans = view.roster.length;
@@ -193,6 +199,7 @@ export class LobbyScreen implements Screen {
           <div class="ol-codebox"><div><span class="mn-eyebrow">${esc(str('lobby.code'))}</span><span class="ol-code-val mn-mono">${formatRoomCode(view.code)}</span></div>
             <button type="button" class="ol-copybtn" data-act="copy" data-sfx="none" aria-label="Copy room code">${icon('copy', 20)}<span class="ol-copy-label">${esc(str('lobby.copy'))}</span>${kc('K')}</button></div>
         </header>
+        ${this.notice && this.notice.until > performance.now() ? `<div class="ol-notice" role="status">${this.notice.html}</div>` : ''}
         <div class="ol-lobby">
           <div class="ol-players" role="list" aria-label="Players">
             <div class="ol-cols"><span>#</span><span>RACER</span><span>CAR</span><span>PING</span><span>STATUS</span></div>
@@ -247,6 +254,20 @@ export class LobbyScreen implements Screen {
 
   private focusKey = '';
 
+  /** When the host seat changed hands because the old host left, say so for a few seconds. */
+  private hostChange(v: RoomView): void {
+    const host = v.roster.find((r) => r.host);
+    const was = this.lastHost;
+    if (was && host && host.id !== was.id && !v.roster.some((r) => r.id === was.id)) {
+      const html =
+        host.id === v.selfId
+          ? str('lobby.youAreHost', { name: was.name })
+          : str('lobby.newHost', { name: was.name, host: host.name });
+      this.notice = { html, until: performance.now() + HOST_NOTICE_MS };
+    }
+    this.lastHost = host ? { id: host.id, name: host.name } : null;
+  }
+
   private sounds(v: RoomView): void {
     const ids = v.roster.map((r) => r.id);
     const humans = v.roster;
@@ -268,6 +289,8 @@ export class LobbyScreen implements Screen {
     this.prev = null;
     this.view = null;
     this.focusKey = '';
+    this.lastHost = null;
+    this.notice = null;
   }
 
   /** Remember which control had focus so a redraw can give it back. */

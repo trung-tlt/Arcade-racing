@@ -28,8 +28,11 @@ const shot = async (page: Page, name: string): Promise<void> => {
   if (process.env.SHOTS_DIR) await page.screenshot({ path: `${process.env.SHOTS_DIR}/${name}.png` });
 };
 
-async function toHub(page: Page, server = SERVER): Promise<string[]> {
+async function toHub(page: Page, server = SERVER, named = true): Promise<string[]> {
   const errors: string[] = [];
+  // A saved name skips the first-time name screen (that screen has its own test).
+  if (named)
+    await page.addInitScript(() => localStorage.setItem('voltline.name', `P${Math.floor(Math.random() * 900)}`));
   page.on('console', (m) => {
     if (m.type() === 'error' && !/WebSocket|ERR_CONNECTION/.test(m.text())) errors.push(m.text());
   });
@@ -40,9 +43,36 @@ async function toHub(page: Page, server = SERVER): Promise<string[]> {
   await expect(page.getByRole('button', { name: /^ONLINE/ })).toBeVisible({ timeout: 20_000 });
   await page.waitForTimeout(600);
   await page.getByRole('button', { name: /^ONLINE/ }).click();
-  await expect(page.getByRole('heading', { name: 'Race online' })).toBeVisible();
+  if (named) await expect(page.getByRole('heading', { name: 'Race online' })).toBeVisible();
   return errors;
 }
+
+test('name entry: first ONLINE asks, accents get a fix, Edit name changes it', async ({ page }) => {
+  const errors = await toHub(page, SERVER, false);
+  await expect(page.getByRole('heading', { name: 'Pick a racer name' })).toBeVisible();
+  const input = page.getByLabel('RACER NAME');
+  await expect(input).toHaveValue(/^RACER-\d{3}$/); // pre-filled with the generated name
+  await input.fill('Ngọc Lan');
+  await expect(page.getByText(/Letters with accents can’t be used/)).toBeVisible();
+  await expect(page.getByRole('button', { name: /^SAVE|^CONTINUE/ })).toHaveAttribute('aria-disabled', 'true');
+  await page.getByRole('button', { name: 'Remove accents' }).click();
+  await expect(input).toHaveValue('Ngoc Lan');
+  await expect(page.getByText('Looks good.')).toBeVisible();
+  await input.fill('A'.repeat(20));
+  await expect(page.getByText(/Too long — 20 characters/)).toBeVisible();
+  await input.fill('Ngoc Lan');
+  await shot(page, 'name-first');
+  await page.getByRole('button', { name: /^CONTINUE/ }).click();
+  await expect(page.getByRole('heading', { name: 'Race online' })).toBeVisible();
+  await expect(page.locator('.ol-name')).toHaveText('Ngoc Lan');
+  // Not asked again, and Edit name reaches the same screen.
+  await page.getByRole('button', { name: /^Edit name/ }).click();
+  await expect(page.getByRole('heading', { name: 'Change your racer name' })).toBeVisible();
+  await page.getByLabel('RACER NAME').fill('Linh_9');
+  await page.getByRole('button', { name: /^SAVE NAME/ }).click();
+  await expect(page.locator('.ol-name')).toHaveText('Linh_9');
+  expect(errors).toEqual([]);
+});
 
 test('hub: bad code, unreachable server and the code filter', async ({ page }) => {
   const errors = await toHub(page);
@@ -80,7 +110,8 @@ test('two players: create, join by code, ready up, host starts', async ({ browse
   expect(codeText).toMatch(/^[A-HJ-NP-Z2-9]{6}$/);
   await expect(host.getByText('ONLINE ROOM · YOU ARE HOST')).toBeVisible();
   await shot(host, 'lobby-host-alone');
-  // Alone: START is not allowed.
+  // Alone: START is not allowed and says why.
+  await expect(host.getByText('Need at least 2 racers · share the code')).toBeVisible();
   await expect(host.getByRole('button', { name: /START RACE/ })).toHaveAttribute('aria-disabled', 'true');
 
   await guest.getByLabel(/Room code/).fill(codeText);
@@ -134,6 +165,24 @@ test('a race to the flag: online results, then a rematch loads a second race', a
   await expect(host.locator('.pill.on')).toHaveText('1');
   await host.getByRole('button', { name: /^READY UP/ }).click();
   await guest.getByRole('button', { name: /^READY UP/ }).click();
+  // Record the layers a race shows: "getting everyone ready" and, per finisher, "finished, waiting".
+  const watch = (page: Page): Promise<void> =>
+    page.evaluate(() => {
+      const w = window as unknown as { __saw: Record<string, unknown> };
+      w.__saw = { loading: false, finished: false };
+      setInterval(() => {
+        const g = (window as unknown as { __voltline?: { debugState(): { racePhase?: string; phase?: string } } })
+          .__voltline;
+        const ph = g?.debugState().phase ?? '';
+        if (ph) (w.__saw as Record<string, unknown>).lastPhase = ph;
+        if (ph === 'finished') (w.__saw as Record<string, unknown>).localFinished = true;
+      }, 100);
+      new MutationObserver(() => {
+        if (document.querySelector('.orr-loading:not([hidden]) .orr-card')) w.__saw.loading = true;
+        if (document.querySelector('.orr-finished:not([hidden]) .orr-banner')) w.__saw.finished = true;
+      }).observe(document.body, { subtree: true, childList: true, attributes: true });
+    });
+  await Promise.all([watch(host), watch(guest)]);
   await host.getByRole('button', { name: /START RACE/ }).click();
 
   const drive = async (page: Page): Promise<void> => {
@@ -162,6 +211,16 @@ test('a race to the flag: online results, then a rematch loads a second race', a
     }
   };
   await Promise.all([seen(host, 'host'), seen(guest, 'guest')]);
+  // Both pages showed the loading layer. A finisher's own sim can lag the server's close under load (two software-GL
+  // pages), so "finished, waiting" must have shown on at least one of them.
+  const saws = await Promise.all(
+    [host, guest].map((p) => p.evaluate(() => (window as unknown as { __saw: Record<string, unknown> }).__saw)),
+  );
+  expect(saws.every((w) => w.loading)).toBe(true);
+  expect(
+    saws.some((w) => w.finished),
+    JSON.stringify(saws),
+  ).toBe(true);
   await expect(host.locator('.ol-orow')).toHaveCount(6);
   await shot(host, 'results-host');
   await expect(host.locator('.ol-orow .badge')).toHaveText('YOU');

@@ -3,13 +3,16 @@ import { LobbyClient, protocolVersionLabel, type EnterOptions, type HubError, ty
 import { OnlineSession } from '../net/OnlineSession';
 import type { OnlineRace } from '../net/OnlineRace';
 import type { GridEntry, JoinMode } from '../shared/protocol';
+import { OnlineRaceOverlay } from './onlineRaceOverlay';
+import type { ResultsData } from './types';
 import { OnlineHubScreen } from './screens/onlineHub';
 import { LobbyScreen } from './screens/lobby';
 import { OnlineResultsScreen } from './screens/onlineResults';
-import { playerName } from './screens/onlineCommon';
+import { OnlineNameScreen } from './screens/onlineName';
+import { playerName, saveName, savedName, suggestedName } from './screens/onlineCommon';
 import type { Screen } from './types';
 
-export type OnlineScreenId = 'online' | 'lobby' | 'oresults';
+export type OnlineScreenId = 'online' | 'oname' | 'lobby' | 'oresults';
 
 export interface OnlineFlowDeps {
   screensRoot: HTMLElement;
@@ -37,6 +40,8 @@ const MAX_AUTO_RETRIES = 3;
  */
 export class OnlineFlow {
   readonly hub: OnlineHubScreen;
+  readonly nameScreen: OnlineNameScreen;
+  private readonly overlay = new OnlineRaceOverlay();
   readonly lobbyScreen: LobbyScreen;
   readonly results: OnlineResultsScreen;
   private lobby: LobbyClient | null = null;
@@ -47,6 +52,8 @@ export class OnlineFlow {
   private last: { mode: JoinMode; code?: string } | null = null;
   private retryTimer: number | null = null;
   private retries = 0;
+  /** The room the connection was lost from: a join to that code that finds nothing means it closed. */
+  private lostRoom: string | null = null;
   /** Bumped on every attempt and cancel: a slow earlier connection must not seat anyone after a newer one. */
   private attempt = 0;
 
@@ -65,9 +72,22 @@ export class OnlineFlow {
         deps.onOffline();
       },
       onReload: () => location.reload(),
+      onEditName: () => this.editName(false),
       onBack: () => {
         this.cancel();
         deps.onBackToTitle();
+      },
+    });
+    this.nameScreen = new OnlineNameScreen(root, {
+      suggestion: () => savedName() ?? suggestedName(),
+      onSave: (name) => {
+        saveName(name);
+        this.open(true);
+      },
+      onCancel: (first) => {
+        // Skipping the first-time screen keeps the suggestion, so it is not asked again.
+        if (first) saveName(suggestedName());
+        this.open(true);
       },
     });
     this.lobbyScreen = new LobbyScreen(root, {
@@ -84,11 +104,23 @@ export class OnlineFlow {
     });
   }
 
-  /** The title screen's ONLINE entry. */
-  open(): void {
+  /** The title screen's ONLINE entry: the first time with no saved name it asks for one. */
+  open(skipName = false): void {
+    if (!skipName && !savedName()) return this.editName(true);
     this.at = 'hub';
     this.hub.setState({ kind: 'idle' });
     this.deps.show('online', this.hub);
+  }
+
+  private editName(first: boolean): void {
+    this.at = 'hub';
+    this.nameScreen.open(first);
+    this.deps.show('oname', this.nameScreen);
+  }
+
+  /** This player crossed the line: the "finished, waiting" layer (called about 4×/s with the standings). */
+  finished(data: ResultsData): void {
+    if (this.at === 'race') this.overlay.onFinished(data);
   }
 
   /** Back from the car picker. */
@@ -108,6 +140,7 @@ export class OnlineFlow {
   leaveQuiet(): void {
     this.attempt++;
     this.last = null;
+    this.overlay.clear();
     this.lobby?.leave();
     this.lobby = null;
     this.view = null;
@@ -119,7 +152,7 @@ export class OnlineFlow {
     this.lobby = null;
     this.view = null;
     this.session = null;
-    this.deps.stopRace();
+    this.stopRace();
     this.open();
   }
 
@@ -163,6 +196,11 @@ export class OnlineFlow {
   }
 
   private fail(err: HubError, code: string | undefined, serverV: number | undefined): void {
+    if (err === 'notfound' && code && code === this.lostRoom) {
+      this.lostRoom = null;
+      this.hub.setState({ kind: 'closed', code });
+      return;
+    }
     this.hub.setState({
       kind: 'error',
       err,
@@ -215,18 +253,25 @@ export class OnlineFlow {
     if (this.view) this.lobbyScreen.update(this.view);
   }
 
+  private stopRace(): void {
+    this.overlay.clear();
+    this.deps.stopRace();
+  }
+
   private onView(v: RoomView): void {
     this.view = v;
     if (v.phase === 'lobby') {
       if (this.at === 'race' || this.at === 'results') {
-        this.deps.stopRace();
+        this.stopRace();
         this.at = 'lobby';
         this.deps.show('lobby', this.lobbyScreen);
       }
       if (this.at === 'lobby') this.lobbyScreen.update(v);
+    } else if (v.phase === 'loading' || v.phase === 'countdown' || v.phase === 'racing') {
+      this.overlay.onView(v);
     } else if (v.phase === 'results') {
       if (this.at !== 'results') {
-        this.deps.stopRace();
+        this.stopRace();
         this.at = 'results';
         this.deps.show('oresults', this.results);
       }
@@ -240,24 +285,34 @@ export class OnlineFlow {
     const selfId = lobby.client.id;
     this.session = new OnlineSession(selfId);
     this.at = 'race';
+    this.overlay.startLoading(lobby.view, laps);
     this.deps.startRace({ client: lobby.client, session: this.session, selfId, grid }, track, laps);
   }
 
   private onClosed(): void {
-    // The server went away under us: back to the hub with the "can't reach" panel.
+    // The connection dropped while in a room: back to the hub, saying where the player was.
+    const code = this.view?.code;
+    const where = this.at === 'race' || this.at === 'results' ? this.at : 'lobby';
     this.lobby = null;
     this.view = null;
     this.session = null;
-    this.deps.stopRace();
+    this.stopRace();
     this.at = 'hub';
     this.deps.show('online', this.hub);
-    this.fail('down', undefined, undefined);
+    if (code) {
+      this.lostRoom = code;
+      this.hub.setState({ kind: 'lost', code, where });
+    } else {
+      this.fail('down', undefined, undefined);
+    }
   }
 
   dispose(): void {
     this.clearRetry();
     this.lobby?.leave();
     this.hub.dispose();
+    this.nameScreen.dispose();
+    this.overlay.dispose();
     this.lobbyScreen.dispose();
     this.results.dispose();
   }

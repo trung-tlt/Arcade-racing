@@ -1103,6 +1103,7 @@ export class Game {
         takedowns: c.takedowns,
         score: c.score,
         isPlayer: id === 'player',
+        lap: r.laps.lap,
       };
     });
     const me = rows.find((r) => r.isPlayer) as ResultRow;
