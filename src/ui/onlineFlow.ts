@@ -6,6 +6,7 @@ import type { GridEntry, JoinMode } from '../shared/protocol';
 import { OnlineRaceOverlay } from './onlineRaceOverlay';
 import type { ResultsData } from './types';
 import { OnlineHubScreen } from './screens/onlineHub';
+import type { CarThumbs } from './carThumbs';
 import { LobbyScreen } from './screens/lobby';
 import { OnlineResultsScreen } from './screens/onlineResults';
 import { OnlineNameScreen } from './screens/onlineName';
@@ -27,6 +28,8 @@ export interface OnlineFlowDeps {
   stopRace(): void;
   /** Open the car picker from the lobby; `setCar` below is called with the choice. */
   changeCar(): void;
+  /** Renders car pictures for the lobby (one offscreen GL context, released once every car is drawn). */
+  createThumbs?: () => CarThumbs;
   onBackToTitle(): void;
   onOffline(): void;
 }
@@ -44,6 +47,7 @@ export class OnlineFlow {
   private readonly overlay = new OnlineRaceOverlay();
   readonly lobbyScreen: LobbyScreen;
   readonly results: OnlineResultsScreen;
+  private thumbs: CarThumbs | null = null;
   private lobby: LobbyClient | null = null;
   private session: OnlineSession | null = null;
   private view: RoomView | null = null;
@@ -96,10 +100,12 @@ export class OnlineFlow {
       onSettings: (t, l) => this.lobby?.settings(t, l),
       onChangeCar: () => deps.changeCar(),
       onLeave: () => this.leave(),
+      thumb: (id) => (this.thumbs ??= deps.createThumbs?.() ?? null)?.get(id) ?? '',
     });
     this.results = new OnlineResultsScreen(root, {
-      onRematch: () => this.lobby?.rematch(true),
-      onLobby: () => this.lobby?.rematch(false),
+      onRematch: () => this.lobby?.rematch('yes'),
+      onLobby: () => this.lobby?.rematch('lobby'),
+      onWithdraw: () => this.lobby?.rematch('none'),
       onLeave: () => this.leave(),
     });
   }
@@ -285,6 +291,7 @@ export class OnlineFlow {
     const selfId = lobby.client.id;
     this.session = new OnlineSession(selfId);
     this.at = 'race';
+    this.thumbs?.dispose(); // frees the picture renderer's GL context; rendered pictures stay cached
     this.overlay.startLoading(lobby.view, laps);
     this.deps.startRace({ client: lobby.client, session: this.session, selfId, grid }, track, laps);
   }
@@ -314,6 +321,7 @@ export class OnlineFlow {
     this.nameScreen.dispose();
     this.overlay.dispose();
     this.lobbyScreen.dispose();
+    this.thumbs?.dispose();
     this.results.dispose();
   }
 }

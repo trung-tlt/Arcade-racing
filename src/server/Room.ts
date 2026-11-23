@@ -67,7 +67,7 @@ export interface Player {
   connected: boolean;
   /** Round trip as the client last reported it (ms, -1 = not yet). */
   rtt: number;
-  /** Results screen: 'yes' = wants a rematch, 'no' = asked for the lobby. */
+  /** Results screen: 'yes' = wants a rematch, 'no' = asked for the lobby, null = no vote (or withdrawn). */
   vote: 'yes' | 'no' | null;
   /** The lap the player was on when they left mid-race. */
   leftLap: number | null;
@@ -263,7 +263,7 @@ export class Room {
         return null;
       case 'rematch':
         if (this.phase === 'results') {
-          player.vote = msg.vote ? 'yes' : 'no';
+          player.vote = msg.vote === 'yes' ? 'yes' : msg.vote === 'lobby' ? 'no' : null;
           this.broadcastState();
           this.evalRematch();
         }

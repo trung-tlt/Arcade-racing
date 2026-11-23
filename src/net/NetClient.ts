@@ -5,6 +5,7 @@ import {
   type ClientMsg,
   type JoinMode,
   type RejectReason,
+  type RematchVote,
   type RoomPhase,
   type ServerMsg,
   type SnapCar,
@@ -85,8 +86,8 @@ export class NetClient {
     this.send({ t: 'settings', track, laps });
   }
 
-  /** Results screen: `true` votes for a rematch, `false` asks for the lobby. */
-  rematch(vote: boolean): void {
+  /** Results screen: 'yes' votes for a rematch, 'lobby' asks for the lobby, 'none' withdraws the vote. */
+  rematch(vote: RematchVote): void {
     this.send({ t: 'rematch', vote });
   }
 

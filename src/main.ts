@@ -273,6 +273,7 @@ async function boot(): Promise<void> {
   const online: OnlineFlow = new OnlineFlow({
     screensRoot,
     serverUrl,
+    createThumbs: () => makeThumbnailRenderer(assets),
     show: (id, screen) => show(id, screen),
     getSetup: () => setup,
     startRace: (race, track, laps) => {

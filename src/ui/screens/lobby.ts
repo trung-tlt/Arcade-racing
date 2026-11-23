@@ -24,6 +24,8 @@ export interface LobbyDeps {
   onSettings(track?: string, laps?: number): void;
   onChangeCar(): void;
   onLeave(): void;
+  /** Picture URL for a car (a cached data URL, '' when it cannot be rendered); omitted in tests. */
+  thumb?(carId: string): string;
 }
 
 const COPIED_MS = 1600;
@@ -56,6 +58,8 @@ export class LobbyScreen implements Screen {
   /** The previous host, to word "X left · Y is now host" when the host changes. */
   private lastHost: { id: string; name: string } | null = null;
   private notice: { html: string; until: number } | null = null;
+  /** One image element per car, cloned into each rebuilt row so the lobby redraw never re-renders or re-encodes a picture. */
+  private readonly thumbImgs = new Map<string, HTMLImageElement | null>();
 
   constructor(
     root: HTMLElement,
@@ -81,6 +85,30 @@ export class LobbyScreen implements Screen {
         return false;
       },
     });
+  }
+
+  private thumbImg(carId: string): HTMLImageElement | null {
+    let img = this.thumbImgs.get(carId);
+    if (img === undefined) {
+      const url = this.deps.thumb?.(carId) ?? '';
+      img = null;
+      if (url) {
+        img = document.createElement('img');
+        img.src = url;
+        img.alt = '';
+        img.decoding = 'async';
+      }
+      this.thumbImgs.set(carId, img);
+    }
+    return img;
+  }
+
+  /** Fill the `[data-thumb]` slots of the freshly built DOM with the cached pictures. */
+  private fillThumbs(): void {
+    for (const slot of this.el.querySelectorAll<HTMLElement>('[data-thumb]')) {
+      const img = this.thumbImg(slot.dataset.thumb ?? '');
+      if (img) slot.appendChild(img.cloneNode());
+    }
   }
 
   private me(): RoomView['roster'][number] | undefined {
@@ -174,7 +202,7 @@ export class LobbyScreen implements Screen {
         return `<div class="ol-row${you ? ' you' : ''}" role="listitem">
           <span class="n">${i + 1}</span>
           <span class="who"><i class="chip" style="background:${you ? ONLINE.colors.own : ONLINE.colors.enemy}"></i><b>${esc(p.name)}</b>${you ? '<em class="badge">YOU</em>' : ''}${p.host ? `<span class="host" title="Host">${icon('host')}HOST</span>` : ''}</span>
-          <span class="car">${esc(carName(p.car))}</span>
+          <span class="car"><i class="ol-thumb" data-thumb="${esc(p.car)}"></i><span class="cn">${esc(carName(p.car))}</span></span>
           <span class="ping">${pingHtml(p.ping)}</span>
           <span class="status ${p.ready ? 'ready' : 'wait'}">${icon(p.ready ? 'ready' : 'waiting')}${p.ready ? str('lobby.ready') : str('lobby.notready')}</span>
         </div>`;
@@ -216,7 +244,7 @@ export class LobbyScreen implements Screen {
               </div>
             </div>
             <button type="button" class="ol-mycar" data-act="car" data-hotkey="v" data-sfx="vehicle_switch">
-              <span class="lbl2"><small>YOUR CAR</small><b>${esc(carName(me?.car ?? ''))}</b></span><span class="chg">Change ${kc('V')}</span>
+              <i class="ol-thumb big" data-thumb="${esc(me?.car ?? '')}"></i><span class="lbl2"><small>YOUR CAR</small><b>${esc(carName(me?.car ?? ''))}</b></span><span class="chg">Change ${kc('V')}</span>
             </button>
             <button type="button" class="ol-ready${me?.ready ? ' on' : ''}" data-act="ready" data-hotkey="space r" data-sfx="none">
               <span class="lbl2"><span>${esc(me?.ready ? str('lobby.ready') : str('lobby.readyup'))}</span><small>${esc(me?.ready ? str('lobby.unready.sub') : str('lobby.readyup.sub'))}</small></span>${kc('Space', !me?.ready)}
@@ -246,6 +274,7 @@ export class LobbyScreen implements Screen {
           'Gamepad · D-pad navigate · A select · B back',
         )}
       </div>`;
+    this.fillThumbs();
     // The rebuilt DOM drops focus: give it back to the same control (or the first, when the screen just opened).
     const same = this.focusKey ? (this.el.querySelector(`[data-act="${this.focusKey}"]`) as HTMLElement | null) : null;
     if (same) same.focus();

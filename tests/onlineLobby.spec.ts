@@ -121,6 +121,9 @@ test('two players: create, join by code, ready up, host starts', async ({ browse
   await guest.getByRole('button', { name: /Enter lobby/ }).click();
   await expect(guest.getByText(/Only the host can change the track and laps/)).toBeVisible();
   await expect(host.locator('.ol-row:not(.empty)')).toHaveCount(2);
+  // Every row and the YOUR CAR card carry a rendered car picture.
+  await expect(host.locator('.ol-row:not(.empty) .ol-thumb img')).toHaveCount(2);
+  await expect(host.locator('.ol-mycar .ol-thumb img')).toHaveCount(1);
 
   // The host picks a track; the guest sees it.
   await host.getByRole('button', { name: 'Next track' }).click();
@@ -225,6 +228,13 @@ test('a race to the flag: online results, then a rematch loads a second race', a
   await shot(host, 'results-host');
   await expect(host.locator('.ol-orow .badge')).toHaveText('YOU');
 
+  await expect(host.getByText('0 of 2 want a rematch')).toBeVisible();
+  await host.getByRole('button', { name: /^REMATCH/ }).click();
+  await expect(host.getByText('1 of 2 want a rematch')).toBeVisible();
+  // Clicking REMATCH again withdraws the vote (both screens see it), and it can be cast again.
+  await host.getByRole('button', { name: /^REMATCH/ }).click();
+  await expect(host.getByText('0 of 2 want a rematch')).toBeVisible();
+  await expect(guest.getByText('0 of 2 want a rematch')).toBeVisible();
   await host.getByRole('button', { name: /^REMATCH/ }).click();
   await expect(host.getByText('1 of 2 want a rematch')).toBeVisible();
   await shot(host, 'results-vote');
