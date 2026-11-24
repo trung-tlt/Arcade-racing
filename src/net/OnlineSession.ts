@@ -9,6 +9,9 @@ type Snap = Extract<ServerMsg, { t: 'snap' }>;
 export const INITIAL_LEAD_TICKS = 8;
 /** The margin (ticks between our newest input frame and the server's tick) the controller aims to stay within. */
 const MARGIN_WINDOW = 30;
+/** Snapshots round the bar count to 0.01; anything under this is rounding, not a pickup. */
+const NITRO_TOLERANCE_BARS = 0.05;
+const NITRO_HISTORY_TICKS = 180;
 const TARGET_MIN_MARGIN = 6;
 const TARGET_MAX_MARGIN = 18;
 /** Most the controller will ask for in one review: catching up a stalled tab, or holding back after a burst. */
@@ -37,6 +40,12 @@ export interface ReconcileLogEntry extends ReconcileResult {
  * own car (`Reconciler`), interpolation of everyone else, the clock, and the controller that keeps the client a few ticks
  * ahead of the server. `SimClient` (headless, tested) and `Game` (browser) both drive this same class.
  */
+/** What the session needs from the own car's nitro tank. */
+export interface NitroBars {
+  bars: number;
+  add(bars: number): number;
+}
+
 export class OnlineSession {
   readonly clock = new ClockSync();
   readonly reconciler = new Reconciler();
@@ -72,6 +81,10 @@ export class OnlineSession {
   /** The newest margin report: ticks our newest input frame was ahead of the server's tick (diagnostics). */
   lastMargin = 0;
   localTick = 0;
+  private nitro: NitroBars | null = null;
+  /** The own tank per local tick, with the total adopted from the server by then (so a snapshot compares like with like). */
+  private readonly nitroHist = new Map<number, { bars: number; adj: number }>();
+  private nitroAdj = 0;
 
   constructor(
     readonly selfId: string,
@@ -86,6 +99,13 @@ export class OnlineSession {
   }
 
   /** The reconciler's access to the own car's physics body. Set once the car exists. */
+  /** The own car's nitro tank: the server alone knows about bars from pickups, hits and takedowns, so its count is adopted. */
+  setNitro(tank: NitroBars): void {
+    this.nitro = tank;
+    this.nitroHist.clear();
+    this.nitroAdj = 0;
+  }
+
   setBody(body: ReconcileBody): void {
     this.body = body;
   }
@@ -137,9 +157,12 @@ export class OnlineSession {
       this.onOwnTeleport?.(c);
       body.set(this.reconciler.advanced(c, Math.max(0, this.localTick - m.tick)));
       this.reconciler.reset();
+      this.nitroHist.clear();
+      if (this.nitro) this.nitro.bars = c.nb;
       this.log.push({ kind: 'snap', errM: 0, errRad: 0, nearOther: false, tick: m.tick });
     } else {
       const res = this.reconciler.onSnapshot(m.tick, c, body, this.localTick);
+      this.reconcileNitro(m.tick, c.nb);
       const near = m.cars.some((o) => o.id !== c.id && Math.hypot(o.p[0] - c.p[0], o.p[2] - c.p[2]) < 9);
       this.log.push({ ...res, nearOther: near, tick: m.tick });
     }
@@ -226,6 +249,23 @@ export class OnlineSession {
   afterStep(localTick: number): void {
     this.localTick = localTick;
     if (this.body) this.reconciler.record(localTick, this.body);
+    if (this.nitro) {
+      this.nitroHist.set(localTick, { bars: this.nitro.bars, adj: this.nitroAdj });
+      this.nitroHist.delete(localTick - NITRO_HISTORY_TICKS);
+    }
+  }
+
+  /** The server's bar count for the own car at `tick` against what we predicted: adopt the difference (earned elsewhere). */
+  private reconcileNitro(tick: number, serverBars: number): void {
+    const tank = this.nitro;
+    const h = this.nitroHist.get(tick);
+    if (!tank || !h) return;
+    const predicted = h.bars + (this.nitroAdj - h.adj);
+    const delta = serverBars - predicted;
+    if (Math.abs(delta) < NITRO_TOLERANCE_BARS) return;
+    const before = tank.bars;
+    tank.add(delta);
+    this.nitroAdj += tank.bars - before;
   }
 
   get ready(): boolean {

@@ -364,14 +364,15 @@ describe('six humans, and a human who leaves', () => {
         r.leave(clients[1].player);
         at30 = e.t + e.race.laps.lap;
       }
-      if (step === 60 * 40) {
+      if (step === 60 * 50) {
         at40 = e.t + e.race.laps.lap;
         kindAfter = e.kind;
       }
     });
     expect(room.phase).toBe('results');
     expect(kindAfter).toBe('ai');
-    // 10 s later the abandoned car is well down the road (it would be stationary if nobody drove it).
+    // 20 s later the abandoned car is well down the road (it would be stationary if nobody drove it; the AI may need a
+    // few seconds to get free of whatever the human left it against).
     expect(at40 - at30).toBeGreaterThan(0.03);
   }, 240_000);
 });

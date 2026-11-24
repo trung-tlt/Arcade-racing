@@ -497,6 +497,7 @@ export class Game {
     });
     this.cars = [this.car];
     this.online?.session.setBody(rapierBody(this.car.physics.body));
+    this.online?.session.setNitro(this.car.physics.nitro);
     this.spawnPoses.set('player', grid);
     this.setupFirstPerson();
 

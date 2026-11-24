@@ -105,6 +105,7 @@ export class SimClient {
       combat: false,
     });
     this.session.setBody(rapierBody(this.local.entries[0].car.physics.body));
+    this.session.setNitro(this.local.entries[0].car.physics.nitro);
     const target = this.session.startTicks(first);
     for (let i = 0; i < target; i++) {
       this.local.setTrafficTime(i * STEP);
