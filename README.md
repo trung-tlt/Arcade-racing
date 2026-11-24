@@ -39,7 +39,8 @@ gamepad or touch (phones, landscape): nothing to install.
 |---|---|
 | ![Title screen](docs/screenshots/title.jpg) | ![Garage](docs/screenshots/car-select.jpg) |
 | ![Cat Lai Port at night](docs/screenshots/race-cat-lai.jpg) | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg) |
-| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg) | ![Online lobby](docs/screenshots/online-lobby.jpg) |
+| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg) | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
+| ![Online hub](docs/screenshots/online-hub.jpg) | ![Online lobby](docs/screenshots/online-lobby.jpg) |
 
 Phone, landscape, with the on-screen pads:
 
