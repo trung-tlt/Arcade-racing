@@ -8,8 +8,9 @@ type Snap = Extract<ServerMsg, { t: 'snap' }>;
 /** First guess for how many ticks the local sim runs ahead of the server; the margin controller corrects it. */
 export const INITIAL_LEAD_TICKS = 8;
 /** The margin (ticks between our newest input frame and the server's tick) the controller aims to stay within. */
-const TARGET_MIN_MARGIN = 2;
-const TARGET_MAX_MARGIN = 8;
+const MARGIN_WINDOW = 30;
+const TARGET_MIN_MARGIN = 6;
+const TARGET_MAX_MARGIN = 18;
 /** Most the controller will ask for in one review: catching up a stalled tab, or holding back after a burst. */
 const MAX_CATCHUP_TICKS = 600;
 const MAX_HOLD_TICKS = 120;
@@ -175,8 +176,10 @@ export class OnlineSession {
       this.margins.length = 0; // still correcting: these margins describe the old situation
       return;
     }
-    if (this.margins.length < 10) return;
-    const min = Math.min(...this.margins);
+    if (this.margins.length < MARGIN_WINDOW) return;
+    // A low percentile rather than the minimum: one stalled frame should not wind the whole lead up.
+    const sortedMargins = [...this.margins].sort((a, b) => a - b);
+    const min = sortedMargins[Math.floor(sortedMargins.length * 0.1)];
     this.minMargin = min;
     this.margins.length = 0;
     if (min < TARGET_MIN_MARGIN || newLate) {

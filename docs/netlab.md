@@ -34,3 +34,8 @@ Results land in `netlab-out/` (ignored).
   and in a headless one, and were dropped.
 - On the `mobile` profile the lead controller holds and catches up hundreds of times a minute and other cars are
   extrapolated 8-9% of frames: jitter handling is the second thing to improve.
+
+- Lead controller (ardennes, 2 players): reviewing a 10th-percentile margin over 30 snapshots with a band of 6-18 ticks
+  (was the minimum over 10, band 2-8) cut holds/catch-ups on `mobile` from ~310/120 to ~40/25 per minute and, on
+  `60ms`, hitches from 233 to 0. `serverMissedTicksP95` on `mobile` stays high (stall-driven, 100-200), so the next step
+  there is the input redundancy / bots-local work.
