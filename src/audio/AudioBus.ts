@@ -22,7 +22,7 @@ export class AudioBus {
   private readonly conv: ConvolverNode;
   private readonly buffers = new Map<string, AudioBuffer>();
   private readonly onGesture = (): void => {
-    void this.ctx.resume();
+    this.settle(this.ctx.resume());
   };
 
   private constructor() {
@@ -119,11 +119,11 @@ export class AudioBus {
   }
 
   suspend(): void {
-    void this.ctx.suspend();
+    this.settle(this.ctx.suspend());
   }
 
   resume(): void {
-    void this.ctx.resume();
+    this.settle(this.ctx.resume());
   }
 
   buffer(file: string): AudioBuffer | undefined {
@@ -151,6 +151,11 @@ export class AudioBus {
     src.connect(g).connect(this.sfx);
     src.start(now, start, dur);
     src.onended = () => g.disconnect();
+  }
+
+  /** A suspend/resume still pending when the context closes (quit while paused) rejects; nothing to do then. */
+  private settle(p: Promise<void>): void {
+    p.catch(() => undefined);
   }
 
   dispose(): void {

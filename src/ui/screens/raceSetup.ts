@@ -22,7 +22,7 @@ const lapOptions = (t: TrackDef): number[] => [...new Set([1, t.laps, 3, 5])].so
 const DIFFS: { id: Difficulty; label: string; note: string }[] = [
   { id: 'easy', label: 'Easy', note: 'Rivals brake early and rarely shoot. Rubber-banding helps you.' },
   { id: 'normal', label: 'Normal', note: 'Rivals race clean and fight back. Wins about half the time.' },
-  { id: 'hard', label: 'Hard', note: 'Rivals take the shortcut, chase takedowns and hold their line.' },
+  { id: 'hard', label: 'Hard', note: 'Rivals chase takedowns, shoot sooner and hold their line.' },
 ];
 
 type RowId = 'track' | 'laps' | 'diff';
@@ -49,9 +49,9 @@ interface Section {
 
 const NOTES: Record<string, { sub: string; note: string; feature: { v: string; l: string } }> = {
   cat_lai: {
-    sub: 'Night · Thủ Đức, HCMC',
-    note: 'Night · container port · cranes + reefer-lane shortcut',
-    feature: { v: '6 cranes', l: '+ shortcut' },
+    sub: 'Day · Cát Lái, Thủ Đức, HCMC',
+    note: 'Day · real Cát Lái terminal layout · Gate B, a 1 km quay under the cranes, container canyon',
+    feature: { v: '35,000', l: 'containers + ferry' },
   },
   cong_hoa: {
     sub: 'Day · Tân Bình, HCMC',

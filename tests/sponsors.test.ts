@@ -9,8 +9,8 @@ import { XALO_METRO_MODELS } from '../src/world/XaLoMetro';
 const onDisk = (m: string): boolean => existsSync(`public/assets/${m}`);
 
 describe('sponsor placements', () => {
-  it('Cat Lai lists 8 start-straight banners, 3 billboards and 4 quay banners', () => {
-    expect(sponsorPlacements(CAT_LAI)).toHaveLength(15);
+  it('Cat Lai v2 lists none in its JSON: its rooftop billboards are planned in catLaiLayout.ts', () => {
+    expect(sponsorPlacements(CAT_LAI)).toHaveLength(0);
   });
   it('Cong Hoa lists its banners and 4 rooftop billboards', () => {
     const p = sponsorPlacements(CONG_HOA);
@@ -68,7 +68,7 @@ describe('Sponsors scene', () => {
     },
   } as unknown as Assets;
 
-  it.each([CAT_LAI, CONG_HOA])('bakes every board of $id into a handful of draw calls and cleans up', (track) => {
+  it.each([CONG_HOA])('bakes every board of $id into a handful of draw calls and cleans up', (track) => {
     const scene = new THREE.Scene();
     const s = new Sponsors(scene, stubAssets, track);
     let meshes = 0;

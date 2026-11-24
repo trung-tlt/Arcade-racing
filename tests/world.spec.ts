@@ -26,7 +26,9 @@ async function boot(page: import('@playwright/test').Page, errors: string[]): Pr
   });
 }
 
-test('driving over the jump ramp launches the car and disables the gun while airborne', async ({ page }) => {
+// Skipped: the only jump ramp was on Map 1 v1's reefer-lane shortcut, which went with the night map. Track.buildRamps and
+// `ramps` in a track JSON still work; no shipped map uses one.
+test.skip('driving over the jump ramp launches the car and disables the gun while airborne', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
   await page.evaluate(() => (window as unknown as Dbg).__voltline.debugTeleport(0.45));
@@ -47,8 +49,9 @@ test('driving through a pickup cluster grants its item', async ({ page }) => {
   const errors: string[] = [];
   await boot(page, errors);
   const before = await page.evaluate(() => (window as unknown as Dbg).__voltline.debugState());
-  // Cluster at t=0.131: rocket / nitro / rocket across the lanes. The centre lane (0) is a nitro pickup.
-  await page.evaluate(() => (window as unknown as Dbg).__voltline.debugTeleport(0.122));
+  // Cat Lai's cluster at t=0.4351 on the quay straight: rocket / nitro / rocket across the lanes. The centre lane (0) is
+  // a nitro pickup, 43 m ahead of the drop point.
+  await page.evaluate(() => (window as unknown as Dbg).__voltline.debugTeleport(0.423));
   await page.keyboard.down('KeyW');
   await page.waitForFunction(
     (n) => (window as unknown as Dbg).__voltline.debugState().nitroBars > n,

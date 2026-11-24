@@ -175,7 +175,10 @@ export function validateTrack(data: unknown): string[] {
     | undefined;
   const streetW = (t.road as { widthM?: unknown } | undefined)?.widthM;
   const layoutW = layout?.carriagewayWidthM ?? layout?.mainCarriageway?.widthM ?? layout?.truckRoad?.widthM;
-  if (!isNum(t.laps) || !(isNum(t.roadWidthM) || isNum(layoutW) || isNum(streetW)))
+  // Map 1 v2: the width varies along the lap (`roadWidthM.byT`, `[t, widthM]` pairs).
+  const byT = (t.roadWidthM as { byT?: unknown } | undefined)?.byT;
+  const tableW = Array.isArray(byT) && byT.length > 1 && byT.every((e) => Array.isArray(e) && e.every(isNum));
+  if (!isNum(t.laps) || !(isNum(t.roadWidthM) || tableW || isNum(layoutW) || isNum(streetW)))
     errors.push('laps and a road width must be numbers');
   const grid = (t.startLine as { grid?: unknown[] } | undefined)?.grid;
   if (!Array.isArray(grid) || grid.length !== 6) errors.push('startLine.grid needs 6 slots');
@@ -190,6 +193,8 @@ export interface DayLighting {
   fog: { color: string; density: number };
   /** Gradient texture used as the scene background. */
   sky: string;
+  /** Map 1: a custom gradient dome (zenith, mid, horizon colours) replaces the background texture. */
+  skyGradient?: { zenith: string; mid: string; horizon: string };
   bloom: { strength: number; threshold: number };
   toneMappingExposure: number;
   /** Wet maps: the road material's look (low roughness so lamps and lights streak on it). */
@@ -266,7 +271,20 @@ export interface TrackDef {
   /** Y of the physics ground plane: 0 on flat maps, well below the lowest road point on maps with an underpass. */
   groundY: number;
   /** Stretches where the carriageway is a different width / texture (e.g. the 8 m frontage road). Empty = constant. */
-  widthProfile: { fromT: number; toT: number; widthM: number; texture: string }[];
+  widthProfile: {
+    fromT: number;
+    toT: number;
+    widthM: number;
+    texture: string;
+    /** Set: the texture is laid in world space, one repeat per this many metres (a concrete apron), not along the road. */
+    worldTileM?: number;
+  }[];
+  /** Map 1: carriageway width sampled along the lap, `[t, widthM]` ascending (wrapping). Overrides `widthProfile`'s widths. */
+  widthByT: readonly (readonly [number, number])[] | null;
+  /** Stretches with a kerb and sidewalk beside the road; null = the whole lap (the default for day maps). */
+  sidewalkT: readonly (readonly [number, number])[] | null;
+  /** A parked queue (or slow traffic) occupies one side's outer lane (+X is the car's left): rivals keep clear of it. */
+  blockedLane: 'left' | 'right' | null;
   /** Set for day and dusk maps; night maps use data/lighting.json. */
   daylight: DayLighting | null;
   /** Rain, puddles, flood and lightning: Map 4 only. */
@@ -285,7 +303,13 @@ interface RawTrack {
   timeOfDay?: TimeOfDay;
   laps: number;
   lapLengthM: number;
-  roadWidthM?: number;
+  roadWidthM?: number | { byT: [number, number][]; [section: string]: unknown };
+  /** Map 1 v2: which texture each kind of surface uses. */
+  surfaces?: {
+    NTD?: { texture: string; tileM: [number, number] };
+    port?: { texture: string; tileM: number };
+    sidewalk?: unknown;
+  };
   /** Map 5: a single-carriageway street circuit. */
   road?: { widthM: number; texture: string };
   roadLayout?: {
@@ -310,14 +334,85 @@ interface RawTrack {
   pickups: TrackDef['pickups'];
   dressing?: { lighting?: DayLighting };
   /** Map 4 keeps its lighting at the top level. */
-  lighting?: DayLighting;
+  lighting?: DayLighting | CatLaiLighting;
   weather?: WeatherDef;
+  /** Map 1 v2 only. */
+  river?: unknown;
+}
+
+/** Map 1 v2 keeps its sun as an azimuth / elevation pair and its sky as three gradient colours. */
+interface CatLaiLighting {
+  sun: { azimuthDeg: number; elevationDeg: number; color: string; intensity: number };
+  hemi: DayLighting['hemi'];
+  sky: { zenith: string; mid: string; horizon: string };
+  fog: DayLighting['fog'];
+  toneMapping?: string;
+}
+
+const isCatLaiLighting = (l: DayLighting | CatLaiLighting): l is CatLaiLighting => 'azimuthDeg' in l.sun;
+
+/**
+ * Map 1's sun as the direction its light travels. Azimuth / elevation are the design generator's: the sun sits at
+ * spherical (polar 90 - elevation, azimuth measured from +Z towards +X), so the light runs the other way.
+ */
+export function sunDirection(azimuthDeg: number, elevationDeg: number): [number, number, number] {
+  const polar = ((90 - elevationDeg) * Math.PI) / 180;
+  const az = (azimuthDeg * Math.PI) / 180;
+  const r = (n: number): number => Math.round(n * 1e4) / 1e4;
+  return [r(-Math.sin(polar) * Math.sin(az)), r(-Math.cos(polar)), r(-Math.sin(polar) * Math.cos(az))];
 }
 
 /** Day maps keep `lighting` at the top level; Map 6 ships no sky texture, so it borrows the day gradient. */
 function dayLighting(r: RawTrack): DayLighting | null {
   const l = r.dressing?.lighting ?? (r.timeOfDay === 'storm' || r.timeOfDay === 'day' ? (r.lighting ?? null) : null);
-  return l ? { ...l, sky: l.sky ?? 'textures/day_sky_gradient.png' } : null;
+  if (!l) return null;
+  if (isCatLaiLighting(l)) {
+    // The sky is a custom gradient dome (three's Sky shader washes out at this sun height): no background texture.
+    const exposure = Number(/exposure\s+([\d.]+)/i.exec(l.toneMapping ?? '')?.[1] ?? 0.6);
+    return {
+      sun: {
+        dir: sunDirection(l.sun.azimuthDeg, l.sun.elevationDeg),
+        color: l.sun.color,
+        intensity: l.sun.intensity,
+      },
+      hemi: l.hemi,
+      fog: l.fog,
+      sky: 'textures/day_sky_gradient.png',
+      skyGradient: { zenith: l.sky.zenith, mid: l.sky.mid, horizon: l.sky.horizon },
+      bloom: { strength: 0.16, threshold: 0.93 },
+      toneMappingExposure: exposure,
+    };
+  }
+  return { ...l, sky: l.sky ?? 'textures/day_sky_gradient.png' };
+}
+
+/** `[t, w]` pairs of a v2 map's `roadWidthM.byT`, or null for a constant width. */
+function widthTable(r: RawTrack): [number, number][] | null {
+  const w = r.roadWidthM;
+  return w && typeof w === 'object' && Array.isArray(w.byT) && w.byT.length > 1 ? w.byT : null;
+}
+
+/** Linear interpolation in a `[t, value]` table that wraps around the lap. */
+export function interpolateByT(table: readonly (readonly [number, number])[], t: number): number {
+  const tt = t - Math.floor(t);
+  const n = table.length;
+  if (tt <= table[0][0]) {
+    const a = table[n - 1];
+    const b = table[0];
+    const span = 1 - a[0] + b[0];
+    return span > 0 ? a[1] + ((b[1] - a[1]) * (1 - a[0] + tt)) / span : b[1];
+  }
+  for (let i = 1; i < n; i++) {
+    if (tt <= table[i][0]) {
+      const a = table[i - 1];
+      const b = table[i];
+      return a[1] + ((b[1] - a[1]) * (tt - a[0])) / (b[0] - a[0] || 1);
+    }
+  }
+  const a = table[n - 1];
+  const b = table[0];
+  const span = 1 - a[0] + b[0];
+  return span > 0 ? a[1] + ((b[1] - a[1]) * (tt - a[0])) / span : a[1];
 }
 
 export function loadTrack(json: unknown): TrackDef {
@@ -336,15 +431,27 @@ export function loadTrack(json: unknown): TrackDef {
           texture: carLanes.texture ?? '',
         }
       : undefined);
-  const width = main?.widthM ?? r.roadLayout?.carriagewayWidthM ?? r.road?.widthM ?? r.roadWidthM ?? 18;
+  // Map 1 v2: the width varies along the lap (`roadWidthM.byT`); the reference width is the Nguyen Thi Dinh road's.
+  const table = widthTable(r);
+  const scalarWidth = typeof r.roadWidthM === 'number' ? r.roadWidthM : Number(r.roadWidthM?.NTD ?? Number.NaN);
+  const width =
+    main?.widthM ??
+    r.roadLayout?.carriagewayWidthM ??
+    r.road?.widthM ??
+    (Number.isFinite(scalarWidth) ? scalarWidth : 18);
   // Lanes across the racing carriageway: the old maps list lanes per direction, Map 3 lists the 4 lanes of its road.
   const lanes = main?.lanes ?? r.roadLayout?.lanesPerDirection ?? 3;
-  const laneW = width / lanes;
-  const laneOffsets = r.laneOffsetsM ?? Array.from({ length: lanes }, (_, i) => (i - (lanes - 1) / 2) * laneW);
+  // The pickup lanes must fit the narrowest stretch.
+  const laneW = (table ? Math.min(...table.map((e) => e[1])) : width) / lanes;
+  // Map 1's queue of parked trucks fills the left lane of Nguyen Thi Dinh: the left pickup lane sits a metre inside it.
+  const laneOffsets =
+    r.laneOffsetsM ??
+    Array.from({ length: lanes }, (_, i) => (i - (lanes - 1) / 2) * laneW - (table && i === lanes - 1 ? 1 : 0));
   const ys = r.spline.points.map((p) => p[1]);
   const minY = Math.min(...ys);
   const maxY = Math.max(...ys);
-  const hasElevation = maxY - minY > 0.5;
+  // Map 1 lies flat 2 m above the physics ground plane (the river is at 0): the road ribbon is the driving surface.
+  const hasElevation = maxY - minY > 0.5 || minY > 1;
   // Stretches with their own width / texture: Map 3's frontage road, Cat Lai's gate, yard and quay apron.
   const widthProfile: TrackDef['widthProfile'] = [];
   const section = (test: (x: { id: string; name: string }) => boolean) => r.sections?.find(test);
@@ -378,6 +485,23 @@ export function loadTrack(json: unknown): TrackDef {
       widthProfile.push({ fromT: sec.fromT, toT: sec.toT, widthM, texture: port.texture });
     }
   }
+  // Map 1 v2: the NTD road has its own texture, everything inside the port is concrete laid in world space.
+  const sections = r.sections ?? [];
+  const inPort = sections.filter((x) => x.id !== 'NTD' && x.id !== 'LINK');
+  if (table && r.surfaces?.port && inPort.length > 0) {
+    const fromT = Math.min(...inPort.map((x) => x.fromT));
+    const toT = Math.max(...inPort.map((x) => x.toT));
+    widthProfile.push({
+      fromT,
+      toT,
+      widthM: Math.min(...table.filter((e) => e[0] >= fromT && e[0] <= toT).map((e) => e[1])),
+      texture: r.surfaces.port.texture,
+      worldTileM: r.surfaces.port.tileM,
+    });
+  }
+  const sidewalkT = table
+    ? sections.filter((x) => x.id === 'NTD' || x.id === 'LINK').map((x): [number, number] => [x.fromT, x.toT])
+    : null;
   return {
     id: r.id,
     name: r.name,
@@ -391,11 +515,31 @@ export function loadTrack(json: unknown): TrackDef {
     ramps: r.ramps ?? [],
     pickups: r.pickups,
     laneOffsetsM: laneOffsets,
-    roadTexture: main?.texture ?? r.roadLayout?.roadTexture ?? r.road?.texture ?? 'textures/road_lanes.png',
-    roadTextureRepeatM: r.roadLayout ? (main ? 16 : 12) : r.road ? r.road.widthM : raceJson.track.roadTextureRepeatM,
+    roadTexture:
+      main?.texture ??
+      r.roadLayout?.roadTexture ??
+      r.road?.texture ??
+      r.surfaces?.NTD?.texture ??
+      'textures/road_lanes.png',
+    roadTextureRepeatM: r.roadLayout
+      ? main
+        ? 16
+        : 12
+      : r.road
+        ? r.road.widthM
+        : (r.surfaces?.NTD?.tileM[1] ?? raceJson.track.roadTextureRepeatM),
     hasElevation,
     groundY: minY < -1 ? Math.floor(minY) - 3 : 0,
     widthProfile,
+    widthByT: table,
+    sidewalkT,
+    // Cat Lai's container-truck queue waits in the oncoming (left) lanes; the older maps' queues were on the right.
+    blockedLane: table
+      ? 'left'
+      : (json as { truckQueue?: unknown; ambientTraffic?: unknown }).truckQueue ||
+          (json as { ambientTraffic?: unknown }).ambientTraffic
+        ? 'right'
+        : null,
     daylight: dayLighting(r),
     // Map 6's 'changeable' block is a visual / audio brief, not Map 4's storm: the shared sim must not see it.
     weather: r.weather && (r.weather as { type?: string }).type !== 'changeable' ? r.weather : null,
@@ -407,6 +551,7 @@ export function loadTrack(json: unknown): TrackDef {
 
 /** Carriageway width at along-track `t`: `roadWidthM`, or the narrower profile stretch with a short blend at each end. */
 export function roadWidthAt(def: TrackDef, t: number): number {
+  if (def.widthByT) return interpolateByT(def.widthByT, t);
   const blendT = 40 / def.lapLengthM;
   let w = def.roadWidthM;
   const tt = t - Math.floor(t);
@@ -419,6 +564,8 @@ export function roadWidthAt(def: TrackDef, t: number): number {
 }
 
 export const RACE = raceJson;
+/** Rivals hold the centre line from this far (m) before a gate section: Cat Lai's booths leave 3-4 m lanes. */
+export const GATE_LEAD_M = 90;
 export const AI = aiJson;
 export const UI_SOUNDS = uiSoundsJson;
 export const LIGHTING = lightingJson;

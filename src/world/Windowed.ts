@@ -172,3 +172,134 @@ export function gateByDistance(meshes: readonly THREE.InstancedMesh[], xz: Float
       apply(cam)) as unknown as Hook;
   }
 }
+
+/**
+ * Indices of the (x, z) points within `radius` of (cx, cz) that are in front of the camera: inside `nearM`, or within
+ * the wedge whose axis is (dirX, dirZ) (a unit vector) and whose half-angle has cosine `cosHalf`. Ascending order.
+ */
+export function selectWedge(
+  xz: Float32Array,
+  cx: number,
+  cz: number,
+  dirX: number,
+  dirZ: number,
+  radius: number,
+  cosHalf: number,
+  nearM: number,
+  out: Uint32Array,
+): number {
+  const r2 = radius * radius;
+  const n2 = nearM * nearM;
+  let n = 0;
+  for (let i = 0, k = 0; i < xz.length; i += 2, k++) {
+    const dx = xz[i] - cx;
+    const dz = xz[i + 1] - cz;
+    const d2 = dx * dx + dz * dz;
+    if (d2 > r2) continue;
+    if (d2 <= n2 || dx * dirX + dz * dirZ >= cosHalf * Math.sqrt(d2)) out[n++] = k;
+  }
+  return n;
+}
+
+export interface WedgeOptions {
+  /** Half-angle (degrees) of the wedge in front of the camera; 62 covers a 16:9 chase view with margin. */
+  halfAngleDeg?: number;
+  /** Everything this close is kept, whichever way the camera faces (it can turn quickly). */
+  nearM?: number;
+  /** Recompute after the camera moves this far (m) or turns this much (degrees). */
+  moveM?: number;
+  turnDeg?: number;
+}
+
+/**
+ * Like `InstanceWindow`, but also drops what is behind the camera: a day map's windows reach 700-800 m, and the half
+ * of the yard behind the car would otherwise be submitted every frame for nothing. The selection is cached until the
+ * camera has moved or turned a little, so it costs one pass over the points a few times a second.
+ */
+export class WedgeWindow {
+  private readonly sel: Uint32Array;
+  private count = 0;
+  private lastX = Number.NaN;
+  private lastZ = Number.NaN;
+  private lastYaw = Number.NaN;
+  version = 0;
+  private readonly cosHalf: number;
+  private readonly nearM: number;
+  private readonly moveM: number;
+  private readonly turnRad: number;
+  private readonly dir = new THREE.Vector3();
+
+  constructor(
+    private readonly xz: Float32Array,
+    private readonly radius: number,
+    opts: WedgeOptions = {},
+  ) {
+    this.sel = new Uint32Array(xz.length / 2);
+    this.cosHalf = Math.cos(((opts.halfAngleDeg ?? 62) * Math.PI) / 180);
+    this.nearM = opts.nearM ?? 40;
+    this.moveM = opts.moveM ?? 6;
+    this.turnRad = ((opts.turnDeg ?? 4) * Math.PI) / 180;
+  }
+
+  get selected(): Uint32Array {
+    return this.sel;
+  }
+
+  select(cam: THREE.Camera): number {
+    cam.getWorldDirection(this.dir);
+    const h = Math.hypot(this.dir.x, this.dir.z) || 1;
+    const dx = this.dir.x / h;
+    const dz = this.dir.z / h;
+    const yaw = Math.atan2(dx, dz);
+    const cx = cam.position.x;
+    const cz = cam.position.z;
+    const turn = Math.abs(Math.atan2(Math.sin(yaw - this.lastYaw), Math.cos(yaw - this.lastYaw)));
+    if (
+      !(Math.hypot(cx - this.lastX, cz - this.lastZ) <= this.moveM) ||
+      !(turn <= this.turnRad) // also true for the first call: every comparison with NaN is false
+    ) {
+      this.lastX = cx;
+      this.lastZ = cz;
+      this.lastYaw = yaw;
+      this.count = selectWedge(this.xz, cx, cz, dx, dz, this.radius, this.cosHalf, this.nearM, this.sel);
+      this.version++;
+    }
+    return this.count;
+  }
+
+  /** Make `mesh` draw only the instances this window selects (its matrices, and colours if any, are copied aside). */
+  attach(mesh: THREE.InstancedMesh): void {
+    const full = mesh.count;
+    const srcM = new Float32Array(mesh.instanceMatrix.array.subarray(0, full * 16));
+    const srcC = mesh.instanceColor ? new Float32Array(mesh.instanceColor.array.subarray(0, full * 3)) : null;
+    let applied = -1;
+    mesh.onBeforeRender = ((_r: THREE.WebGLRenderer, _s: THREE.Scene, cam: THREE.Camera): void => {
+      const n = this.select(cam);
+      if (applied !== this.version) {
+        applied = this.version;
+        const dst = mesh.instanceMatrix.array as Float32Array;
+        for (let k = 0; k < n; k++) dst.set(srcM.subarray(this.sel[k] * 16, this.sel[k] * 16 + 16), k * 16);
+        if (srcC && mesh.instanceColor) {
+          const dc = mesh.instanceColor.array as Float32Array;
+          for (let k = 0; k < n; k++) dc.set(srcC.subarray(this.sel[k] * 3, this.sel[k] * 3 + 3), k * 3);
+          mesh.instanceColor.needsUpdate = true;
+        }
+        mesh.instanceMatrix.needsUpdate = true;
+      }
+      mesh.count = n;
+    }) as unknown as Hook;
+    mesh.count = 0;
+  }
+}
+
+/** Window several meshes that share instance positions in front of the camera (see `WedgeWindow`). */
+export function windowInstancesInView(
+  meshes: readonly THREE.InstancedMesh[],
+  radius: number,
+  opts?: WedgeOptions,
+): WedgeWindow | null {
+  if (meshes.length === 0) return null;
+  const win = new WedgeWindow(instancePositions(meshes[0]), radius, opts);
+  for (const m of meshes) win.attach(m);
+  return win;
+}

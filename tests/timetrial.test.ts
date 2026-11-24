@@ -14,8 +14,8 @@ beforeAll(async () => {
 describe('solo time trial (headless)', () => {
   it('a pure-pursuit driver completes 3 laps through the real checkpoint pipeline', () => {
     const path = new TrackPath(CAT_LAI.spline.points, RACE.track.sampleSpacingM, RACE.track.projectWindowSamples);
-    expect(path.lengthM).toBeGreaterThan(2000);
-    expect(path.lengthM).toBeLessThan(3000);
+    expect(path.lengthM).toBeGreaterThan(3400);
+    expect(path.lengthM).toBeLessThan(3800);
 
     const world = new RAPIER.World({ x: 0, y: HANDLING.world.gravity, z: 0 });
     world.createCollider(RAPIER.ColliderDesc.cuboid(2000, 0.5, 2000).setTranslation(0, -0.5, 0));
@@ -92,6 +92,6 @@ describe('solo time trial (headless)', () => {
     );
     expect(race.phase).toBe('finished');
     expect(race.laps.lapTimes).toHaveLength(3);
-    expect(cps).toBe(24);
+    expect(cps).toBe(CAT_LAI.checkpoints.length * 3);
   });
 });

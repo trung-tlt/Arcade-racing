@@ -18,6 +18,15 @@ The race-car sound effects in `public/assets/sfx/elevenlabs/` were generated wit
 required, **"Sound effects by elevenlabs.io"**). They are not relicensed under the MIT License. Check ElevenLabs' current
 terms before using them outside this project; see `public/assets/sfx/elevenlabs/ATTRIBUTION.md`.
 
+## Third-party data
+
+Map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the
+[Open Database License (ODbL) 1.0](https://opendatacommons.org/licenses/odbl/1-0/). Map 1 (Cat Lai Port) uses road,
+quay, building and landuse geometry extracted from OpenStreetMap in `data/tracks/cat_lai_osm.json`. That file, and
+anything derived from it, remains under the ODbL (attribution and share-alike) and is not relicensed under the MIT
+License. Satellite and photo imagery were used only as tracing guides while building the map; no imagery or photo content
+is included in this repository.
+
 ## Fonts
 
 The game loads Inter, JetBrains Mono and Space Grotesk from Google Fonts at runtime (SIL Open Font License 1.1). The font

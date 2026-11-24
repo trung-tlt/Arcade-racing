@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { AudioBus } from '../audio/AudioBus';
 import { EngineSound } from '../audio/EngineSound';
 import { ArdennesAudio, trackAudioFiles as ardennesAudioFiles } from '../audio/ArdennesAudio';
+import { CatLaiAudio, trackAudioFiles as catLaiAudioFiles } from '../audio/CatLaiAudio';
 import { MonteCarloAudio, trackAudioFiles } from '../audio/MonteCarloAudio';
 import { bindSfx, playCountdown, playStartGo, playStartLamp, sfxFiles } from '../audio/Sfx';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
@@ -44,8 +45,7 @@ import { gridPose, respawnPose } from '../race/Respawn';
 import { RaceHud } from '../ui/raceHud';
 import { CongHoaDressing } from '../world/CongHoaDressing';
 import { CongHoaLandmarks } from '../world/CongHoaLandmarks';
-import { CatLaiQuay } from '../world/CatLaiQuay';
-import { CatLaiYard } from '../world/CatLaiYard';
+import { CatLai } from '../world/CatLai';
 import { PvdDressing } from '../world/PvdDressing';
 import { PvdStructures, pvdTerrainHoles } from '../world/PvdStructures';
 import { PvdTraffic } from '../world/PvdTraffic';
@@ -84,6 +84,7 @@ import {
   HANDLING,
   CARS,
   CAT_LAI,
+  GATE_LEAD_M,
   RACE,
   WEAPONS,
   getCarDef,
@@ -216,9 +217,11 @@ export class Game {
   /** Map 6 (Ardennes Forest Circuit): heightmap terrain, forest, circuit furniture and the start gantry. */
   private ardennes: Ardennes | null = null;
   private ardennesAudio: ArdennesAudio | null = null;
+  private catLaiAudio: CatLaiAudio | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
-  private catLai: { yard: CatLaiYard; quay: CatLaiQuay } | null = null;
+  /** Map 1 (Cat Lai Port v2): river, port slab, cranes, ships, containers, the ferry and the surroundings. */
+  private catLai: CatLai | null = null;
   private xaLo: { dressing: XaLoDressing; structures: XaLoStructures; metro: XaLoMetro; traffic: XaLoTraffic } | null =
     null;
   private race!: RaceManager;
@@ -344,7 +347,9 @@ export class Game {
           ? trackAudioFiles(mapDef)
           : mapDef.id === ARDENNES.id
             ? ardennesAudioFiles(mapDef)
-            : [],
+            : mapDef.id === CAT_LAI.id
+              ? catLaiAudioFiles(mapDef)
+              : [],
       ),
     );
     g.engineSound = new EngineSound(g.audio, g.carId);
@@ -376,10 +381,18 @@ export class Game {
     );
     this.track = new Track(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
     if (this.trackDef.id === CAT_LAI.id) {
-      this.catLai = {
-        yard: new CatLaiYard(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path),
-        quay: new CatLaiQuay(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path),
-      };
+      this.catLai = new CatLai(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path, {
+        camera: this.chase.camera,
+        renderer: this.renderer,
+        quality: userSettings.preset,
+      });
+      this.catLaiAudio = new CatLaiAudio(
+        this.audio,
+        this.trackDef,
+        this.events,
+        () => this.places.get('player') ?? 1,
+        () => this.car.physics.curr.p,
+      );
     } else if (isXaLo) {
       const a: [THREE.Scene, typeof RAPIER, RAPIER.World, Assets, TrackDef, TrackPath] = [
         this.scene,
@@ -455,7 +468,8 @@ export class Game {
       this.dressing = new CongHoaDressing(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
     }
-    if (!isXaLo) this.sponsors = new Sponsors(this.scene, this.assets, this.trackDef);
+    // Hanoi places its own billboards (XaLoMetro), Cat Lai its rooftop ones (CatLai).
+    if (!isXaLo && !this.catLai) this.sponsors = new Sponsors(this.scene, this.assets, this.trackDef);
     const playerSlot = this.online
       ? this.gridSlotOf(this.online.selfId)
       : this.mode === 'race'
@@ -951,7 +965,10 @@ export class Game {
     const def = this.trackDef;
     const out = def.widthProfile.filter((p) => p.widthM < def.roadWidthM * 0.75);
     const sections = (def.raw.sections as { name: string; fromT: number; toT: number }[] | undefined) ?? [];
-    return [...out, ...sections.filter((x) => /gate/i.test(x.name))].map((x) => ({ fromT: x.fromT, toT: x.toT }));
+    const lead = GATE_LEAD_M / def.lapLengthM;
+    return [...out, ...sections.filter((x) => /gate/i.test(x.name)).map((x) => ({ ...x, fromT: x.fromT - lead }))].map(
+      (x) => ({ fromT: x.fromT, toT: x.toT }),
+    );
   }
 
   private laneFor(offsetM: number): number {
@@ -961,11 +978,9 @@ export class Game {
     // A map with a parked queue (Cat Lai) or slow ambient traffic (Cong Hoa, Hanoi) in its right-hand lane: + offsets
     // are the car's left, so rivals keep clear of that lane plus a car width.
     const laneW = this.trackDef.roadWidthM / this.trackDef.laneOffsetsM.length;
-    const lowest =
-      this.trackDef.raw.truckQueue || this.trackDef.raw.ambientTraffic
-        ? -(this.trackDef.roadWidthM / 2 - laneW - 2)
-        : -half;
-    return Math.max(lowest, Math.min(half, (offsetM * width) / RACE.ai.laneReferenceWidthM));
+    const lowest = this.trackDef.blockedLane === 'right' ? -(this.trackDef.roadWidthM / 2 - laneW - 2) : -half;
+    const highest = this.trackDef.blockedLane === 'left' ? this.trackDef.roadWidthM / 2 - laneW - 2 : half;
+    return Math.max(lowest, Math.min(highest, (offsetM * width) / RACE.ai.laneReferenceWidthM));
   }
 
   private gridPoseForSlot(slot: number): { x: number; y: number; z: number; yaw: number } {
@@ -1835,9 +1850,25 @@ export class Game {
     }
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
     this.landmarks?.update(dt);
-    if (this.catLai) {
-      this.catLai.quay.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
-      this.catLai.quay.update(dt);
+    this.catLai?.update(dt);
+    if (this.catLaiAudio) {
+      const pp = this.car.physics;
+      this.catLaiAudio.update(dt, {
+        t: this.carTs.get('player') ?? 0,
+        x: pp.curr.p.x,
+        y: pp.curr.p.y,
+        z: pp.curr.p.z,
+        yaw: pp.yaw,
+        speedKmh: pp.speedMps * 3.6,
+        cars: this.cars.map((c) => ({
+          id: c.id,
+          t: this.carTs.get(c.id) ?? 0,
+          x: c.physics.curr.p.x,
+          y: c.physics.curr.p.y,
+          z: c.physics.curr.p.z,
+          speedKmh: c.physics.speedMps * 3.6,
+        })),
+      });
     }
     if (this.pvd) {
       this.pvd.traffic.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
@@ -2090,7 +2121,7 @@ export class Game {
       this.lastCountdown = cd;
     }
     // Underpass: the car's own height is below the trench threshold.
-    if (!this.monteAudio && !this.ardennesAudio)
+    if (!this.monteAudio && !this.ardennesAudio && !this.catLaiAudio)
       this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
     if (!this.paused)
       this.engineSound.update(dt, {
@@ -2231,6 +2262,8 @@ export class Game {
     this.loop.stop();
     window.removeEventListener('resize', this.onResize);
     this.unbindSfx?.();
+    this.catLaiAudio?.dispose(); // its loops stop on the bus, so before the context closes
+    this.catLaiAudio = null;
     this.engineSound.dispose();
     this.audio.dispose();
     this.input.dispose();
@@ -2271,7 +2304,7 @@ export class Game {
     this.pvd = null;
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();
     this.xaLo = null;
-    if (this.catLai) for (const m of Object.values(this.catLai)) m.dispose();
+    this.catLai?.dispose();
     this.catLai = null;
     this.track.dispose();
     this.env.dispose();

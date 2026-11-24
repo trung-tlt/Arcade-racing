@@ -51,17 +51,6 @@ export function trackEdge(shape: TrackShape, i: number, side: number): number {
   return Math.min(shape.half[i], side > 0 ? shape.limitL[i] : shape.limitR[i]);
 }
 
-/** Where a side road (Cat Lai's Reefer lane) joins the main road: walls and barriers stay open there. */
-export function sideRoadMouths(def: TrackDef): { x: number; z: number; halfGapM: number }[] {
-  const sc = def.raw.shortcut as { widthM: number; points: [number, number, number][] } | undefined;
-  if (!sc) return [];
-  return [sc.points[0], sc.points[sc.points.length - 1]].map((p) => ({
-    x: p[0],
-    z: p[2],
-    halfGapM: sc.widthM / 2 + 3,
-  }));
-}
-
 export interface TrackColliders {
   readonly body: RAPIER.RigidBody;
   /**
@@ -83,7 +72,6 @@ export function buildTrackColliders(
   const h = RACE.track.wallColliderHeightM;
   const body = world.createRigidBody(R.RigidBodyDesc.fixed());
   const wallHandles = new Set<number>();
-  const mouths = sideRoadMouths(def);
   // Left-pointing unit vector (+X is left for a car facing +Z).
   const lx = (i: number): number => path.tz[i];
   const lz = (i: number): number => -path.tx[i];
@@ -109,8 +97,6 @@ export function buildTrackColliders(
     }
     const idx: number[] = [];
     for (let i = 0; i < n; i++) {
-      // A side road (Cat Lai's Reefer lane) joins here: leave the wall open so cars can turn in.
-      if (mouths.some((m) => Math.hypot(path.px[i] - m.x, path.pz[i] - m.z) < m.halfGapM)) continue;
       // No inner wall in a bend tighter than the road is wide: it would sit inside the turn's own track.
       if ((s > 0 ? shape.limitL[i] : shape.limitR[i]) < shape.half[i]) continue;
       const a = i * 4;

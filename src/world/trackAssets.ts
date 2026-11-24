@@ -35,8 +35,6 @@ export const CONG_HOA_TEXTURES: string[] = [
 
 export const XALO_TEXTURES: string[] = ['textures/xalo_road_4lane.png', 'textures/dusk_sky_gradient.png'];
 
-export const CAT_LAI_TEXTURES: string[] = ['textures/catlai_apron.png', 'textures/xalo_road_4lane.png'];
-
 /** Map 4 (Pham Van Dong Boulevard): its own props. Shophouses, trees, cars and the bus come from props_conghoa. */
 export const PVD_MODELS: string[] = [
   'arch_rail_bridge',

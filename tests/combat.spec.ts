@@ -18,7 +18,8 @@ test('player can wreck a dummy with the Pulse MG and it respawns', async ({ page
   });
   page.on('pageerror', (e) => errors.push(e.message));
 
-  await page.goto('/?mode=practice');
+  // Cong Hoa: a straight start with the dummies dead ahead (Cat Lai opens with a bend, so holding W alone ends in its wall).
+  await page.goto('/?mode=practice&track=cong_hoa');
   await page.waitForFunction(() => (window as unknown as { __voltline?: unknown }).__voltline !== undefined, null, {
     timeout: 30_000,
   });

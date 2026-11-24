@@ -46,13 +46,14 @@ export class TitleScreen implements Screen {
           <div>Best lap · <span class="mn-mono best"></span></div>
           <div>Keyboard or gamepad — no mouse needed.</div>
           <div class="credit">Sound effects by elevenlabs.io</div>
+          <div class="credit">Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></div>
         </div>
       </div>
       <div class="right">
         <div class="stage"></div>
         <div class="stripe"></div>
         <div class="tonight">
-          <span class="mn-eyebrow">TONIGHT</span>
+          <span class="mn-eyebrow">TODAY</span>
           <b>Cat Lai Port</b>
           <span class="facts">6 racers · guns hot · ${(TRACKS[0].lapLengthM / 1000).toFixed(1)} km</span>
         </div>

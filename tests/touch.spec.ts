@@ -18,7 +18,7 @@ test.describe('mobile layer', () => {
     });
     page.on('pageerror', (e) => errors.push(e.message));
 
-    await page.goto('/?touch=1&quick=1&mode=practice');
+    await page.goto('/?touch=1&quick=1&mode=practice&track=cong_hoa');
     await page.waitForFunction(() => (window as unknown as { __voltline?: unknown }).__voltline !== undefined, null, {
       timeout: 60_000,
     });

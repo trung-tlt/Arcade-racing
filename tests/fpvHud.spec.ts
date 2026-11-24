@@ -20,7 +20,7 @@ test.describe('first-person HUD', () => {
     test.setTimeout(120_000);
     const errors: string[] = [];
     page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
-    await boot(page, '/?quick=1&mode=race&roster=data&track=cat_lai');
+    await boot(page, '/?quick=1&mode=race&roster=data&track=cong_hoa');
     expect(await cls(page)).toContain('hud-full');
     for (const [mode, c] of [
       ['minimal', 'hud-min'],
@@ -38,7 +38,7 @@ test.describe('first-person HUD', () => {
 
   test('hood and cockpit show the visor; minimal drops the panels and off hides it all', async ({ page }) => {
     test.setTimeout(120_000);
-    await boot(page, '/?quick=1&mode=race&roster=data&track=cat_lai');
+    await boot(page, '/?quick=1&mode=race&roster=data&track=cong_hoa');
     // chase: no visor layer
     await expect(page.locator('.fpv')).toBeHidden();
     await page.evaluate(() => {

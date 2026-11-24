@@ -60,8 +60,7 @@ test('menu sounds and music: unlock on first key, sounds follow the menus, music
   await expect(page.getByRole('heading', { name: 'Set up the race' })).toBeVisible();
   await page.keyboard.press('t');
   await page.keyboard.press('l');
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown'); // L focused the laps row; one step down is the difficulty row
   for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight'); // past the last difficulty
   const mid = (await state(page)).log;
   expect(mid).toContain('track_switch');

@@ -9,7 +9,8 @@ test('practice mode: boots, counts down, and the car drives forward for 5 s with
   });
   page.on('pageerror', (e) => errors.push(e.message));
 
-  await page.goto('/?mode=practice');
+  // Cong Hoa: a straight start. (Cat Lai opens with a bend on Nguyen Thi Dinh, so holding W alone ends against its wall.)
+  await page.goto('/?mode=practice&track=cong_hoa');
   await page.waitForFunction(() => (window as unknown as { __voltline?: unknown }).__voltline !== undefined, null, {
     timeout: 30_000,
   });

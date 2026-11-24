@@ -58,8 +58,8 @@ export class Environment {
   ) {
     const day = !!track?.daylight; // day and dusk maps
     // Map 5 builds its own hills and harbour (MonteCarlo.ts), Map 6 its heightmap terrain (Ardennes.ts); only the
-    // physics ground below stays generic.
-    const ownTerrain = !!track?.raw.harbour || !!track?.raw.terrain;
+    // physics ground below stays generic. Map 1 builds its own slab and river (CatLai.ts).
+    const ownTerrain = !!track?.raw.harbour || !!track?.raw.terrain || !!track?.raw.river;
     const groundY = track?.groundY ?? 0;
     // Day maps have no harbour: the land plane covers everything and the water mesh is left empty.
     // The boulevard runs 1.4 km north of the origin; the port fits in 2 km. Size the world to the map.

@@ -291,7 +291,8 @@ export class SettingsScreen implements Screen {
     reset.addEventListener('click', () => this.reset());
     const note = document.createElement('div');
     note.className = 'st-footer-note';
-    note.innerHTML = '<span>Saved to this browser automatically.</span><span>Sound effects by elevenlabs.io</span>';
+    note.innerHTML =
+      '<span>Saved to this browser automatically.</span><span>Sound effects by elevenlabs.io</span><span>Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></span>';
     left.append(reset, note);
     const done = document.createElement('button');
     done.type = 'button';

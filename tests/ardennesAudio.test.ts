@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ARDENNES, CAT_LAI } from '../src/core/Data';
+import { ARDENNES, CAT_LAI, CONG_HOA } from '../src/core/Data';
 import {
   EAU_ROUGE_T,
   GUST_EVERY_SEC,
@@ -110,6 +110,6 @@ describe('Ardennes audio files', () => {
     ])
       expect(files).toContain(`sfx/spa/${n}.wav`);
     expect(new Set(files).size).toBe(files.length);
-    expect(trackAudioFiles(CAT_LAI)).toEqual([]);
+    expect(trackAudioFiles(CONG_HOA)).toEqual([]);
   });
 });

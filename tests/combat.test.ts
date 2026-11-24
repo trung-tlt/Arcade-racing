@@ -204,10 +204,10 @@ describe('pickups', () => {
     repair: WEAPONS.pickups.repair.respawnSec,
     nitro: WEAPONS.pickups.nitro.respawnSec,
   };
-  it('expands the real track data: 6 clusters, 16 items, sequential ids', () => {
-    expect(harbor.pickups).toHaveLength(6);
-    expect(defs).toHaveLength(16);
-    expect(defs.map((d) => d.id)).toEqual(Array.from({ length: 16 }, (_, i) => i));
+  it('expands the real track data: 7 clusters, 19 items, sequential ids', () => {
+    expect(harbor.pickups).toHaveLength(7);
+    expect(defs).toHaveLength(19);
+    expect(defs.map((d) => d.id)).toEqual(Array.from({ length: 19 }, (_, i) => i));
     expect(() => expandPickups([{ t: 0, items: [{ type: 'bogus', lane: 0 }] }])).toThrow();
   });
   it('take → unavailable → respawns after the delay', () => {

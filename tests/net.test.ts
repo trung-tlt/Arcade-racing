@@ -119,8 +119,9 @@ describe('websocket server', () => {
     expect(rate).toBeGreaterThan(17);
     expect(rate).toBeLessThan(23);
     expect(c.snap?.cars).toHaveLength(6);
-    // Green is at ~3.5 s; after 9 s the car is up to speed and the server is applying our inputs.
-    expect(me && Math.hypot(me.v[0], me.v[2])).toBeGreaterThan(15);
+    // Green is at ~3.5 s; after 9 s the car is moving and the server is applying our inputs (Cat Lai opens with a
+    // 100 m bend on Nguyen Thi Dinh, so it is not yet at its straight-line speed).
+    expect(me && Math.hypot(me.v[0], me.v[2])).toBeGreaterThan(10);
     expect(c.snap?.ack).toBeGreaterThan(300);
     expect(c.pingMs >= 0).toBe(true);
   }, 30_000);

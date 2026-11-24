@@ -70,7 +70,7 @@ describe('Monte-Carlo audio zones', () => {
     ]) {
       expect(files).toContain(f);
     }
-    expect(trackAudioFiles(getTrack('cat_lai'))).toEqual([]);
+    expect(trackAudioFiles(getTrack('cong_hoa'))).toEqual([]);
   });
 });
 

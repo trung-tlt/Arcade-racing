@@ -24,7 +24,8 @@ gamepad or touch (phones, landscape): nothing to install.
   has its own stats, hull, handling and roof gun.
 - **Combat racing:** Pulse machine gun (aim assist, heat), homing rockets, repair and nitro pickups, damage states,
   wrecks and respawns. Drifting and takedowns charge the nitro.
-- **Six hand-built maps:** a container port at night, a daytime HCMC boulevard, Hanoi at dusk with a bridge and
+- **Six hand-built maps:** the real Cát Lái container terminal in daylight (35,000 containers, 17 quay cranes, a ferry
+  crossing the river), a daytime HCMC boulevard, Hanoi at dusk with a bridge and
   underpass, a 4.8 km monsoon storm with puddles and a flooded dip, a Monte-Carlo style harbour circuit, and a 6.9 km
   forest circuit with a 100 m elevation range and an Eau Rouge style climb.
 - **Online multiplayer:** quick match, private rooms with a six-character code, a lobby, up to six racers, name tags,
@@ -35,12 +36,12 @@ gamepad or touch (phones, landscape): nothing to install.
 
 ## Screenshots
 
-| | |
-|---|---|
-| ![Title screen](docs/screenshots/title.jpg) | ![Garage](docs/screenshots/car-select.jpg) |
-| ![Cat Lai Port at night](docs/screenshots/race-cat-lai.jpg) | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg) |
-| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg) | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
-| ![Online hub](docs/screenshots/online-hub.jpg) | ![Online lobby](docs/screenshots/online-lobby.jpg) |
+|                                                             |                                                                                     |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| ![Title screen](docs/screenshots/title.jpg)                 | ![Garage](docs/screenshots/car-select.jpg)                                          |
+| ![Cat Lai Port, daylight](docs/screenshots/race-cat-lai.jpg) | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg)                       |
+| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg)   | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
+| ![Online hub](docs/screenshots/online-hub.jpg)              | ![Online lobby](docs/screenshots/online-lobby.jpg)                                  |
 
 Phone, landscape, with the on-screen pads:
 
@@ -48,20 +49,20 @@ Phone, landscape, with the on-screen pads:
 
 ## Controls
 
-| Action | Keyboard / mouse | Gamepad |
-|---|---|---|
-| Throttle / brake | W / S | RT / LT |
-| Steer | A / D | Left stick |
-| Drift | Space | X |
-| Nitro | Shift | A |
-| Fire Pulse MG | J or left mouse | RB |
-| Fire rocket | K or right mouse | LB |
-| Reset to track | R | Y |
-| Pause | Esc | Start |
-| Camera: chase / hood / cockpit | V | View |
-| HUD: full / minimal / off | H | D-pad down |
-| Rear-view mirror | M | |
-| Look back (hold) | C | R3 |
+| Action                         | Keyboard / mouse | Gamepad    |
+| ------------------------------ | ---------------- | ---------- |
+| Throttle / brake               | W / S            | RT / LT    |
+| Steer                          | A / D            | Left stick |
+| Drift                          | Space            | X          |
+| Nitro                          | Shift            | A          |
+| Fire Pulse MG                  | J or left mouse  | RB         |
+| Fire rocket                    | K or right mouse | LB         |
+| Reset to track                 | R                | Y          |
+| Pause                          | Esc              | Start      |
+| Camera: chase / hood / cockpit | V                | View       |
+| HUD: full / minimal / off      | H                | D-pad down |
+| Rear-view mirror               | M                |            |
+| Look back (hold)               | C                | R3         |
 
 Every menu works from the keyboard or a gamepad (arrows, Enter, Esc, hotkey chips). On phones the game is landscape only:
 on-screen pads with auto-gas by default; tilt and swipe-wheel steering are in Settings. In an online race press **F8** for a
@@ -69,14 +70,14 @@ network diagnostics panel (ping, snapshot gaps, frame hitches, prediction correc
 
 ## Maps
 
-| Map | Setting | Notes |
-|---|---|---|
-| Cat Lai Port | Night | Container yard, port gate, truck queue, quay cranes, a shortcut lane |
-| Cong Hoa Boulevard | Day | HCMC avenue with a median, landmarks and a U-turn |
-| Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
-| Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning |
-| Monte-Carlo Harbour | Day | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start |
-| Ardennes Forest Circuit | Day | 6.9 km, 2 laps: heightmap terrain and spruce forest, 102 m of elevation, the Eau Rouge and Raidillon climb (no-fire zone), pits and grandstands, a five-light start |
+| Map                          | Setting       | Notes                                                                                                                                                               |
+| ---------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Cat Lai Port                 | Day           | 3.6 km, 3 laps on the real Tân Cảng Cát Lái layout (OpenStreetMap + satellite tracing): Nguyễn Thị Định road, Gate B, a 1 km quay under the STS cranes, yard lane 7, the north road; 35,000 containers, ships, the ferry                                                                                               |
+| Cong Hoa Boulevard           | Day           | HCMC avenue with a median, landmarks and a U-turn                                                                                                                   |
+| Hanoi Highway (Xa Lo Ha Noi) | Dusk          | River bridge, underpass, metro viaduct, ambient traffic                                                                                                             |
+| Pham Van Dong Boulevard      | Monsoon storm | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning                                          |
+| Monte-Carlo Harbour          | Day           | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start                                                   |
+| Ardennes Forest Circuit      | Day           | 6.9 km, 2 laps: heightmap terrain and spruce forest, 102 m of elevation, the Eau Rouge and Raidillon climb (no-fire zone), pits and grandstands, a five-light start |
 
 ## Run it locally
 
@@ -198,7 +199,10 @@ else CraftMann makes at [craftmann.app](https://craftmann.app/).
 
 Code and the original models, textures and music: [MIT](LICENSE), © 2026 Trung Tran. **Not covered by the MIT license:** the
 CraftMann, CaptureMann and Emesoft brand marks, and the race-car sound effects by [ElevenLabs](https://elevenlabs.io/sound-effects/race-car)
-(free-plan attribution: *Sound effects by elevenlabs.io*). Details in [NOTICE.md](NOTICE.md).
+(free-plan attribution: _Sound effects by elevenlabs.io_). Details in [NOTICE.md](NOTICE.md).
+
+Map 1 (Cat Lai Port) is built from map data © [OpenStreetMap contributors](https://www.openstreetmap.org/copyright), available under the
+[Open Database License (ODbL)](https://opendatacommons.org/licenses/odbl/1-0/) (`data/tracks/cat_lai_osm.json`).
 
 Built with [three.js](https://threejs.org), [Rapier](https://rapier.rs), [Vite](https://vite.dev), TypeScript and the Web
 Audio API.

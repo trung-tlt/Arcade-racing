@@ -2,7 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
 import { RacingLine } from '../ai/RacingLine';
 import { expandPickups } from '../combat/Pickups';
-import { AI, COMBAT, HANDLING, RACE, getCarDef, getTrack, roadWidthAt, type TrackDef } from '../core/Data';
+import { AI, COMBAT, GATE_LEAD_M, HANDLING, RACE, getCarDef, getTrack, roadWidthAt, type TrackDef } from '../core/Data';
 import { EventBus } from '../core/Events';
 import { STEP } from '../core/Loop';
 import { noFireZoneAt } from '../race/NoFire';
@@ -15,7 +15,6 @@ import { TrackPath } from '../world/TrackPath';
 import { buildBaked } from './BakedColliders';
 import { loadBaked } from './bakedNode';
 import { CarSim } from './CarSim';
-import { CatLaiYardSim } from './CatLaiYardSim';
 import { CombatSim, type CombatFx, type LagComp } from './CombatSim';
 import { CongHoaTrafficSim } from './CongHoaTrafficSim';
 import { HitRules } from './HitRules';
@@ -70,15 +69,20 @@ function laneFor(def: TrackDef, offsetM: number): number {
   const width = Math.min(def.roadWidthM, ...def.widthProfile.map((p) => p.widthM));
   const half = width / 2 - 1.8;
   const laneW = def.roadWidthM / def.laneOffsetsM.length;
-  const lowest = def.raw.truckQueue || def.raw.ambientTraffic ? -(def.roadWidthM / 2 - laneW - 2) : -half;
-  return Math.max(lowest, Math.min(half, (offsetM * width) / RACE.ai.laneReferenceWidthM));
+  const lowest = def.blockedLane === 'right' ? -(def.roadWidthM / 2 - laneW - 2) : -half;
+  const highest = def.blockedLane === 'left' ? def.roadWidthM / 2 - laneW - 2 : half;
+  return Math.max(lowest, Math.min(highest, (offsetM * width) / RACE.ai.laneReferenceWidthM));
 }
 
 /** Same as `Game.centreRanges`: stretches where rivals hold the centre line. */
 export function centreRanges(def: TrackDef): { fromT: number; toT: number }[] {
   const narrow = def.widthProfile.filter((p) => p.widthM < def.roadWidthM * 0.75);
   const sections = (def.raw.sections as { name: string; fromT: number; toT: number }[] | undefined) ?? [];
-  return [...narrow, ...sections.filter((x) => /gate/i.test(x.name))].map((x) => ({ fromT: x.fromT, toT: x.toT }));
+  // A gate's booths are narrow lanes: the rivals line up a short way before the first booth (they ease across at 3 m/s).
+  const lead = GATE_LEAD_M / def.lapLengthM;
+  return [...narrow, ...sections.filter((x) => /gate/i.test(x.name)).map((x) => ({ ...x, fromT: x.fromT - lead }))].map(
+    (x) => ({ fromT: x.fromT, toT: x.toT }),
+  );
 }
 
 export interface SimEntry {
@@ -154,7 +158,6 @@ export class RaceSim {
     if (baked) buildBaked(RAPIER, world, baked);
     if (opts.traffic !== false) {
       if (def.id === 'xa_lo_ha_noi') this.traffic.push(new XaLoTrafficSim(RAPIER, world, def, path));
-      if (def.id === 'cat_lai') this.traffic.push(new CatLaiYardSim(RAPIER, world, def, path));
       if (def.id === 'cong_hoa') this.traffic.push(new CongHoaTrafficSim(RAPIER, world, def, path));
       if (def.id === 'pham_van_dong') this.traffic.push(new PvdTrafficSim(RAPIER, world, def, path));
     }

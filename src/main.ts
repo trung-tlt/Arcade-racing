@@ -1,6 +1,6 @@
 import { Assets } from './core/Assets';
 import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
-import { AI, ARDENNES, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
+import { AI, ARDENNES, CARS, CAT_LAI, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { NetClient } from './net/NetClient';
 import { OnlineFlow } from './ui/onlineFlow';
@@ -29,9 +29,8 @@ import { ARDENNES_MODELS, ARDENNES_TEXTURES } from './world/Ardennes';
 import { MONTE_CARLO_MODELS, MONTE_CARLO_TEXTURES } from './world/MonteCarlo';
 import { TRACK_MODELS, TRACK_TEXTURES } from './world/Track';
 import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
-import { CAT_LAI_TEXTURES, PVD_MODELS, PVD_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
-import { CAT_LAI_QUAY_MODELS } from './world/CatLaiQuay';
-import { CAT_LAI_YARD_MODELS } from './world/CatLaiYard';
+import { PVD_MODELS, PVD_TEXTURES, XALO_TEXTURES } from './world/trackAssets';
+import { CAT_LAI_MODELS, CAT_LAI_SHARED_MODELS, CAT_LAI_TEXTURES } from './world/CatLai';
 import { PVD_DRESSING_MODELS } from './world/PvdDressing';
 import { PVD_STRUCTURE_MODELS } from './world/PvdStructures';
 import { PVD_TRAFFIC_MODELS } from './world/PvdTraffic';
@@ -95,8 +94,6 @@ async function boot(): Promise<void> {
         ...CONG_HOA_MODELS,
         ...PVD_MODELS,
         ...new Set([
-          ...CAT_LAI_QUAY_MODELS,
-          ...CAT_LAI_YARD_MODELS,
           ...SPONSOR_MODELS,
           ...PVD_DRESSING_MODELS,
           ...PVD_STRUCTURE_MODELS,
@@ -116,7 +113,6 @@ async function boot(): Promise<void> {
         ...CONG_HOA_TEXTURES,
         ...XALO_TEXTURES,
         ...PVD_TEXTURES,
-        ...CAT_LAI_TEXTURES,
         ...FX_TEXTURES,
       ],
     },
@@ -378,6 +374,10 @@ async function boot(): Promise<void> {
     touchHud?.setActive(true);
     syncMusic('racing');
     resultsShown = false;
+    // Map 1's props (cranes, ships, ~60 houses and trucks, the yard) are fetched the first time it is raced.
+    if (s.trackId === CAT_LAI.id) {
+      await assets.extend({ models: [...CAT_LAI_MODELS, ...CAT_LAI_SHARED_MODELS], textures: CAT_LAI_TEXTURES });
+    }
     // Map 5's props are not in the boot download: fetch them (3 MB) the first time that map is raced.
     if (s.trackId === MONTE_CARLO.id) {
       await assets.extend({ models: MONTE_CARLO_MODELS, textures: MONTE_CARLO_TEXTURES });

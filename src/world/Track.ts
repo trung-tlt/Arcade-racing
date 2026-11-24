@@ -5,13 +5,7 @@ import { RACE, type TrackDef } from '../core/Data';
 import { InstancedModel } from './InstancedModel';
 import { DistanceCull, drawDistance, windowInstances } from './Windowed';
 import type { TrackPath } from './TrackPath';
-import {
-  buildTrackColliders,
-  computeTrackShape,
-  sideRoadMouths,
-  trackEdge,
-  type TrackShape,
-} from '../sim/TrackColliders';
+import { buildTrackColliders, computeTrackShape, trackEdge, type TrackShape } from '../sim/TrackColliders';
 
 type Rapier = typeof RAPIER;
 
@@ -80,21 +74,22 @@ export class Track {
     // The main carriageway and any narrower stretch (frontage road) use different textures: one ribbon per run.
     const cuts = [0, ...def.widthProfile.flatMap((p) => [p.fromT, p.toT]), 1];
     const textures = [def.roadTexture, ...def.widthProfile.flatMap((p) => [p.texture, def.roadTexture])];
+    const worldTiles = [0, ...def.widthProfile.flatMap((p) => [p.worldTileM ?? 0, 0])];
     for (let r = 0; r + 1 < cuts.length; r++) {
       const i0 = Math.floor(cuts[r] * n);
       const i1 = r + 2 === cuts.length ? n : Math.floor(cuts[r + 1] * n);
       if (i1 <= i0) continue;
-      out.add(this.ribbon(assets, textures[r], i0, i1));
+      out.add(this.ribbon(assets, textures[r], i0, i1, worldTiles[r]));
     }
     return out;
   }
 
   /** Road surface for samples [i0, i1] (inclusive end, wrapping), following the spline height. */
-  private ribbon(assets: Assets, texture: string, i0: number, i1: number): THREE.Mesh {
+  private ribbon(assets: Assets, texture: string, i0: number, i1: number, worldTileM = 0): THREE.Mesh {
     const { path, def } = this;
     const n = path.count;
     const tex = assets.texture(texture);
-    tex.wrapS = THREE.ClampToEdgeWrapping;
+    tex.wrapS = worldTileM ? THREE.RepeatWrapping : THREE.ClampToEdgeWrapping;
     tex.wrapT = THREE.RepeatWrapping;
     tex.anisotropy = 8;
     tex.needsUpdate = true;
@@ -113,8 +108,9 @@ export class Track {
         pos[o] = path.px[k] + l.x * this.edge(k, s) * s;
         pos[o + 1] = path.py[k] + RACE.track.roadY;
         pos[o + 2] = path.pz[k] + l.z * this.edge(k, s) * s;
-        uv[(r * 2 + side) * 2] = side === 0 ? 0 : 1;
-        uv[(r * 2 + side) * 2 + 1] = v;
+        // Concrete aprons are tiled in world space so the slabs line up with the ground around them.
+        uv[(r * 2 + side) * 2] = worldTileM ? pos[o] / worldTileM : side === 0 ? 0 : 1;
+        uv[(r * 2 + side) * 2 + 1] = worldTileM ? pos[o + 2] / worldTileM : v;
       }
     }
     const idx: number[] = [];
@@ -176,6 +172,8 @@ export class Track {
           }
         }
         for (let i = 0; i < n; i++) {
+          // Map 1 lines only the public road with a kerb and sidewalk, not the port.
+          if (!this.hasSidewalk(i) || !this.hasSidewalk((i + 1) % n)) continue;
           const a = base + i * 4;
           const b = base + ((i + 1) % n) * 4;
           for (let r = 0; r < 4; r++) {
@@ -199,6 +197,14 @@ export class Track {
     return mesh;
   }
 
+  /** Whether sample `i` has a kerb and sidewalk beside it (every sample unless the map lists its sidewalk stretches). */
+  private hasSidewalk(i: number): boolean {
+    const ranges = this.def.sidewalkT;
+    if (!ranges) return true;
+    const t = i / this.path.count;
+    return ranges.some(([from, to]) => t >= from && t <= to);
+  }
+
   private buildBarriers(assets: Assets): void {
     const { path } = this;
     const proto = assets.cloneModel(BARRIER);
@@ -206,7 +212,6 @@ export class Track {
     const perSide = Math.ceil(path.lengthM / RACE.track.barrierSpacingM);
 
     const mats: THREE.Matrix4[] = [];
-    const mouths = sideRoadMouths(this.def);
     const l = new THREE.Vector3();
     const q = new THREE.Quaternion();
     const p = new THREE.Vector3();
@@ -215,7 +220,6 @@ export class Track {
       for (let j = 0; j < perSide; j++) {
         const t = j / perSide;
         const i = Math.min(path.count - 1, Math.floor(t * path.count));
-        if (mouths.some((m) => Math.hypot(path.px[i] - m.x, path.pz[i] - m.z) < m.halfGapM)) continue;
         this.left(i, l);
         const s = side === 0 ? 1 : -1;
         const offset = this.edge(i, s) + RACE.track.barrierOffsetM;

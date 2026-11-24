@@ -85,6 +85,8 @@ describe('data/*.json', () => {
       ...readdirSync('data/tracks').map((f) => `data/tracks/${f}`),
     ];
     expect(files.length).toBeGreaterThan(10);
-    for (const f of files) expect(readFileSync(f, 'utf8'), f).not.toMatch(/sai\s?gon/i);
+    // Cat Lai's real-world note cites the terminal operator's own site (saigonnewport.com.vn): a URL, not the city name.
+    for (const f of files)
+      expect(readFileSync(f, 'utf8').replace(/saigonnewport\.com\.vn/gi, ''), f).not.toMatch(/sai\s?gon/i);
   });
 });
