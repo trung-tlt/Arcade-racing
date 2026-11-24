@@ -34,7 +34,8 @@
     "test": "vitest run",
     "lint": "eslint src tests && prettier --check src tests",
     "server:build": "esbuild src/server/index.ts --bundle --platform=node --format=esm --packages=external --outfile=dist-server/index.mjs",
-    "server:start": "node dist-server/index.mjs"
+    "server:start": "node dist-server/index.mjs",
+    "netlab": "node scripts/netlab/run.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "^0.21.0",

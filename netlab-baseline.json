@@ -1,0 +1,78 @@
+[
+  {
+    "profile": "60ms",
+    "track": "cong_hoa",
+    "headline": {
+      "fps": 60,
+      "frameP95Ms": 17,
+      "hitches": 163,
+      "snapGapP95Ms": 56,
+      "interpDelayMs": 100,
+      "reconOver50cm": 170,
+      "reconSnap": 11,
+      "reconMaxErrM": 4.79,
+      "extrapolatingPct": 0,
+      "holdPerMin": 0,
+      "catchUpPerMin": 15,
+      "serverTickP99": null,
+      "serverMissedTicksP95": 29
+    }
+  },
+  {
+    "profile": "mobile",
+    "track": "cong_hoa",
+    "headline": {
+      "fps": 60,
+      "frameP95Ms": 17,
+      "hitches": 0,
+      "snapGapP95Ms": 79,
+      "interpDelayMs": 119,
+      "reconOver50cm": 255,
+      "reconSnap": 6,
+      "reconMaxErrM": 29.94,
+      "extrapolatingPct": 9,
+      "holdPerMin": 370,
+      "catchUpPerMin": 136,
+      "serverTickP99": null,
+      "serverMissedTicksP95": 120
+    }
+  },
+  {
+    "profile": "60ms",
+    "track": "ardennes",
+    "headline": {
+      "fps": 60,
+      "frameP95Ms": 17,
+      "hitches": 233,
+      "snapGapP95Ms": 58,
+      "interpDelayMs": 100,
+      "reconOver50cm": 173,
+      "reconSnap": 12,
+      "reconMaxErrM": 4.31,
+      "extrapolatingPct": 0,
+      "holdPerMin": 4,
+      "catchUpPerMin": 28,
+      "serverTickP99": null,
+      "serverMissedTicksP95": 11
+    }
+  },
+  {
+    "profile": "mobile",
+    "track": "ardennes",
+    "headline": {
+      "fps": 60,
+      "frameP95Ms": 17,
+      "hitches": 0,
+      "snapGapP95Ms": 76,
+      "interpDelayMs": 118,
+      "reconOver50cm": 164,
+      "reconSnap": 30,
+      "reconMaxErrM": 11.99,
+      "extrapolatingPct": 8,
+      "holdPerMin": 313,
+      "catchUpPerMin": 121,
+      "serverTickP99": null,
+      "serverMissedTicksP95": 74
+    }
+  }
+]

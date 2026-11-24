@@ -35,3 +35,4 @@ dist-server
 
 # local design reference bundles (large, not part of the project)
 docs/design-handoff/
+netlab-out/

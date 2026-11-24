@@ -240,6 +240,8 @@ export class Game {
   private onlineTags: OnlineNameTags | null = null;
   /** F8 network panel (online only) and the counters it reads. */
   private netDebug: NetDebugPanel | null = null;
+  /** `?render=0` (netlab): everything runs as usual but the GPU draw is skipped, so many clients fit on one machine. */
+  private readonly skipGpu = new URLSearchParams(location.search).get('render') === '0';
   private netDebugAcc = 0;
   private netDebugLogIdx = 0;
   private extrapFrames = 0;
@@ -1556,6 +1558,11 @@ export class Game {
   }
 
   /** `fight`: the autopilot also sees the other cars, so its gunner shoots at them (online combat tests). */
+  /** The network panel's numbers for the time since its last reset (null offline or before the first sample). */
+  netStats(): Record<string, number> | null {
+    return this.netDebug?.snapshot() ?? null;
+  }
+
   debugAutopilot(on: boolean, fight = false): void {
     if (!on) {
       this.devPilot = null;
@@ -2209,7 +2216,7 @@ export class Game {
     this.speedLines.update(this.speedLineIntensity());
     this.updateResults(frameDt);
     this.updateFps(frameDt);
-    this.postfx.render(dt);
+    if (!this.skipGpu) this.postfx.render(dt);
     this.drawCalls = this.renderer.info.render.calls;
     this.triangles = this.renderer.info.render.triangles;
     this.dev?.end();

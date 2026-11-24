@@ -148,6 +148,11 @@ export class NetDebugPanel {
     ].join('\n');
   }
 
+  /** The numbers the report prints, for tools (the netlab) that read them instead of the console. */
+  snapshot(): Record<string, number> | null {
+    return this.last ? this.stats(this.last) : null;
+  }
+
   report(): void {
     if (!this.last) return;
     const json = JSON.stringify({ at: new Date().toISOString(), ...this.stats(this.last) });

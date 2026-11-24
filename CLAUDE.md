@@ -5,6 +5,7 @@ shoot to clear the line, finish first. This file is the architecture and convent
 assistants; the README covers setup and CONTRIBUTING.md covers the pull request rules.
 
 ## Your role
+
 - **Code first.** The art, audio and design data already live in `public/assets/` and `data/`. Do not redraw, replace or
   re-generate existing models, textures or sounds, and never put placeholder art over real assets. If an asset seems
   missing or wrong, ask. New assets are welcome in pull requests, with their source and license stated.
@@ -14,6 +15,7 @@ assistants; the README covers setup and CONTRIBUTING.md covers the pull request 
 - Every gameplay number comes from `data/*.json`. Don't hard-code tuning values in TypeScript.
 
 ## Commands
+
 ```bash
 npm install
 npm run dev        # Vite dev server
@@ -22,10 +24,12 @@ npm run preview    # serve the production build
 npm run test       # Vitest unit tests
 npm run lint       # ESLint + Prettier check
 ```
+
 Before you finish any task: `npm run build` and `npm run test` must pass with zero errors, and
 nothing new may appear in the browser console.
 
 ## Stack (do not swap without asking)
+
 - Vite + TypeScript (`strict: true`; no `any`, no `@ts-ignore`)
 - three.js — rendering, `GLTFLoader`, `EffectComposer` + `UnrealBloomPass`
 - `@dimforge/rapier3d-compat` — physics, using `DynamicRayCastVehicleController` for cars
@@ -34,6 +38,7 @@ nothing new may appear in the browser console.
 - Vitest for logic tests, one Playwright smoke test (boots the game and drives for 5 s)
 
 ## Repo layout
+
 ```
 src/
   main.ts                 boot: load assets → menu
@@ -52,6 +57,7 @@ tests/           *.test.ts, smoke.spec.ts
 ```
 
 ## Architecture rules
+
 - **Fixed timestep:** physics and gameplay step at 60 Hz with an accumulator. Rendering interpolates
   and runs at display rate. Clamp frame delta to 0.1 s so a backgrounded tab doesn't explode the game.
 - **Systems over inheritance:** each module owns one concern. They talk through a typed event bus
@@ -66,6 +72,7 @@ tests/           *.test.ts, smoke.spec.ts
   Restarting a race 20 times in a row must not grow memory.
 
 ## World conventions
+
 - Meters, **+Y up, +Z forward** (glTF convention). The chase camera sits behind the car on its −Z side.
 - Track = closed Catmull-Rom spline from `data/tracks/cat_lai.json`. Every along-track position is
   `t ∈ [0,1)` from the start line. Race position = `lap + t`; resolve ties by distance to the next checkpoint.
@@ -73,6 +80,7 @@ tests/           *.test.ts, smoke.spec.ts
   at the last checkpoint, facing the tangent.
 
 ## Vehicle rig (from the .glb files — don't rename)
+
 `chassis`, `wheel_*` (names and steer flags in cars.json; cars use `wheel_FL/FR/RL/RR`) (spin around local X, front wheels steer around Y), `gun_mount`
 (yaw around Y) › `gun` › `muzzle` (fire origin, +Z), `exhaust_L/R` (nitro flames).
 Take collider half-extents, wheel positions, radius and width from `data/cars.json`.
@@ -85,6 +93,7 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 ## Game rules (numbers live in data/)
+
 - Tracks: `cat_lai.json` (v2: daylight, the real Cát Lái container terminal, 3.6 km counter-clockwise; see "Cát Lái Port v2 (Map 1)" below), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk), `pham_van_dong.json` (monsoon storm), `monte_carlo.json` (Riviera daylight street circuit) and `ardennes.json` (Ardennes forest circuit, daylight).
   Cát Lái is flat but 2 m above the physics ground plane (`hasElevation` is true: the road ribbon is the driving surface and the river is at y = 0). Xa lộ, Phạm Văn Đồng, Monte-Carlo and Ardennes have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
   road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay` and the optional `weather` block.
@@ -102,12 +111,14 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
   difficulty the AI wins about 50% of races.
 
 ## Controls
+
 Keyboard: W/S throttle/brake, A/D steer, Space drift, Shift nitro, J or left mouse fire MG,
 K or right mouse rocket, R reset to track, Esc pause.
 Gamepad (standard mapping): RT/LT, left stick, X drift, A nitro, RB fire, LB rocket, Y reset, Start pause.
 All bindings go through one action map in `Input.ts`.
 
 ## Look & feel
+
 - Palette: night `#0E1116`, asphalt `#2A3240`, player/nitro `#FF6A1A`, neon/UI `#2EC5FF`,
   enemy/damage `#FF3D6E`, pickups `#C6FF3D`. UI fonts: Space Grotesk (headings) and Inter (body).
 - Lighting: hemisphere (`#1B2A4A` / `#0E1116`) plus one directional moonlight with a single
@@ -136,7 +147,9 @@ All bindings go through one action map in `Input.ts`.
   (bottom-left) hull, MG heat, rockets · (bottom-right) speed, gear and 3 nitro bars.
 
 ## Weather (Map 4 only)
+
 `pham_van_dong.json` has a `weather` block; every other track has none, so the code must treat it as optional.
+
 - **Rain:** GPU particles (instanced quads or LineSegments) in a box that follows the camera, using `fx_rain_streaks.png`. Use 6000 particles on desktop and 1500 on mobile. Intensity is per lap: `rain.intensity[lap]`.
 - **Wet road:** set the road material to roughness 0.22 and metalness 0.15, with an envMap. Grip multiplies by `grip.wetMul` everywhere.
 - **Puddles:** flat decals (`pvd_puddle.png`) placed at `{t, lateralM, radiusM}`. Entering one applies `puddleMul` grip for 0.4 s, a small yaw kick, `fx_splash` and `sfx/splash.wav`.
@@ -147,6 +160,7 @@ All bindings go through one action map in `Input.ts`.
 - **Performance:** on the Low preset, no spray sprites and 1500 rain particles. Puddles stay, because they matter for gameplay.
 
 ## Monte-Carlo Harbour (Map 5)
+
 - **Width 12 m**, Armco + catch fence both sides: wall hits cost hull −8 and speed ×0.6; glancing scrapes (< 15°) −2 with sparks.
 - **No-fire zones:** `noFireZones` (tunnel, Nouvelle Chicane). Weapons can't fire there; show a lock icon on the HUD. Make this a generic track-JSON feature.
 - **Start:** `startLine.lights` — light `start_light_1..5` one per second, random 0.2–3 s hold, all out = GO (replaces 3-2-1 on this map). Jump start = 3 s penalty.
@@ -156,6 +170,7 @@ All bindings go through one action map in `Input.ts`.
 - **Audio:** ambience/crowd zones and events from `audio`; the helicopter follows the leader; yacht horn when P1 crosses the line.
 
 ## Cát Lái Port v2 (Map 1, daylight, real layout)
+
 - **Code:** `src/world/CatLai.ts` (scene) + `src/world/catLaiLayout.ts` (pure, tested in `tests/catLaiTrack.test.ts`, browser spec `tests/catLai.spec.ts`); props are lazy-loaded from `main.ts` (`CAT_LAI_MODELS` / `CAT_LAI_SHARED_MODELS` / `CAT_LAI_TEXTURES`). The generic `Track` builds the road ribbon, kerbs, walls, checkpoint gates and the start gantry; Map 1 adds nothing there but three data-driven hooks in `loadTrack`: `widthByT` (the varying carriageway width from `roadWidthM.byT`, read by `roadWidthAt`), a `widthProfile` entry with `worldTileM` (the port's concrete road, tiled in world space) and `sidewalkT` (kerb and sidewalk on Nguyễn Thị Định and the link only). `blockedLane: 'left'` keeps the rivals out of the parked truck queue (the older maps' queues were on the right).
 - **Layout is the data's:** the spline is flat at y = 2 (the road ribbon is the driving surface, `hasElevation` is true), the river at y = 0, drive on the right, counter-clockwise. The game drives `relaxTightBends(spline)`; the design placements were authored against the raw spline, so `dropOnRoad` filters every prop against the real carriageway (`RoadIndex` + `roadWidthAt`): a prop's footprint must stay 0.5 m clear (crane legs may reach 1.8 m past the edge: the invisible wall is what the car meets; 3 of the 20 STS cranes stand on the lane's bends and are dropped). The queue, scooters, people, the quay-edge kit and Gate B are on the road by design; the queue is kept off the start grid.
 - **Ground:** river plane (y = 0, `catlai2_river` + ripple normals scrolling), the land polygon, the port slab and the far bank are flat layers that do not write depth (they draw in order, river first), so nothing z-fights at 700 m; the quay wall runs from the shoreline down to -3 m. Custom gradient sky dome (`lighting.sky`, never Sky.js, it washes out) that follows the camera and is baked into the environment map. Exposure, sun and fog come straight from the JSON (`sunDirection(azimuth, elevation)` in `Data.ts`).
@@ -170,6 +185,7 @@ All bindings go through one action map in `Input.ts`.
 - **Budget (software GL, High):** 117 draw calls and ~317k world triangles at the worst spot (the start straight, 5 rivals around), 250-330k triangles elsewhere; the game's own counter (shadow pass and rivals included) reads 399k there, 262k on the quay.
 
 ## Ardennes Forest Circuit (Map 6)
+
 - **Code:** `src/world/Ardennes.ts` (scene) + `src/world/ardennesLayout.ts` (pure, tested in `tests/ardennesTrack.test.ts`); props are lazy-loaded from `main.ts` (`ARDENNES_MODELS` / `ARDENNES_TEXTURES`, ~5 MB). The generic `Track` builds the road ribbon from the 3D spline; the Armco face lines up with the generic side-wall collider at `barriers.armco.lateralM` (19.5 m) on both sides of the whole lap (the JSON's 3 m set-back at Eau Rouge / the pit straight is not modelled: one wall offset everywhere, same hull -8 / speed x0.6 rules as Map 5).
 - **Terrain:** `spa_terrain_height.png` decoded in the browser (`height = (R*256+G)/65535*260-30`), a 16 m grid (257 x 163 vertices) in 6 frustum-culled chunks, vertex colours from the forest mask + splat over a tiled `spa_grass`. The grid follows the road height minus 0.35 m within 24 m of the centre line and blends to the natural hills by 52 m. The reachable part (36 m either side of the road) is a Rapier trimesh (`scenery` in the baked colliders, so the headless server rebuilds it); the generic ground plane at y = 0 stays far below.
 - **Forest:** deterministic one-tree-per-cell sampling on the forest mask (jittered, tinted per instance), rebuilt every 150 m of camera travel and only submitted inside the camera's view wedge (60 degrees either side). Every tree is a `spruce_hq` alpha-card spruce (two variants, 300-440 tris): the 1,218-triangle cone spruces would blow the triangle budget in dense forest. Medium plants one per ~120 m² out to 160 m and one per ~480 m² out to 340 m; `forest_card_40m` rings continue to the horizon and the `ardennes_ridges` cylinder follows the camera. Grass tufts within 150 m (no rocks: one draw call each). Low and High scale the radii and density.
@@ -179,7 +195,9 @@ All bindings go through one action map in `Input.ts`.
 - **Not built:** the lap-2 shower (rain, wet grip, mist) is a design brief only: `loadTrack` leaves `weather` null for `type: "changeable"`, so the shared sim never sees it.
 
 ## Online multiplayer UI (v1)
+
 Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Online results for desktop and phone). Every state can be clicked through in Play. The data lives in `data/online_ui.json`: colours, room-code alphabet, ping thresholds, name-tag numbers, the lobby and rematch rules, the sound for each event, and every UI string. The icons are in `ui/icons/*.svg`.
+
 - **Entry:** the title screen has ONLINE (`O`; on phone it is the row under RACE).
 - **Hub:** shows errors in place, never in pop-ups. The states are searching, found, room full, update needed, server down, bad code and no rooms. The room-code input accepts only `ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, upper-cases what's typed, takes 6 characters and is shown as `XXX·XXX`.
 - **Lobby:** only the host can start, and only when there are at least 2 players and every present player is ready. Guests see the track and laps locked. If the host leaves, the lowest slot number becomes host. Ready uses `Space`; Copy shows "Copied!" for 1.6 s.
@@ -195,6 +213,7 @@ Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Onlin
 - **Still not designed:** per-player tints, ping in the HUD, and the reconnecting banner. The disconnected tag variant is already designed on board 40.
 
 ## Driver FPV (cockpit view)
+
 - Camera cycle with **V**: chase → hood → cockpit. **H** cycles HUD full / minimal / off. **C** looks back.
 - `cars.json[*].fpv`: `mode` is `cockpit` (7 cars) or `helmet` (Mantis, Mira, AV8, Fulmine — open cockpit, so the halo stays visible); `eye` = camera position in car space; `fovDeg`; `tint` = paint/accent for the rig.
 - Cockpit mode: load `models/cars/cockpit_rig.glb` once, clone per player car, set `Cockpit_Paint`/`Cockpit_Accent` colours from `fpv.tint`, parent it to the car at `fpv.eye`, hide the car's own meshes. Rotate `steering_wheel` by steer × 2.4 rad (hands are children).
@@ -204,17 +223,21 @@ Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Onlin
 - Visor HUD layout, colours and camera feel (FOV +6° on nitro, head lag, lean, look-to-apex, shake): canvas boards 36–37.
 
 ## Game branding (VOLTLINE identity)
+
 `branding/` holds the game's own logo, app icon and favicons (designed for VOLTLINE, safe to use anywhere).
+
 - Copy `branding/` to `public/branding/` and paste `branding/head_snippet.html` into `index.html` `<head>` (favicon.svg + .ico, apple-touch icon, `site.webmanifest` for the PWA: fullscreen, landscape, maskable icon).
 - Loading and Title screens show `voltline_logo_horizontal_on_dark.svg` (desktop 640 px / 360 px wide, mobile 300 px / 240 px) with the "a CraftMann app" endorsement under it.
 - Use the SVGs as `<img>`; never re-type the wordmark in a font. Mono marks are for watermarks and one-colour UI.
 
 ## Sponsor brands
+
 Emesoft, CaptureMann and CraftMann are real sponsor logos (`public/assets/brand/*.svg`); they are trademarks and are not covered by the MIT license (see `NOTICE.md`). Never redraw, recolour, stretch or add effects to them; only use the shipped textures/models. Car liveries are baked into the GLBs (`decals` mesh). For maps, place the shipped `billboard_*` and `sponsor_banner_*` models where the track JSON says; when adding new maps, mix brands so neighbouring banners don't repeat. Don't invent other real brands.
 
 **Studio endorsement:** VOLTLINE is "a CraftMann app". Show `brand/endorsement_craftmann_app_on_dark.svg` (use `_on_light` only on light backgrounds) directly under the VOLTLINE wordmark on the Loading and Title screens, desktop and mobile (mobile: also the rotate-device screen). Keep it at least 120 px wide, unaltered, no tint or effects, and never larger than the VOLTLINE wordmark.
 
 ## Performance budget (enforce it)
+
 - 60 fps at 1080p on Apple M1 / Intel Iris Xe. Fewer than 350 draw calls (6 detailed cars are ~210 of them), under 400k triangles on
   screen, first load under 5 s (load the 6 race cars + the chosen track only; lazy-load the rest).
 - Cars are ~13k tris (AV8 ~27k). Share materials between copies of the same car; on Low, swap physical (clearcoat) materials for standard ones.
@@ -225,26 +248,34 @@ Emesoft, CaptureMann and CraftMann are real sponsor logos (`public/assets/brand/
 - Offer quality presets (Low/Med/High) for shadows, bloom, pixel ratio and particle counts.
 
 ## Testing
+
 - Unit test the pure logic: lap/checkpoint order, race positions, damage states, MG heat, nitro
   bars, pickup respawn, data-file schema validation.
 - Smoke test: the game boots, a race starts, the car drives forward for 5 s, and no console errors appear.
 - After changing driving physics, play-test it in `npm run dev` and say what you tuned and why.
 
 ## Milestones (the original build order; all done)
-| # | Scope | Done when |
-|---|---|---|
-| M0 | Vite scaffold, loop, input, Kestrel GT on a flat plane with Rapier raycast vehicle, chase camera, drift, nitro, lil-gui tuning | driving is fun on an empty plane at 60 fps |
-| M1 | Track from `cat_lai.json`: road ribbon (`road_lanes.png`), barriers, checkpoints, laps, timer, countdown, reset | a solo 3-lap time trial works end to end |
-| M2 | Pulse MG, rockets, pickups, HP and damage states, wreck + respawn, dummy targets | you can wreck a dummy and respawn cleanly |
-| M3 | 5 AI rivals (drive + shoot + pickups), live positions | races are close; the AI wins about 50% |
-| M4 | HUD, menu → car select → race → results, pause, settings, all SFX | a new player can play with no explanation |
-| M5 | City dressing (buildings, cranes, tunnel, lights, water), all VFX, quality presets, perf pass, deploy | every MVP criterion passes |
+
+| #   | Scope                                                                                                                          | Done when                                  |
+| --- | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| M0  | Vite scaffold, loop, input, Kestrel GT on a flat plane with Rapier raycast vehicle, chase camera, drift, nitro, lil-gui tuning | driving is fun on an empty plane at 60 fps |
+| M1  | Track from `cat_lai.json`: road ribbon (`road_lanes.png`), barriers, checkpoints, laps, timer, countdown, reset                | a solo 3-lap time trial works end to end   |
+| M2  | Pulse MG, rockets, pickups, HP and damage states, wreck + respawn, dummy targets                                               | you can wreck a dummy and respawn cleanly  |
+| M3  | 5 AI rivals (drive + shoot + pickups), live positions                                                                          | races are close; the AI wins about 50%     |
+| M4  | HUD, menu → car select → race → results, pause, settings, all SFX                                                              | a new player can play with no explanation  |
+| M5  | City dressing (buildings, cranes, tunnel, lights, water), all VFX, quality presets, perf pass, deploy                          | every MVP criterion passes                 |
 
 ## Not built yet (open an issue before starting)
+
 Career and upgrades, a paint editor, leaderboards, accounts, reconnecting into a race in progress, per-player tints online,
 dynamic weather beyond Phạm Văn Đồng's storm. Multiplayer (v1) is built: see `docs/multiplayer-release-plan.md`.
 
 ## Deploy
+
 The game is a static build (`dist/`): `amplify.yml` for AWS Amplify, `public/_headers` for Cloudflare Pages / Netlify. Give
 `/assets/*` long-term immutable cache headers. The online race server is a separate Node process: `docs/server-deploy.md`.
 The Content-Security-Policy `connect-src` must list the race server's `wss://` origin.
+
+## Online testing without a human
+
+`npm run netlab` (docs/netlab.md): real browsers race on a real server through an impaired link and report the F9 numbers; use it to A/B any net change (`--params`) and compare against `netlab-baseline.json`. Server telemetry: `scripts/netlog-summary.mjs`.
