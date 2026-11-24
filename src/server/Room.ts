@@ -90,6 +90,8 @@ export interface Player {
   ctlDropped: number;
 }
 
+/** A race sample is logged this often (ticks). */
+const SAMPLE_EVERY_TICKS = SIM_HZ * 10;
 const MAX_DROPPED_INPUTS = 600;
 /** Control messages (ready, car, settings, rematch, ping, start, reset): a human taps a few per second at most. */
 const CONTROL_BURST = 30;
@@ -131,6 +133,12 @@ export class Room {
   private lobbyTicks = 0;
   private readonly takedowns = new Map<string, number>();
   private loadStartedAt = 0;
+  /** Telemetry for the host process: lifecycle notes and per-player samples, drained into the server log each pump. */
+  private readonly notes: { event: string; fields: Record<string, unknown> }[] = [];
+  private sampleBase = new Map<string, { stepped: number; late: number; missed: number }>();
+  private sampleMaxRun = new Map<string, number>();
+  private snapBytes = 0;
+  private raceTicks = 0;
   private grid: GridEntry[] = [];
   private firstFinishAt: number | null = null;
   private readonly slotOf = new Map<string, SlotSpec>();
@@ -208,6 +216,13 @@ export class Room {
       ctlDropped: 0,
     };
     this.players.set(player.id, player);
+    this.note('player_join', {
+      player: player.id,
+      name: player.name,
+      car: player.car,
+      host: player.host,
+      players: this.players.size,
+    });
     this.send(player, {
       t: 'welcome',
       id: player.id,
@@ -225,6 +240,15 @@ export class Room {
   leave(player: Player): void {
     if (!this.players.has(player.id)) return;
     player.connected = false;
+    this.note('player_leave', {
+      player: player.id,
+      name: player.name,
+      phase: this.phase,
+      rttMs: player.rtt,
+      late: player.late,
+      missed: player.missed,
+      raceSec: this.sim ? +this.sim.time.toFixed(1) : null,
+    });
     if (this.phase === 'lobby') {
       this.players.delete(player.id);
       if (player.host) this.migrateHost();
@@ -288,8 +312,14 @@ export class Room {
         if (this.phase === 'lobby' && player.host && this.canStart()) this.startRace();
         return null;
       case 'restart':
-        if (player.host && (this.phase === 'loading' || this.phase === 'countdown' || this.phase === 'racing'))
+        if (player.host && (this.phase === 'loading' || this.phase === 'countdown' || this.phase === 'racing')) {
+          this.note('restart', {
+            phase: this.phase,
+            raceSec: this.sim ? +this.sim.time.toFixed(1) : null,
+            by: player.name,
+          });
           this.resetToLobby(true);
+        }
         return null;
       case 'rematch':
         if (this.phase === 'results') {
@@ -407,6 +437,11 @@ export class Room {
       // The sim waits (no ticks) until every human has built the race, or the timeout passes.
       const everyone = [...this.players.values()].every((p) => p.loaded || !p.connected);
       if (everyone || this.now() - this.loadStartedAt > this.loadTimeoutMs) {
+        this.note('loading_done', {
+          loadMs: this.now() - this.loadStartedAt,
+          timedOut: !everyone,
+          notLoaded: [...this.players.values()].filter((p) => p.connected && !p.loaded).map((p) => p.name),
+        });
         this.phase = 'countdown';
         this.broadcastState();
       }
@@ -414,6 +449,7 @@ export class Room {
     }
     this.consumeInputs(sim);
     sim.step();
+    if (++this.raceTicks % SAMPLE_EVERY_TICKS === 0) this.sample(sim);
     const ref = sim.entries.find((e) => e.kind === 'human');
     if (this.phase === 'countdown' && ref && ref.race.phase !== 'countdown') {
       this.phase = 'racing';
@@ -468,6 +504,17 @@ export class Room {
         leftLap: this.players.get(id)?.leftLap ?? null,
       };
     });
+    this.note('finish', {
+      raceSec: +sim.time.toFixed(1),
+      reason:
+        this.humanCount === 0
+          ? 'nobody_left'
+          : sim.entries.filter((e) => e.kind === 'human').every((e) => e.race.phase === 'finished')
+            ? 'all_finished'
+            : 'grace_timeout',
+      finishers: this.results.filter((r) => !r.bot && r.timeSec !== null).length,
+      humans: this.results.filter((r) => !r.bot).length,
+    });
     this.phase = 'results';
     this.resultsAt = this.now();
     for (const p of this.players.values()) p.vote = null;
@@ -485,6 +532,42 @@ export class Room {
       missed: p.missed,
       maxRun: p.maxRepeats,
     }));
+  }
+
+  /** Queue a log record for the host process. */
+  private note(event: string, fields: Record<string, unknown> = {}): void {
+    if (this.notes.length < 200) this.notes.push({ event, fields });
+  }
+
+  /** The records queued since the last call (the server writes them to its log with the room code). */
+  drainNotes(): { event: string; fields: Record<string, unknown> }[] {
+    return this.notes.length === 0 ? [] : this.notes.splice(0);
+  }
+
+  /**
+   * Every 10 s of a race: how each human's input stream and link did in that window (ticks with no frame, late frames,
+   * longest gap, input lead over the server tick, round trip) and how big a snapshot is. Enough to tell a bad link from
+   * a slow server afterwards.
+   */
+  private sample(sim: RaceSim): void {
+    const players = [...this.players.values()]
+      .filter((p) => p.connected)
+      .map((p) => {
+        const b = this.sampleBase.get(p.id) ?? { stepped: 0, late: 0, missed: 0 };
+        const run = Math.max(this.sampleMaxRun.get(p.id) ?? 0, p.maxRepeats);
+        this.sampleBase.set(p.id, { stepped: p.stepped, late: p.late, missed: p.missed });
+        this.sampleMaxRun.set(p.id, p.maxRepeats);
+        return {
+          name: p.name,
+          rttMs: p.rtt,
+          stepped: p.stepped - b.stepped,
+          late: p.late - b.late,
+          missed: p.missed - b.missed,
+          maxRun: run,
+          marginTicks: p.ackTick >= 0 ? p.ackTick - sim.tick : null,
+        };
+      });
+    this.note('race_sample', { raceSec: +sim.time.toFixed(1), phase: this.phase, snapBytes: this.snapBytes, players });
   }
 
   roster(): RosterEntry[] {
@@ -517,6 +600,9 @@ export class Room {
   /** Back to the lobby (or, for a rematch, straight into loading the same race with everyone ready). */
   private resetToLobby(rematch: boolean): void {
     this.sim = null;
+    this.raceTicks = 0;
+    this.sampleBase.clear();
+    this.sampleMaxRun.clear();
     this.results = null;
     this.firstFinishAt = null;
     this.pending = [];
@@ -603,7 +689,9 @@ export class Room {
     const ev = JSON.stringify(events);
     for (const p of this.players.values()) {
       if (!p.connected) continue;
-      p.conn.send(`${head},"ack":${p.ackTick},"late":${p.late},"cars":${carsJson},"rk":${rk},"pk":${pk},"ev":${ev}}`);
+      const text = `${head},"ack":${p.ackTick},"late":${p.late},"cars":${carsJson},"rk":${rk},"pk":${pk},"ev":${ev}}`;
+      this.snapBytes = text.length;
+      p.conn.send(text);
     }
   }
 

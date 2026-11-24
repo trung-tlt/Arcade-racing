@@ -296,6 +296,8 @@ export class NetServer {
     return n > 0 ? sum / n : 0;
   }
 
+  private lastServerSampleAt = 0;
+
   private logEvent(level: 'debug' | 'info' | 'warn' | 'error', event: string, fields?: Record<string, unknown>): void {
     if (levelEnabled(this.opts.logLevel, level)) this.opts.log(logLine(level, event, fields));
   }
@@ -328,6 +330,7 @@ export class NetServer {
       this.stalls++;
     }
     this.watchRooms(now);
+    this.serverSample(now);
     this.reapRooms();
   }
 
@@ -344,6 +347,8 @@ export class NetServer {
   /** Once per pump: phase changes (race start / end logs, counters) and the per-second send-rate samples. */
   private watchRooms(now: number): void {
     for (const [code, room] of this.rooms) {
+      for (const n of room.drainNotes())
+        this.logEvent('info', n.event, { room: code, track: room.trackId, ...n.fields });
       const meta = this.roomMeta.get(room);
       if (!meta || meta.phase === room.phase) continue;
       if (room.phase === 'racing') {
@@ -377,9 +382,29 @@ export class NetServer {
     }
   }
 
+  /** Once a minute while any room is open: server load next to the room telemetry, for lining up with a lag report. */
+  private serverSample(now: number): void {
+    if (this.rooms.size === 0 || now - this.lastServerSampleAt < 60_000) return;
+    this.lastServerSampleAt = now;
+    const h = this.health();
+    this.logEvent('info', 'server_sample', {
+      rooms: h.rooms,
+      players: h.players,
+      tickMsP50: +h.tickMsP50.toFixed(2),
+      tickMsP99: +h.tickMsP99.toFixed(2),
+      tickMsMax: +h.tickMsMax.toFixed(2),
+      rssMb: Math.round(h.rssMb),
+      cpuSec: +h.cpuSec.toFixed(1),
+      snapshotBytesPerSec: Math.round(h.snapshotBytesPerSec),
+      overruns: this.overruns,
+      stalls: this.stalls,
+    });
+  }
+
   private reapRooms(): void {
     for (const [code, room] of this.rooms) {
       if (room.humanCount === 0) {
+        for (const n of room.drainNotes()) this.logEvent('info', n.event, { room: code, ...n.fields });
         room.dispose();
         this.rooms.delete(code);
         this.roomOwner.delete(room);

@@ -122,6 +122,33 @@ describe('Room lobby', () => {
     room.dispose();
   });
 
+  it('queues telemetry: joins, load time, a sample every 10 s of racing, restarts and leaves', () => {
+    const room = mkRoom();
+    const a = seat(room, { name: 'Host' });
+    const b = seat(room, { name: 'Guest' });
+    send(room, a, { t: 'start' });
+    send(room, a, { t: 'ready', ready: true });
+    send(room, b, { t: 'ready', ready: true });
+    for (let i = 0; i < 60 * 21; i++) room.tick();
+    send(room, a, { t: 'restart' });
+    room.leave(b.player as Player);
+    const notes = room.drainNotes();
+    const names = notes.map((n) => n.event);
+    expect(names.filter((e) => e === 'player_join')).toHaveLength(2);
+    expect(names).toContain('loading_done');
+    expect(names.filter((e) => e === 'race_sample')).toHaveLength(2);
+    expect(names).toContain('restart');
+    expect(names).toContain('player_leave');
+    const sample = notes.find((n) => n.event === 'race_sample')!.fields as {
+      players: { name: string }[];
+      snapBytes: number;
+    };
+    expect(sample.players.map((p) => p.name)).toEqual(['Host', 'Guest']);
+    expect(sample.snapBytes).toBeGreaterThan(500);
+    expect(room.drainNotes()).toEqual([]); // drained
+    room.dispose();
+  });
+
   it('starts anyway when a client takes too long to load', () => {
     let now = 0;
     const room = mkRoom({ now: () => now, loadTimeoutMs: 5000 });
