@@ -680,9 +680,18 @@ body.is-touch .mn-setup .pill {
   padding: 6px 8px;
   font-size: 15px;
 }
+body.is-touch .mn-setup [data-group='track'] {
+  gap: 4px;
+}
+/* six maps share one row: equal shares, a smaller label */
 body.is-touch .mn-setup [data-group='track'] .pill {
-  padding: 6px 6px;
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 6px 2px;
   white-space: nowrap;
+}
+body.is-touch .mn-setup [data-group='track'] .pill[data-short]::after {
+  font-size: 13px;
 }
 body.is-touch .mn-foot {
   gap: 10px;

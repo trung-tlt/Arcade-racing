@@ -28,12 +28,12 @@ const DIFFS: { id: Difficulty; label: string; note: string }[] = [
 type RowId = 'track' | 'laps' | 'diff';
 
 const shortName = (t: TrackDef): string => t.name.replace('Boulevard', 'Blvd');
-/** Phone labels: four buttons share ~430 px. */
+/** Phone labels: six buttons share ~430 px. */
 const MOBILE_NAMES: Record<string, string> = {
   cat_lai: 'Cat Lai',
   cong_hoa: 'Cong Hoa',
-  xa_lo_ha_noi: 'Hanoi Hwy',
-  pham_van_dong: 'P.V. Đồng',
+  xa_lo_ha_noi: 'Hanoi',
+  pham_van_dong: 'P.V.Đồng',
   monte_carlo: 'Monaco',
   ardennes: 'Ardennes',
 };
