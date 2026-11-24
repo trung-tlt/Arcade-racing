@@ -2056,11 +2056,13 @@ export class Game {
       prev.p.z + (curr.p.z - prev.p.z) * alpha,
     );
     for (const c of this.cars) {
-      // Shadows only for the player and cars within 45 m: far ones are hazy anyway and cost a second draw each.
+      // Shadows only for the player and cars within 45 m (20 m for the 60k+ triangle models): far ones are hazy
+      // anyway and cost a second draw each.
       const dx = c.physics.curr.p.x - this.carPos.x;
       const dz = c.physics.curr.p.z - this.carPos.z;
       const d2 = dx * dx + dz * dz;
-      c.visual.setCastShadow(c === this.car || d2 < 45 * 45);
+      const shadowM = c.visual.triangles > 40_000 ? 20 : 45;
+      c.visual.setCastShadow(c === this.car || d2 < shadowM * shadowM);
       // Cars more than 250 m away are only a few pixels in the haze: skip their draw calls entirely.
       const far = c !== this.car && d2 > 250 * 250;
       if (far) {

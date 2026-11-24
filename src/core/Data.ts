@@ -34,7 +34,7 @@ export interface CarDef {
   role?: string;
   /** The real-world vehicle class the speed and acceleration are matched to (documentation only). */
   realWorld?: string;
-  /** Gun mount yaw limit in degrees (25 cars, 360 hauler/APC, 15 bike). */
+  /** Gun mount yaw limit in degrees (25 cars, 360 APC, 15 bike). */
   turretYawDeg: number;
   /** Bike only: max visual lean in degrees. */
   maxLeanDeg?: number;

@@ -39,20 +39,20 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: 'Harbor Patrol interceptor. Push bar, light bar, ram damage ×1.5.',
     weapon: 'Twin Pulse MG behind the light bar',
   },
-  bastion_m8: {
-    role: 'MILITARY · TANK',
-    blurb: 'Armored 4x4. Slowest car, hardest to wreck, ram damage ×2.5.',
-    weapon: 'Heavy twin roof cannon',
+  velora_s: {
+    role: 'SPEEDSTER · TOP SPEED',
+    blurb: 'Open-cockpit red roadster. Second-fastest car, quick to launch and light on its feet.',
+    weapon: 'Deck turret · ±25°',
   },
   sable_rs: {
     role: 'RALLY · DRIFTER',
     blurb: 'Rally hatch. Best drift and launch in the garage, light armor.',
     weapon: 'Twin Pulse MG on the roof',
   },
-  hauler_ht: {
-    role: 'UTILITY · 360° TURRET',
-    blurb: 'Pickup with a shielded bed turret that can fire in any direction.',
-    weapon: 'Bed turret · 360° yaw',
+  bento_ev: {
+    role: 'CITY EV · NIMBLE',
+    blurb: 'Compact boxy city EV. Best handling and drift of the cars, light hull.',
+    weapon: 'Roof turret · ±25°',
   },
   truongson_av8: {
     role: 'APC · 8x8',

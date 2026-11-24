@@ -181,7 +181,7 @@ export class CombatSim {
     rotate(0, 0, 1, q, fwd);
   }
 
-  /** Full-circle turrets (hauler, APC) search every direction; everything else keeps its soft cone. */
+  /** Full-circle turrets (APC) search every direction; everything else keeps its soft cone. */
   private isFullTurret(car: CarSim): boolean {
     return car.def.turretYawDeg >= COMBAT.turret.fullTurretDeg;
   }

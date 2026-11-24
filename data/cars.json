@@ -300,79 +300,74 @@
     "gunHeatMul": 1.0
   },
   {
-    "id": "bastion_m8",
-    "name": "Bastion M8",
-    "file": "models/cars/bastion_m8.glb",
-    "paint": "#4B5A3A",
+    "id": "velora_s",
+    "name": "Velora S",
+    "file": "models/cars/velora_s.glb",
+    "paint": "#C1121F",
     "collider": {
-      "halfExtents": [1.075, 0.699, 2.551],
-      "center": [0, 0.819, 0.071]
+      "halfExtents": [0.93, 0.5, 2.358],
+      "center": [0, 0.62, -0.023]
     },
     "wheels": [
       {
         "name": "wheel_FL",
-        "x": 0.875,
-        "y": 0.43,
-        "z": 1.39,
-        "radius": 0.43,
-        "width": 0.42,
+        "x": 0.81,
+        "y": 0.345,
+        "z": 1.325,
+        "radius": 0.345,
+        "width": 0.26,
         "steer": true
       },
       {
         "name": "wheel_FR",
-        "x": -0.875,
-        "y": 0.43,
-        "z": 1.39,
-        "radius": 0.43,
-        "width": 0.42,
+        "x": -0.81,
+        "y": 0.345,
+        "z": 1.325,
+        "radius": 0.345,
+        "width": 0.26,
         "steer": true
       },
       {
         "name": "wheel_RL",
-        "x": 0.875,
-        "y": 0.43,
-        "z": -1.476,
-        "radius": 0.43,
-        "width": 0.42,
+        "x": 0.78,
+        "y": 0.35,
+        "z": -1.125,
+        "radius": 0.35,
+        "width": 0.32,
         "steer": false
       },
       {
         "name": "wheel_RR",
-        "x": -0.875,
-        "y": 0.43,
-        "z": -1.476,
-        "radius": 0.43,
-        "width": 0.42,
+        "x": -0.78,
+        "y": 0.35,
+        "z": -1.125,
+        "radius": 0.35,
+        "width": 0.32,
         "steer": false
       }
     ],
-    "gunMount": [0, 1.519, -0.53],
+    "gunMount": [0, 0.97, -0.725],
     "fpv": {
-      "mode": "cockpit",
-      "rig": "models/cars/cockpit_rig.glb",
-      "eye": [0.407, 1.174, 0.556],
-      "fovDeg": 64,
-      "tint": {
-        "paint": "#4B5A3A",
-        "accent": "#FFB37A"
-      }
+      "mode": "helmet",
+      "eye": [0, 1.08, -0.005],
+      "fovDeg": 70
     },
-    "role": "ARMORED · TANK",
+    "role": "SPEEDSTER · TOP SPEED",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 130,
-    "accel": 2,
-    "handling": 4,
-    "hp": 200,
-    "massKg": 3200,
+    "topSpeedKmh": 330,
+    "accel": 9,
+    "handling": 8,
+    "hp": 95,
+    "massKg": 1380,
     "grip": 1.15,
-    "drift": 0.45,
-    "nitroBoost": 0.28,
-    "nitroBarSec": 3,
-    "ramDamageMul": 2.5,
-    "realWorld": "armoured MRAP-class truck",
-    "gunDamageMul": 1.25,
-    "gunHeatMul": 0.85
+    "drift": 0.7,
+    "nitroBoost": 0.33,
+    "nitroBarSec": 2.3,
+    "ramDamageMul": 1,
+    "realWorld": "open-cockpit speedster",
+    "gunDamageMul": 0.95,
+    "gunHeatMul": 1.0
   },
   {
     "id": "sable_rs",
@@ -450,79 +445,74 @@
     "gunHeatMul": 1.0
   },
   {
-    "id": "hauler_ht",
-    "name": "Hauler HT",
-    "file": "models/cars/hauler_ht.glb",
-    "paint": "#2FBF9F",
+    "id": "bento_ev",
+    "name": "Bento EV",
+    "file": "models/cars/bento_ev.glb",
+    "paint": "#F4C51E",
     "collider": {
-      "halfExtents": [1, 0.634, 2.588],
-      "center": [0, 0.754, 0.058]
+      "halfExtents": [0.84, 0.754, 1.67],
+      "center": [0, 0.874, 0.005]
     },
     "wheels": [
       {
         "name": "wheel_FL",
-        "x": 0.845,
-        "y": 0.38,
-        "z": 1.389,
-        "radius": 0.38,
-        "width": 0.33,
+        "x": 0.75,
+        "y": 0.335,
+        "z": 1.025,
+        "radius": 0.335,
+        "width": 0.2,
         "steer": true
       },
       {
         "name": "wheel_FR",
-        "x": -0.845,
-        "y": 0.38,
-        "z": 1.389,
-        "radius": 0.38,
-        "width": 0.33,
+        "x": -0.75,
+        "y": 0.335,
+        "z": 1.025,
+        "radius": 0.335,
+        "width": 0.2,
         "steer": true
       },
       {
         "name": "wheel_RL",
-        "x": 0.845,
-        "y": 0.38,
-        "z": -1.594,
-        "radius": 0.38,
-        "width": 0.33,
+        "x": 0.75,
+        "y": 0.335,
+        "z": -1.05,
+        "radius": 0.335,
+        "width": 0.2,
         "steer": false
       },
       {
         "name": "wheel_RR",
-        "x": -0.845,
-        "y": 0.38,
-        "z": -1.594,
-        "radius": 0.38,
-        "width": 0.33,
+        "x": -0.75,
+        "y": 0.335,
+        "z": -1.05,
+        "radius": 0.335,
+        "width": 0.2,
         "steer": false
       }
     ],
-    "gunMount": [0, 1.228, -1.623],
+    "gunMount": [0, 1.62, -0.505],
     "fpv": {
-      "mode": "cockpit",
-      "rig": "models/cars/cockpit_rig.glb",
-      "eye": [0.379, 1.127, 0.231],
-      "fovDeg": 64,
-      "tint": {
-        "paint": "#2FBF9F",
-        "accent": "#2FBF9F"
-      }
+      "mode": "helmet",
+      "eye": [0, 1.28, -0.085],
+      "fovDeg": 70
     },
-    "role": "UTILITY · BED TURRET",
+    "role": "CITY EV · NIMBLE",
     "vehicleType": "car",
-    "turretYawDeg": 360,
-    "topSpeedKmh": 180,
-    "accel": 3,
-    "handling": 5,
-    "hp": 150,
-    "massKg": 2300,
+    "turretYawDeg": 25,
+    "topSpeedKmh": 235,
+    "accel": 8,
+    "handling": 9,
+    "hp": 90,
+    "massKg": 1050,
     "grip": 1.05,
-    "drift": 0.65,
-    "nitroBoost": 0.32,
-    "nitroBarSec": 2.5,
-    "ramDamageMul": 1.6,
-    "realWorld": "full-size pickup truck",
-    "gunDamageMul": 1.2,
-    "gunHeatMul": 0.9
+    "drift": 0.85,
+    "nitroBoost": 0.4,
+    "nitroBarSec": 2.2,
+    "ramDamageMul": 0.8,
+    "realWorld": "compact city EV (microvan-class)",
+    "gunDamageMul": 0.9,
+    "gunHeatMul": 1.0
   },
   {
     "id": "truongson_av8",
@@ -740,7 +730,7 @@
     "id": "fulmine_fx",
     "name": "Fulmine FX",
     "file": "models/cars/fulmine_fx.glb",
-    "paint": "#F4F6F8",
+    "paint": "#C8102E",
     "collider": {
       "halfExtents": [0.99, 0.439, 2.9],
       "center": [0, 0.559, 0.19]

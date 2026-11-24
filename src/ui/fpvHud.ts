@@ -64,7 +64,7 @@ export interface FpvState {
   nitroActive: boolean;
   /** Player pose: position, facing (horizontal unit) and ground velocity. */
   player: { x: number; y: number; z: number; fx: number; fz: number; vx: number; vz: number };
-  /** The gun sweeps all round (hauler, APC): the soft aim cone is replaced by the full circle. */
+  /** The gun sweeps all round (APC): the soft aim cone is replaced by the full circle. */
   fullTurret: boolean;
   targets: readonly FpvTarget[];
   /** Rockets in flight that other cars fired. */

@@ -25,6 +25,8 @@ export class CarVisual {
   private readonly meshes: THREE.Mesh[] = [];
   private readonly detail: DistanceCull;
   private shadowOn = true;
+  /** Triangles in the model; the shadow pass draws them a second time, so detailed cars shadow over a shorter range. */
+  triangles = 0;
   /** One entry per cars.json wheel: the node plus the physics wheels (layout indices) that drive it. */
   private readonly wheels: { node: THREE.Object3D; baseY: number; radius: number; idx: number[] }[] = [];
   private readonly spin: number[] = [];
@@ -57,6 +59,8 @@ export class CarVisual {
         o.castShadow = true;
         o.receiveShadow = true;
         this.meshes.push(o);
+        const g = o.geometry;
+        this.triangles += (g.index ? g.index.count : g.attributes.position.count) / 3;
       }
     });
 
