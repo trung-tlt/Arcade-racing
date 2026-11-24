@@ -628,10 +628,10 @@ export class XaLoMetro {
   }
 
   /** Moves the trains; does not allocate. */
-  update(dt: number): void {
+  update(dt: number, sharedSec?: number): void {
     const sets = this.trainSets;
     if (!sets) return;
-    this.time += dt;
+    this.time = sharedSec ?? this.time + dt; // online: the race's tick clock, the same for every player
     let cabI = 0;
     let midI = 0;
     for (let dir = 0; dir < 2; dir++) {

@@ -4,6 +4,8 @@ import { RollingWindow } from '../net/RollingWindow';
 export interface NetDebugSample {
   pingMs: number;
   snapGaps: RollingWindow;
+  /** How far behind the server clock the other cars are drawn (adapts to jitter). */
+  interpMs: number;
   steps: { frames: number; holds: number; catchUps: number };
   margin: number;
   minMargin: number;
@@ -119,6 +121,7 @@ export class NetDebugPanel {
       snapGapMeanMs: Math.round(s.snapGaps.mean()),
       snapGapP95Ms: Math.round(s.snapGaps.percentile(0.95)),
       snapGapMaxMs: Math.round(s.snapGaps.max()),
+      interpDelayMs: Math.round(s.interpMs),
       margin: s.margin,
       minMargin: s.minMargin,
       holdFrames: s.steps.holds - this.base.holds,
@@ -141,7 +144,7 @@ export class NetDebugPanel {
       `FRAME ${x.fps} fps   p95 ${x.frameP95Ms} ms   max ${x.frameMaxMs} ms   hitches>33ms ${x.hitchesOver33ms}`,
       `LEAD  margin ${x.margin} (min ${x.minMargin})   held ${x.holdFrames}  catch-up ${x.catchUpFrames}  (${x.holdPerMin}/${x.catchUpPerMin} per min)`,
       `RECON smooth ${x.reconSmooth}  snap ${x.reconSnap}  >0.5 m ${x.reconOver50cm}  max ${x.reconMaxErrM} m`,
-      `REMOTE extrapolating ${x.extrapolatingPct}% of frames     [F8 hide · F9 report+reset] ${x.secs}s`,
+      `REMOTE drawn ${x.interpDelayMs} ms behind · extrapolating ${x.extrapolatingPct}% of frames     [F8 hide · F9 report+reset] ${x.secs}s`,
     ].join('\n');
   }
 

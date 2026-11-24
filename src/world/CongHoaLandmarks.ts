@@ -659,8 +659,8 @@ export class CongHoaLandmarks {
   }
 
   /** Fixed-step update after world.step(): airliner flybys and ambient traffic. */
-  update(dt: number): void {
-    this.time += dt;
+  update(dt: number, sharedSec?: number): void {
+    this.time = sharedSec ?? this.time + dt; // online: the race's tick clock, the same for every player
     const a = this.airliner;
     if (a) {
       airlinerPose(this.time, this.plan, this.pose);

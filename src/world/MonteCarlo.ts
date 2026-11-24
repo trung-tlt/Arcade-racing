@@ -912,8 +912,8 @@ export class MonteCarlo {
   // ------------------------------------------------------------------------------------------------ per frame
 
   /** `playerT` drives the tunnel exposure; `leader` (the race leader's car) the helicopter. */
-  update(dt: number, playerT: number, leader: LeaderState | null): void {
-    this.time += dt;
+  update(dt: number, playerT: number, leader: LeaderState | null, sharedSec?: number): void {
+    this.time = sharedSec ?? this.time + dt; // online: the race's tick clock, the same for every player
     this.viewProj.multiplyMatrices(this.opts.camera.projectionMatrix, this.opts.camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.viewProj);
     this.water.visible = this.frustum.intersectsBox(MonteCarlo.BASIN);

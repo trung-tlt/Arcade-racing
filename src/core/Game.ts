@@ -1820,6 +1820,7 @@ export class Game {
     panel.refresh({
       pingMs: net.client.pingMs,
       snapGaps: net.client.snapGaps,
+      interpMs: net.session.interpDelay * 1000,
       steps: net.session.stepStats,
       margin: net.session.lastMargin,
       minMargin: Number.isFinite(net.session.minMargin) ? net.session.minMargin : 0,
@@ -1864,8 +1865,9 @@ export class Game {
       this.recoverStuckAi(dt);
     }
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
-    this.landmarks?.update(dt);
-    this.catLai?.update(dt);
+    const shared = this.online ? this.localTick / 60 : undefined; // scenery on one clock for every player
+    this.landmarks?.update(dt, shared);
+    this.catLai?.update(dt, shared);
     if (this.catLaiAudio) {
       const pp = this.car.physics;
       this.catLaiAudio.update(dt, {
@@ -1888,13 +1890,13 @@ export class Game {
     if (this.pvd) {
       this.pvd.traffic.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
       this.pvd.traffic.update(dt);
-      this.pvd.dressing.update(dt);
+      this.pvd.dressing.update(dt, shared);
       this.pvd.structures.update(dt);
     }
     if (this.xaLo) {
       this.xaLo.traffic.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
       this.xaLo.traffic.update(dt);
-      this.xaLo.metro.update(dt);
+      this.xaLo.metro.update(dt, shared);
       this.xaLo.structures.update(dt);
     }
     this.updateSkids();
@@ -1996,7 +1998,12 @@ export class Game {
     if (!mc) return;
     const lead = this.cars.find((c) => this.places.get(c.id) === 1 && !c.hull.wrecked) ?? this.car;
     const p = lead.physics.curr.p;
-    mc.update(dt, this.carTs.get('player') ?? 0, { x: p.x, y: p.y, z: p.z, yaw: lead.physics.yaw });
+    mc.update(
+      dt,
+      this.carTs.get('player') ?? 0,
+      { x: p.x, y: p.y, z: p.z, yaw: lead.physics.yaw },
+      this.online ? this.localTick / 60 : undefined,
+    );
     const sl = this.startLights;
     mc.gantry.setLamps(sl && !sl.released ? sl.lit : 0);
     const pp = this.car.physics;

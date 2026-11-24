@@ -649,9 +649,9 @@ export class PvdDressing {
   }
 
   /** Pulses the flood-sign blinkers. */
-  update(dt: number): void {
+  update(dt: number, sharedSec?: number): void {
     if (!this.blink) return;
-    this.time += dt;
+    this.time = sharedSec ?? this.time + dt; // online: the race's tick clock, the same for every player
     this.blink.emissiveIntensity =
       this.blinkBase * (0.25 + 0.75 * (Math.sin(this.time * BLINK_HZ * Math.PI * 2) > 0 ? 1 : 0));
   }

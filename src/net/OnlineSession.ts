@@ -17,6 +17,14 @@ const MAX_HOLD_TICKS = 120;
 const FALLBACK_LATENCY_TICKS = 6;
 /** Seconds the drawn remote cars lag behind the newest snapshot. */
 export const INTERP_DELAY_SEC = 0.1;
+/** The drawn delay grows with the jitter actually seen (p95 of the gaps between snapshots) up to this, and never below the base. */
+const MAX_INTERP_DELAY_SEC = 0.3;
+const GAP_WINDOW = 100;
+/** Seconds added on top of the p95 gap. */
+const GAP_HEADROOM_SEC = 0.04;
+/** Per snapshot: the delay rises fast (a stutter is visible at once) and falls slowly (no wobble). */
+const DELAY_RISE_PER_SNAP = 0.004;
+const DELAY_FALL_PER_SNAP = 0.0004;
 
 export interface ReconcileLogEntry extends ReconcileResult {
   nearOther: boolean;
@@ -37,6 +45,10 @@ export class OnlineSession {
   private advance = 0;
   private readonly margins: number[] = [];
   private lastLate = 0;
+  private lastArrivalSec = Number.NaN;
+  private readonly gaps: number[] = [];
+  /** The delay remote cars are drawn behind the newest snapshot (adapts to the link's jitter). */
+  private delaySec: number;
   private ownRs = -1;
   private readonly remotes = new Map<string, { ip: Interpolator; sm: PoseSmoother; pose: RemotePose }>();
   private body: ReconcileBody | null = null;
@@ -63,7 +75,14 @@ export class OnlineSession {
   constructor(
     readonly selfId: string,
     private readonly interpDelaySec = INTERP_DELAY_SEC,
-  ) {}
+  ) {
+    this.delaySec = interpDelaySec;
+  }
+
+  /** Seconds the remote cars are drawn behind the server clock right now (diagnostics). */
+  get interpDelay(): number {
+    return this.delaySec;
+  }
 
   /** The reconciler's access to the own car's physics body. Set once the car exists. */
   setBody(body: ReconcileBody): void {
@@ -79,6 +98,7 @@ export class OnlineSession {
   onSnapshot(m: Snap, nowSec: number): void {
     this.snap = m;
     this.clock.onSnapshot(m.time, nowSec);
+    this.adaptDelay(nowSec);
     for (const c of m.cars) {
       if (c.id === this.selfId) this.onOwn(m, c);
       else this.onRemote(m, c);
@@ -88,6 +108,24 @@ export class OnlineSession {
     this.takenPickups = m.pk;
     if (m.ev.length > 0) this.onEvents?.(m.ev, m);
     this.steerLead(m);
+  }
+
+  /**
+   * A fixed 100 ms buffer holds one lost 20 Hz snapshot. On a jittery link (mobile, a far server) gaps run longer, the
+   * buffer runs dry and the other cars freeze and jump; so the buffer follows the p95 of the gaps actually seen.
+   */
+  private adaptDelay(nowSec: number): void {
+    if (!Number.isNaN(this.lastArrivalSec)) {
+      this.gaps.push(nowSec - this.lastArrivalSec);
+      if (this.gaps.length > GAP_WINDOW) this.gaps.shift();
+    }
+    this.lastArrivalSec = nowSec;
+    if (this.gaps.length < 20) return;
+    const sorted = [...this.gaps].sort((a, b) => a - b);
+    const p95 = sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+    const target = Math.min(MAX_INTERP_DELAY_SEC, Math.max(this.interpDelaySec, p95 + GAP_HEADROOM_SEC));
+    if (target > this.delaySec) this.delaySec = Math.min(target, this.delaySec + DELAY_RISE_PER_SNAP);
+    else this.delaySec = Math.max(target, this.delaySec - DELAY_FALL_PER_SNAP);
   }
 
   private onOwn(m: Snap, c: SnapCar): void {
@@ -193,7 +231,7 @@ export class OnlineSession {
 
   /** Server sim time (s) the remote cars should be drawn at. */
   renderTime(nowSec: number): number {
-    return this.clock.serverTime(nowSec) - this.interpDelaySec;
+    return this.clock.serverTime(nowSec) - this.delaySec;
   }
 
   /** The server time, in ticks, that the remote cars are being drawn at (sent with each input for lag compensation). */

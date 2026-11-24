@@ -933,8 +933,8 @@ export class CatLai {
 
   // ------------------------------------------------------------------------------------------------ per frame
 
-  update(dt: number): void {
-    this.clock += dt;
+  update(dt: number, sharedSec?: number): void {
+    this.clock = sharedSec ?? this.clock + dt; // online, the race's tick clock: everyone sees the ferries in the same place
     this.sky.position.copy(this.opts.camera.position);
     this.placeFerries();
     // Ripples drift slowly.
