@@ -235,6 +235,10 @@ async function boot(): Promise<void> {
         game?.resume();
       },
       onRestart: () => {
+        if (online.inRoom) {
+          online.restartRace(); // the server reloads the race; the lobby and loading screens follow
+          return;
+        }
         show('racing', null);
         resultsShown = false;
         game?.restart();
@@ -407,6 +411,8 @@ async function boot(): Promise<void> {
           if (state !== 'racing') return;
           game?.pause();
           pause.setSummary(game?.summaryText() ?? '');
+          pause.setRestartVisible(!online.inRoom || online.isHost);
+          pause.setOnline(online.inRoom);
           show('paused', pause);
         },
         onResults: (data) => {

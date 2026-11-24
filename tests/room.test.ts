@@ -102,6 +102,26 @@ describe('Room lobby', () => {
     room.dispose();
   });
 
+  it('the host can restart a race in progress; a guest cannot', () => {
+    const room = mkRoom();
+    const a = seat(room);
+    const b = seat(room);
+    send(room, a, { t: 'start' });
+    send(room, a, { t: 'ready', ready: true });
+    send(room, b, { t: 'ready', ready: true });
+    room.tick();
+    expect(room.phase).toBe('countdown');
+    const first = room.sim;
+    send(room, b, { t: 'restart' });
+    expect(room.sim).toBe(first); // a guest's restart is ignored
+    send(room, a, { t: 'restart' });
+    expect(room.phase).toBe('loading'); // the same race, rebuilt with everyone ready
+    expect(room.sim).not.toBe(first);
+    const phases = a.inbox.filter((m) => m.t === 'state').map((m) => (m as { phase: string }).phase);
+    expect(phases.slice(-2)).toEqual(['lobby', 'loading']); // lobby first: it tears the old race down on the clients
+    room.dispose();
+  });
+
   it('starts anyway when a client takes too long to load', () => {
     let now = 0;
     const room = mkRoom({ now: () => now, loadTimeoutMs: 5000 });

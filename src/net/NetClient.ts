@@ -94,6 +94,11 @@ export class NetClient {
     this.send({ t: 'rematch', vote });
   }
 
+  /** Host only, mid-race: abandon the race and load it again. */
+  restart(): void {
+    this.send({ t: 'restart' });
+  }
+
   /** Leave the room (the server drops the seat; the socket is closed by the caller). */
   leave(): void {
     this.send({ t: 'leave' });

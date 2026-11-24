@@ -137,6 +137,15 @@ export class OnlineFlow {
     if (this.view) this.lobbyScreen.update(this.view);
   }
 
+  /** The host's pause-menu Restart: the server reloads the race for everyone. */
+  restartRace(): void {
+    if (this.view?.isHost) this.lobby?.restart();
+  }
+
+  get isHost(): boolean {
+    return !!this.view?.isHost;
+  }
+
   /** True while a seat in a room is held (the pause menu's Quit must leave it). */
   get inRoom(): boolean {
     return this.lobby !== null;

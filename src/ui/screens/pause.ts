@@ -74,6 +74,18 @@ export class PauseScreen implements Screen {
     else if (act === 'quit') d.onQuit();
   };
 
+  /** Online, only the host can restart (the server reloads the race for everyone). */
+  setRestartVisible(on: boolean): void {
+    const b = this.el.querySelector<HTMLElement>('[data-act="restart"]');
+    if (b) b.hidden = !on;
+  }
+
+  /** Online the race keeps running for everyone behind the menu. */
+  setOnline(on: boolean): void {
+    const f = this.el.querySelector<HTMLElement>('.pause-foot');
+    if (f) f.textContent = on ? 'The race keeps running for everyone.' : 'The race clock and physics are frozen.';
+  }
+
   /** e.g. 'Lap 2/3 · P3 · 1:42.380' */
   setSummary(text: string): void {
     if (text === this.lastSummary) return;

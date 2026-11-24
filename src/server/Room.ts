@@ -287,6 +287,10 @@ export class Room {
       case 'start':
         if (this.phase === 'lobby' && player.host && this.canStart()) this.startRace();
         return null;
+      case 'restart':
+        if (player.host && (this.phase === 'loading' || this.phase === 'countdown' || this.phase === 'racing'))
+          this.resetToLobby(true);
+        return null;
       case 'rematch':
         if (this.phase === 'results') {
           player.vote = msg.vote === 'yes' ? 'yes' : msg.vote === 'lobby' ? 'no' : null;
@@ -540,8 +544,9 @@ export class Room {
     }
     this.phase = 'lobby';
     if (this.players.size > 0 && ![...this.players.values()].some((p) => p.host)) this.migrateHost();
+    // Clients still in the race need the lobby state first: it tears the old race down before the new grid arrives.
+    this.broadcastState();
     if (rematch && this.players.size > 0) this.startRace();
-    else this.broadcastState();
   }
 
   private broadcastState(): void {

@@ -251,3 +251,69 @@ test('a race to the flag: online results, then a rematch loads a second race', a
   await expect(host.getByText(/ONLINE RESULTS/)).toBeHidden();
   expect(errors).toEqual([]);
 });
+
+/** Esc as a DOM event: with two pages open only one has real keyboard focus, and software GL runs a few frames a second. */
+const tapEsc = async (page: Page): Promise<void> => {
+  await page.evaluate(() => {
+    window.dispatchEvent(new KeyboardEvent('keydown', { code: 'Escape', key: 'Escape' }));
+    setTimeout(() => window.dispatchEvent(new KeyboardEvent('keyup', { code: 'Escape', key: 'Escape' })), 400);
+  });
+  await page.waitForTimeout(800);
+};
+
+test('the host restarts a race from the pause menu and both pages rebuild it', async ({ browser }) => {
+  test.setTimeout(240_000);
+  const host = await browser.newPage();
+  const guest = await browser.newPage();
+  await toHub(host);
+  await toHub(guest);
+  await host.getByRole('button', { name: /^CREATE ROOM/ }).click();
+  const code = (await host.locator('.ol-code-val').innerText()).replace('·', '');
+  await guest.getByLabel(/Room code/).fill(code);
+  await guest.getByRole('button', { name: 'JOIN', exact: true }).click();
+  await guest.getByRole('button', { name: /Enter lobby/ }).click();
+  await expect(host.locator('.ol-row:not(.empty)')).toHaveCount(2);
+  await host.getByRole('button', { name: /^READY UP/ }).click();
+  await guest.getByRole('button', { name: /^READY UP/ }).click();
+  await host.getByRole('button', { name: /START RACE/ }).click();
+  for (const p of [host, guest]) await expect(p.locator('canvas#game')).toBeVisible({ timeout: 60_000 });
+  for (const p of [host, guest])
+    await p.waitForFunction(() => !!(window as never as { __voltline?: object }).__voltline);
+  // Wait out the loading layer, then pause as the host (a guest's missing Restart is covered by the room test).
+  await expect
+    .poll(
+      () =>
+        host.evaluate(
+          () => (window as never as { __voltline: { debugState(): { phase: string } } }).__voltline.debugState().phase,
+        ),
+      { timeout: 90_000 },
+    )
+    .toMatch(/countdown|racing/);
+  await Promise.all(
+    [host, guest].map((p) =>
+      p.evaluate(() => {
+        const w = window as never as { __voltline: object; __mark?: object };
+        w.__mark = w.__voltline;
+      }),
+    ),
+  );
+  await host.bringToFront();
+  await tapEsc(host);
+  await expect(host.getByText('PAUSED')).toBeVisible({ timeout: 30_000 });
+  await host.locator('[data-act="restart"]').click();
+
+  // Both pages build a new Game from the new grid and the pause menu is gone.
+  for (const p of [host, guest]) {
+    await expect
+      .poll(
+        () =>
+          p.evaluate(() => {
+            const w = window as never as { __voltline?: object; __mark?: object };
+            return !!w.__voltline && w.__voltline !== w.__mark;
+          }),
+        { timeout: 120_000 },
+      )
+      .toBe(true);
+  }
+  await expect(host.getByText('PAUSED')).toBeHidden();
+});

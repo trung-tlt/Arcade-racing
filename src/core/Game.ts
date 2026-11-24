@@ -162,6 +162,8 @@ export class Game {
   private readonly mode: GameMode;
   private paused = false;
   private resumeUntil = 0;
+  /** Online pause menu open: the race goes on, but the keys belong to the menu. */
+  private menuOpen = false;
   private postFinishSec = 0;
   private resultsTimer = 0;
   private newBest = false;
@@ -1021,7 +1023,7 @@ export class Game {
     this.lastControls.throttle = c.throttle;
     this.lastControls.brake = c.brake;
     this.lastSteer = c.steer;
-    return this.race.controlsLocked ? IDLE_CONTROLS : c;
+    return this.race.controlsLocked || this.menuOpen ? IDLE_CONTROLS : c;
   }
 
   private gridSlotOf(id: string): number {
@@ -1087,12 +1089,20 @@ export class Game {
   }
 
   pause(): void {
+    if (this.online) {
+      this.menuOpen = true; // an online race cannot be frozen (the server runs on); the car just coasts
+      return;
+    }
     if (this.paused) return;
     this.paused = true;
     this.audio.suspend();
   }
 
   resume(): void {
+    if (this.online) {
+      this.menuOpen = false;
+      this.resumeUntil = performance.now() + 250; // closing the menu must not reopen it
+    }
     if (!this.paused) return;
     this.paused = false;
     this.resumeUntil = performance.now() + 250; // the Esc that closed the pause menu also sets the pause edge
@@ -1647,6 +1657,11 @@ export class Game {
       for (let i = 0; i < target; i++) this.stepCore(dt);
       this.onlineLive = true;
       return;
+    }
+    // Online the menu opens over the live race (restart for the host, settings, quit); nothing freezes.
+    if (this.input.wasPressed('pause') && performance.now() >= this.resumeUntil) {
+      this.resumeUntil = performance.now() + 250;
+      this.hooks.onPause();
     }
     const n = net.session.planSteps();
     if (n === 0) this.input.endFrame();

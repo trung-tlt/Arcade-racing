@@ -174,6 +174,9 @@ export class LobbyClient {
   rematch(vote: RematchVote): void {
     this.client.rematch(vote);
   }
+  restart(): void {
+    this.client.restart();
+  }
 
   /** Leave the room and close the socket. */
   leave(): void {

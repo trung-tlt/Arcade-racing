@@ -77,6 +77,8 @@ export type ClientMsg =
   | { t: 'car'; car: string }
   | { t: 'settings'; track?: string; laps?: number }
   | { t: 'start' }
+  /** Host only, mid-race: abandon this race and load the same one again with everyone ready. */
+  | { t: 'restart' }
   /** Results screen: vote for a rematch ('yes'), ask to go back to the lobby ('lobby'), or withdraw the vote ('none'). */
   | { t: 'rematch'; vote: RematchVote }
   | ({ t: 'input' } & InputFrame)
@@ -341,6 +343,7 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
     case 'rematch':
       return REMATCH_VOTES.includes(m.vote) ? { ok: true, msg: { t: 'rematch', vote: m.vote as RematchVote } } : bad;
     case 'start':
+    case 'restart':
     case 'reset':
     case 'leave':
       return { ok: true, msg: { t: m.t } };
