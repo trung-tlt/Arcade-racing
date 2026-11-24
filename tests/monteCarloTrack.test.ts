@@ -38,7 +38,14 @@ const stands = (raw.grandstands as { segments: { position: number[] }[] }[]).fla
 
 describe('Monte-Carlo Harbour track data', () => {
   it('is the 5th map: a clockwise daylight street circuit, 12 m wide, with elevation', () => {
-    expect(TRACKS.map((t) => t.id)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong', 'monte_carlo']);
+    expect(TRACKS.map((t) => t.id)).toEqual([
+      'cat_lai',
+      'cong_hoa',
+      'xa_lo_ha_noi',
+      'pham_van_dong',
+      'monte_carlo',
+      'ardennes',
+    ]);
     expect(getTrack('monte_carlo')).toBe(MONTE_CARLO);
     expect(MONTE_CARLO.timeOfDay).toBe('day');
     expect(MONTE_CARLO.laps).toBe(3);

@@ -74,8 +74,10 @@ export class Lighting {
     const texel = (this.shadowHalf * 2) / 2048;
     const x = Math.round(target.x / texel) * texel;
     const z = Math.round(target.z / texel) * texel;
-    this.moon.target.position.set(x, 0, z);
-    this.moon.position.set(x + this.offset.x, this.offset.y, z + this.offset.z);
+    // Follow the car's height too: on a hill (Map 6 climbs 100 m) a light fixed near y = 0 would sit under the road.
+    const y = target.y;
+    this.moon.target.position.set(x, y, z);
+    this.moon.position.set(x + this.offset.x, y + this.offset.y, z + this.offset.z);
   }
 
   /** Transient flash (lightning): hemisphere intensity = base × (1 + boost). 0 restores the normal level. */

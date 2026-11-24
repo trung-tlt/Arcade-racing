@@ -179,6 +179,47 @@
           "glow": "#FFB37A"
         }
       ]
+    },
+    "ardennes": {
+      "car": "fulmine_fx",
+      "liveries": [
+        {
+          "name": "Spruce",
+          "paint": "#1E5B3A",
+          "accent": "#C6FF3D",
+          "glow": "#C6FF3D"
+        },
+        {
+          "name": "Polar",
+          "paint": "#F4F6F8",
+          "accent": "#FF6A1A",
+          "glow": "#FF6A1A"
+        },
+        {
+          "name": "Rosso",
+          "paint": "#C6262E",
+          "accent": "#F4F6F8",
+          "glow": "#FF3D6E"
+        },
+        {
+          "name": "Ardoise",
+          "paint": "#1F5F8B",
+          "accent": "#FFD200",
+          "glow": "#FFD200"
+        },
+        {
+          "name": "Midnight",
+          "paint": "#1B2A4A",
+          "accent": "#FFB37A",
+          "glow": "#FFB37A"
+        },
+        {
+          "name": "Sand",
+          "paint": "#FFB37A",
+          "accent": "#1B2A4A",
+          "glow": "#FFB37A"
+        }
+      ]
     }
   }
 }

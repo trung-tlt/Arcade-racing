@@ -136,7 +136,7 @@ export interface LeaderState {
 }
 
 /** Instance matrices for a list of pieces (4 m Armco, fence, kerbs, tyre stacks). */
-function pieceMatrices(pieces: readonly Piece[], dy = 0): THREE.Matrix4[] {
+export function pieceMatrices(pieces: readonly Piece[], dy = 0): THREE.Matrix4[] {
   const q = new THREE.Quaternion();
   return pieces.map((p) =>
     new THREE.Matrix4().compose(new THREE.Vector3(p.x, p.y + dy, p.z), q.setFromAxisAngle(up, p.yaw), one),
@@ -144,7 +144,7 @@ function pieceMatrices(pieces: readonly Piece[], dy = 0): THREE.Matrix4[] {
 }
 
 /** Materials the vertex-colour merge would break (two-sided leaves, alpha-cut or transparent parts) stay separate draws. */
-function protectSpecialMaterials(root: THREE.Object3D): void {
+export function protectSpecialMaterials(root: THREE.Object3D): void {
   root.traverse((o) => {
     if (!(o instanceof THREE.Mesh)) return;
     for (const mat of Array.isArray(o.material) ? o.material : [o.material]) {
@@ -154,7 +154,7 @@ function protectSpecialMaterials(root: THREE.Object3D): void {
 }
 
 /** One InstancedMesh per sub-mesh of `model`, windowed by distance. Returns them (already added to `parent`). */
-function instance(
+export function instance(
   parent: THREE.Object3D,
   assets: Assets,
   model: string,
@@ -186,7 +186,7 @@ function instance(
 }
 
 /** Bakes every placement of every model into one static mesh per material (a handful of draw calls for a whole district). */
-class Bake {
+export class Bake {
   private readonly buckets = new Map<string, { material: THREE.Material; geos: THREE.BufferGeometry[] }>();
   private readonly protos = new Map<string, THREE.Object3D>();
 
@@ -306,10 +306,10 @@ export class StartGantry {
   readonly object: THREE.Object3D;
   private readonly lenses: THREE.MeshStandardMaterial[] = [];
 
-  constructor(assets: Assets, path: TrackPath, parent: THREE.Object3D) {
-    this.object = assets.cloneModel(GANTRY);
+  constructor(assets: Assets, path: TrackPath, parent: THREE.Object3D, t = 0, model = GANTRY) {
+    this.object = assets.cloneModel(model);
     this.object.name = 'start_gantry';
-    const f = frameAt(path, 0);
+    const f = frameAt(path, t);
     // The pods face back down the grid: local +Z runs the way the cars drive.
     this.object.position.set(f.x, f.y, f.z);
     this.object.rotation.y = yawForZ(f.tx, f.tz);

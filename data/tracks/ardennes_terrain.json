@@ -1,0 +1,22 @@
+{
+ "bounds": {
+  "xMin": -1100,
+  "xMax": 3000,
+  "nMin": -1200,
+  "nMax": 1400
+ },
+ "size": [
+  1024,
+  650
+ ],
+ "metresPerPixel": [
+  4.007820136852395,
+  4.006163328197227
+ ],
+ "height": {
+  "encoding": "R*256+G (16-bit) over [-30, 230] m",
+  "min": -30.0,
+  "max": 230.0
+ },
+ "rows": "row 0 = north edge (nMax)"
+}

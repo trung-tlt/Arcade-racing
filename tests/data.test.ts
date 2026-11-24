@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import tracks from '../data/tracks/cat_lai.json';
+import ardennes from '../data/tracks/ardennes.json';
 import monteCarlo from '../data/tracks/monte_carlo.json';
 import { CARS, WEAPONS, validateCars, validateTrack, validateWeapons } from '../src/core/Data';
 
@@ -8,6 +9,7 @@ describe('data files', () => {
   it('weapons.json matches schema', () => expect(validateWeapons(WEAPONS)).toEqual([]));
   it('cat_lai.json matches schema', () => expect(validateTrack(tracks)).toEqual([]));
   it('monte_carlo.json matches schema (9 checkpoints)', () => expect(validateTrack(monteCarlo)).toEqual([]));
+  it('ardennes.json matches schema (8 checkpoints)', () => expect(validateTrack(ardennes)).toEqual([]));
   it('rejects a track with too few checkpoints', () => {
     const bad = { ...monteCarlo, checkpoints: monteCarlo.checkpoints.slice(0, 5) };
     expect(validateTrack(bad).join()).toContain('checkpoints');

@@ -1,6 +1,6 @@
 import { Assets } from './core/Assets';
 import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
-import { AI, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
+import { AI, ARDENNES, CARS, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { NetClient } from './net/NetClient';
 import { OnlineFlow } from './ui/onlineFlow';
@@ -25,6 +25,7 @@ import { makeThumbnailRenderer } from './ui/carThumbs';
 import { makeShowroomFactory } from './ui/Showroom';
 import { uiAudio } from './ui/uiAudio';
 import type { RaceSetup, Screen } from './ui/types';
+import { ARDENNES_MODELS, ARDENNES_TEXTURES } from './world/Ardennes';
 import { MONTE_CARLO_MODELS, MONTE_CARLO_TEXTURES } from './world/MonteCarlo';
 import { TRACK_MODELS, TRACK_TEXTURES } from './world/Track';
 import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
@@ -380,6 +381,10 @@ async function boot(): Promise<void> {
     // Map 5's props are not in the boot download: fetch them (3 MB) the first time that map is raced.
     if (s.trackId === MONTE_CARLO.id) {
       await assets.extend({ models: MONTE_CARLO_MODELS, textures: MONTE_CARLO_TEXTURES });
+    }
+    // Map 6's props are not in the boot download either (~5 MB): fetched the first time that map is raced.
+    if (s.trackId === ARDENNES.id) {
+      await assets.extend({ models: ARDENNES_MODELS, textures: ARDENNES_TEXTURES });
     }
     // A fresh canvas per race: a disposed WebGL context can't be reused.
     const canvas = document.createElement('canvas');

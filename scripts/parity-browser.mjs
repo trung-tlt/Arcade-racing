@@ -4,7 +4,7 @@
 // FIGHT=1 lets the rivals shoot (default holds fire) and counts wrecks.
 import { chromium } from '@playwright/test';
 
-const ALL = ['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong', 'monte_carlo'];
+const ALL = ['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong', 'monte_carlo', 'ardennes'];
 const ids = process.argv.slice(2).length ? process.argv.slice(2) : ALL;
 const base = process.env.BASE_URL ?? 'http://localhost:5173';
 const browser = await chromium.launch({

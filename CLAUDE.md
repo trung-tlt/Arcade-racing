@@ -85,10 +85,10 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 ## Game rules (numbers live in data/)
-- Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk), `pham_van_dong.json` (monsoon storm) and `monte_carlo.json` (Riviera daylight street circuit).
-  Xa lộ, Phạm Văn Đồng and Monte-Carlo have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
+- Tracks: `cat_lai.json` (night, Cát Lái Port), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk), `pham_van_dong.json` (monsoon storm), `monte_carlo.json` (Riviera daylight street circuit) and `ardennes.json` (Ardennes forest circuit, daylight).
+  Xa lộ, Phạm Văn Đồng, Monte-Carlo and Ardennes have elevation in the spline — build the road ribbon from 3D spline points and bank nothing. Track code is data-driven: one `Track` class builds
   road, dressing, lighting and ambient traffic from the JSON — no per-map code paths beyond `timeOfDay` and the optional `weather` block.
-- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway Pham Van Dong Boulevard or Monte-Carlo Harbour), laps from the track JSON (3; Phạm Văn Đồng 2), 6 cars (1 player + 5 AI picked from the 11-vehicle garage; on Monte-Carlo AI prefer fulmine_fx in different liveries), grid from `cat_lai.json`, 3-2-1-GO countdown.
+- Race: chosen track (Cát Lái Port, Cong Hoa Boulevard, Hanoi Highway Pham Van Dong Boulevard, Monte-Carlo Harbour or Ardennes Forest Circuit), laps from the track JSON (3; Phạm Văn Đồng and Ardennes 2), 6 cars (1 player + 5 AI picked from the 11-vehicle garage; on Monte-Carlo AI prefer fulmine_fx in different liveries), grid from `cat_lai.json`, 3-2-1-GO countdown.
 - Nitro: up to 3 bars. Bars are earned by drifting, near-misses, MG hits (+2% per hit), takedowns
   (+1 bar) and nitro pickups.
 - Pulse MG: hitscan, 10 shots/s, 4 damage, 8° soft auto-aim cone, 120 m range. Heat locks the gun
@@ -154,6 +154,15 @@ All bindings go through one action map in `Input.ts`.
 - **Water:** `three/addons/objects/Water.js` (planar reflection, 512² on Medium, off on Low → plain MeshStandardMaterial with `mc_sea`). Sky: `three/addons/objects/Sky.js`, also PMREM'd for the environment map.
 - **Instancing:** Armco/fence/kerb/palms/yachts/buildings are InstancedMesh per model; the whole map must stay inside the 350 draw-call budget.
 - **Audio:** ambience/crowd zones and events from `audio`; the helicopter follows the leader; yacht horn when P1 crosses the line.
+
+## Ardennes Forest Circuit (Map 6)
+- **Code:** `src/world/Ardennes.ts` (scene) + `src/world/ardennesLayout.ts` (pure, tested in `tests/ardennesTrack.test.ts`); props are lazy-loaded from `main.ts` (`ARDENNES_MODELS` / `ARDENNES_TEXTURES`, ~5 MB). The generic `Track` builds the road ribbon from the 3D spline; the Armco face lines up with the generic side-wall collider at `barriers.armco.lateralM` (19.5 m) on both sides of the whole lap (the JSON's 3 m set-back at Eau Rouge / the pit straight is not modelled: one wall offset everywhere, same hull -8 / speed x0.6 rules as Map 5).
+- **Terrain:** `spa_terrain_height.png` decoded in the browser (`height = (R*256+G)/65535*260-30`), a 16 m grid (257 x 163 vertices) in 6 frustum-culled chunks, vertex colours from the forest mask + splat over a tiled `spa_grass`. The grid follows the road height minus 0.35 m within 24 m of the centre line and blends to the natural hills by 52 m. The reachable part (36 m either side of the road) is a Rapier trimesh (`scenery` in the baked colliders, so the headless server rebuilds it); the generic ground plane at y = 0 stays far below.
+- **Forest:** deterministic one-tree-per-cell sampling on the forest mask (jittered, tinted per instance), rebuilt every 150 m of camera travel and only submitted inside the camera's view wedge (60 degrees either side). Every tree is a `spruce_hq` alpha-card spruce (two variants, 300-440 tris): the 1,218-triangle cone spruces would blow the triangle budget in dense forest. Medium plants one per ~120 m² out to 160 m and one per ~480 m² out to 340 m; `forest_card_40m` rings continue to the horizon and the `ardennes_ridges` cylinder follows the camera. Grass tufts within 150 m (no rocks: one draw call each). Low and High scale the radii and density.
+- **Draw calls:** the grid start (6 cars, shadow pass included) measures 345 draw calls, Monte-Carlo 344. Static props (signs, bridges, stands, pits, tecpro, tyre walls, fence, Armco sponsor panels and every placement group but kerbs / grass / crowds) are baked per material into 600 m chunks (`StaticBake`, offset so the pit straight is one chunk); plain Armco, kerbs, grass and crowds are windowed instanced sets. Plain two-sided parts (flags, tent cloth) get a flipped triangle copy so they merge.
+- **Placements:** `data/tracks/ardennes_placements.json` (2,193 objects, 10 groups) is baked into the static chunks (kerbs, grass and crowds: windowed instances). Y = road height at `t` (`y: "road"`) or the carved ground.
+- **Start:** the gantry and the five-light sequence reuse Map 5's `StartGantry`; it stands at path t = 0 (the lap line), not at `startLine.t` (the grid is staged behind t = 0).
+- **Not built:** the lap-2 shower (rain, wet grip, mist) is a design brief only: `loadTrack` leaves `weather` null for `type: "changeable"`, so the shared sim never sees it.
 
 ## Online multiplayer UI (v1)
 Design: canvas boards 40–48 (spec, then Online hub, Lobby, name tags and Online results for desktop and phone). Every state can be clicked through in Play. The data lives in `data/online_ui.json`: colours, room-code alphabet, ping thresholds, name-tag numbers, the lobby and rematch rules, the sound for each event, and every UI string. The icons are in `ui/icons/*.svg`.

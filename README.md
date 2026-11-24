@@ -20,12 +20,13 @@ gamepad or touch (phones, landscape): nothing to install.
 
 ## Features
 
-- **11 vehicles, 5 maps**, from a balanced coupe to a heavy brawler, an open-wheel racer, scooters and motorbikes. Each
+- **11 vehicles, 6 maps**, from a balanced coupe to a heavy brawler, an open-wheel racer, scooters and motorbikes. Each
   has its own stats, hull, handling and roof gun.
 - **Combat racing:** Pulse machine gun (aim assist, heat), homing rockets, repair and nitro pickups, damage states,
   wrecks and respawns. Drifting and takedowns charge the nitro.
-- **Five hand-built maps:** a container port at night, a daytime HCMC boulevard, Hanoi at dusk with a bridge and
-  underpass, a 4.8 km monsoon storm with puddles and a flooded dip, and a Monte-Carlo style harbour circuit.
+- **Six hand-built maps:** a container port at night, a daytime HCMC boulevard, Hanoi at dusk with a bridge and
+  underpass, a 4.8 km monsoon storm with puddles and a flooded dip, a Monte-Carlo style harbour circuit, and a 6.9 km
+  forest circuit with a 100 m elevation range and an Eau Rouge style climb.
 - **Online multiplayer:** quick match, private rooms with a six-character code, a lobby, up to six racers, name tags,
   a rematch vote. The server is authoritative; the client predicts your own car, so steering stays instant.
 - **Every number in data files** (`data/*.json`): cars, weapons, AI, tracks, audio. Tune the game without touching code.
@@ -74,6 +75,7 @@ network diagnostics panel (ping, snapshot gaps, frame hitches, prediction correc
 | Hanoi Highway (Xa Lo Ha Noi) | Dusk | River bridge, underpass, metro viaduct, ambient traffic |
 | Pham Van Dong Boulevard | Monsoon storm | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning |
 | Monte-Carlo Harbour | Day | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start |
+| Ardennes Forest Circuit | Day | 6.9 km, 2 laps: heightmap terrain and spruce forest, 102 m of elevation, the Eau Rouge and Raidillon climb (no-fire zone), pits and grandstands, a five-light start |
 
 ## Run it locally
 
@@ -101,7 +103,7 @@ The browser tests run serially because software WebGL is slow.
 
 Dev URL parameters: `?quick=1` skips the menus and starts a race, `?mode=practice` starts solo with dummy targets,
 `?car=<id>` and `?track=<id>` pick the car and the map (`cat_lai`, `cong_hoa`, `xa_lo_ha_noi`, `pham_van_dong`,
-`monte_carlo`). In dev builds `window.__voltline` exposes test helpers (fast-forward, teleport, autopilot).
+`monte_carlo`, `ardennes`). In dev builds `window.__voltline` exposes test helpers (fast-forward, teleport, autopilot).
 
 ## Online multiplayer
 

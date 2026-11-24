@@ -39,12 +39,13 @@ describe('rival roster', () => {
 
 describe('track rosters (Map 5 open-wheel grid)', () => {
   const rosters = AI.trackRosters as Record<string, import('../src/ai/Roster').TrackRoster>;
-  it('data: monte_carlo fields fulmine_fx with at least as many liveries as rivals', () => {
-    expect(rosters.monte_carlo.car).toBe('fulmine_fx');
-    expect(rosters.monte_carlo.liveries.length).toBeGreaterThanOrEqual(AI.rivals.length);
-    for (const l of rosters.monte_carlo.liveries) {
+  it.each(['monte_carlo', 'ardennes'])('data: %s fields fulmine_fx with at least as many liveries as rivals', (id) => {
+    expect(rosters[id].car).toBe('fulmine_fx');
+    expect(rosters[id].liveries.length).toBeGreaterThanOrEqual(AI.rivals.length);
+    for (const l of rosters[id].liveries) {
       for (const c of [l.paint, l.accent, l.glow]) expect(c).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
+    expect(new Set(rosters[id].liveries.map((l) => l.paint)).size).toBe(rosters[id].liveries.length);
   });
   it('gives every rival the car in a different livery, keeping names and driving traits', () => {
     const base = rollRoster(AI.rivals, AI.rosterNames, ids, 'kestrel_gt', seeded(7));

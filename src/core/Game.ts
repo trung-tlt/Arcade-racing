@@ -2,6 +2,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { AudioBus } from '../audio/AudioBus';
 import { EngineSound } from '../audio/EngineSound';
+import { ArdennesAudio, trackAudioFiles as ardennesAudioFiles } from '../audio/ArdennesAudio';
 import { MonteCarloAudio, trackAudioFiles } from '../audio/MonteCarloAudio';
 import { bindSfx, playCountdown, playStartGo, playStartLamp, sfxFiles } from '../audio/Sfx';
 import { AIDriver, type OtherCar } from '../ai/AIDriver';
@@ -48,6 +49,7 @@ import { CatLaiYard } from '../world/CatLaiYard';
 import { PvdDressing } from '../world/PvdDressing';
 import { PvdStructures, pvdTerrainHoles } from '../world/PvdStructures';
 import { PvdTraffic } from '../world/PvdTraffic';
+import { Ardennes } from '../world/Ardennes';
 import { MonteCarlo } from '../world/MonteCarlo';
 import { Sponsors } from '../world/Sponsors';
 import { WeatherSystem } from '../weather/WeatherSystem';
@@ -88,6 +90,7 @@ import {
   getTrack,
   roadWidthAt,
   XA_LO,
+  ARDENNES,
   MONTE_CARLO,
   PHAM_VAN_DONG,
   type TrackDef,
@@ -210,6 +213,9 @@ export class Game {
   /** Map 5 (Monte-Carlo Harbour): terrain, circuit furniture, city, harbour, sky and the helicopter. */
   private monte: MonteCarlo | null = null;
   private monteAudio: MonteCarloAudio | null = null;
+  /** Map 6 (Ardennes Forest Circuit): heightmap terrain, forest, circuit furniture and the start gantry. */
+  private ardennes: Ardennes | null = null;
+  private ardennesAudio: ArdennesAudio | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
   private catLai: { yard: CatLaiYard; quay: CatLaiQuay } | null = null;
@@ -332,7 +338,15 @@ export class Game {
     await RAPIER.init();
     const g = new Game(canvas, assets, cfg, hooks);
     const mapDef = getTrack(cfg.trackId);
-    g.audio = await AudioBus.load(sfxFiles(mapDef.id === MONTE_CARLO.id ? trackAudioFiles(mapDef) : []));
+    g.audio = await AudioBus.load(
+      sfxFiles(
+        mapDef.id === MONTE_CARLO.id
+          ? trackAudioFiles(mapDef)
+          : mapDef.id === ARDENNES.id
+            ? ardennesAudioFiles(mapDef)
+            : [],
+      ),
+    );
     g.engineSound = new EngineSound(g.audio, g.carId);
     g.unbindSfx = bindSfx(g.audio, g.events, () => g.carPos);
     g.buildWorld();
@@ -419,6 +433,18 @@ export class Game {
         },
       });
       this.monteAudio = new MonteCarloAudio(
+        this.audio,
+        this.trackDef,
+        this.events,
+        () => this.places.get('player') ?? 1,
+        () => this.car.physics.curr.p,
+      );
+    } else if (this.trackDef.id === ARDENNES.id) {
+      this.ardennes = new Ardennes(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path, {
+        camera: this.chase.camera,
+        quality: userSettings.preset,
+      });
+      this.ardennesAudio = new ArdennesAudio(
         this.audio,
         this.trackDef,
         this.events,
@@ -1779,6 +1805,7 @@ export class Game {
     if (this.input.wasPressed('reset')) this.resetPlayer();
     this.weather?.update(dt, this.weatherLap());
     this.updateMonteCarlo(dt);
+    this.updateArdennes(dt);
     this.startLights?.update(dt);
     this.updateWeaponLocks();
     if (this.online) {
@@ -1939,6 +1966,35 @@ export class Game {
     });
   }
 
+  /** Map 6: forest and scatter around the camera, and the gantry's lamp sequence. */
+  private updateArdennes(dt: number): void {
+    const a = this.ardennes;
+    if (!a) return;
+    a.update();
+    const sl = this.startLights;
+    a.gantry.setLamps(sl && !sl.released ? sl.lit : 0);
+    const pp = this.car.physics;
+    this.ardennesAudio?.update(dt, {
+      t: this.carTs.get('player') ?? 0,
+      lap: this.race.laps.lap,
+      x: pp.curr.p.x,
+      y: pp.curr.p.y,
+      z: pp.curr.p.z,
+      yaw: pp.yaw,
+      speedKmh: pp.speedMps * 3.6,
+      onKerb: false,
+      inGravel: false,
+      cars: this.cars.map((c) => ({
+        id: c.id,
+        t: this.carTs.get(c.id) ?? 0,
+        x: c.physics.curr.p.x,
+        y: c.physics.curr.p.y,
+        z: c.physics.curr.p.z,
+        speedKmh: c.physics.speedMps * 3.6,
+      })),
+    });
+  }
+
   private updateLamps(): void {
     if (this.startLights) return; // the gantry's five lamps follow the light sequence instead
     const v = this.race.countdownValue;
@@ -2034,7 +2090,8 @@ export class Game {
       this.lastCountdown = cd;
     }
     // Underpass: the car's own height is below the trench threshold.
-    if (!this.monteAudio) this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
+    if (!this.monteAudio && !this.ardennesAudio)
+      this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
     if (!this.paused)
       this.engineSound.update(dt, {
         forwardSpeed: p.forwardSpeed,
@@ -2206,6 +2263,10 @@ export class Game {
     this.monteAudio = null;
     this.monte?.dispose();
     this.monte = null;
+    this.ardennesAudio?.dispose();
+    this.ardennesAudio = null;
+    this.ardennes?.dispose();
+    this.ardennes = null;
     if (this.pvd) for (const m of Object.values(this.pvd)) m.dispose();
     this.pvd = null;
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();

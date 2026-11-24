@@ -13,6 +13,7 @@ import catLaiJson from '../../data/tracks/cat_lai.json';
 import phamVanDongJson from '../../data/tracks/pham_van_dong.json';
 import xaLoJson from '../../data/tracks/xa_lo_ha_noi.json';
 import monteCarloJson from '../../data/tracks/monte_carlo.json';
+import ardennesJson from '../../data/tracks/ardennes.json';
 
 export type VehicleType = 'car' | 'apc8x8' | 'bike';
 
@@ -313,6 +314,12 @@ interface RawTrack {
   weather?: WeatherDef;
 }
 
+/** Day maps keep `lighting` at the top level; Map 6 ships no sky texture, so it borrows the day gradient. */
+function dayLighting(r: RawTrack): DayLighting | null {
+  const l = r.dressing?.lighting ?? (r.timeOfDay === 'storm' || r.timeOfDay === 'day' ? (r.lighting ?? null) : null);
+  return l ? { ...l, sky: l.sky ?? 'textures/day_sky_gradient.png' } : null;
+}
+
 export function loadTrack(json: unknown): TrackDef {
   const r = json as RawTrack;
   // Map 4: outbound runs on the 3 car lanes, inbound on the 2 motorbike lanes (the narrower, textured stretch).
@@ -389,8 +396,9 @@ export function loadTrack(json: unknown): TrackDef {
     hasElevation,
     groundY: minY < -1 ? Math.floor(minY) - 3 : 0,
     widthProfile,
-    daylight: r.dressing?.lighting ?? (r.timeOfDay === 'storm' || r.timeOfDay === 'day' ? (r.lighting ?? null) : null),
-    weather: r.weather ?? null,
+    daylight: dayLighting(r),
+    // Map 6's 'changeable' block is a visual / audio brief, not Map 4's storm: the shared sim must not see it.
+    weather: r.weather && (r.weather as { type?: string }).type !== 'changeable' ? r.weather : null,
     noFireZones: r.noFireZones ?? [],
     startLights: r.startLine.lights ?? null,
     raw: json as Record<string, unknown>,
@@ -424,7 +432,8 @@ export const CONG_HOA = loadTrack(congHoaJson);
 export const XA_LO = loadTrack(xaLoJson);
 export const PHAM_VAN_DONG = loadTrack(phamVanDongJson);
 export const MONTE_CARLO = loadTrack(monteCarloJson);
-export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO];
+export const ARDENNES = loadTrack(ardennesJson);
+export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO, ARDENNES];
 
 export function getTrack(id: string): TrackDef {
   const t = TRACKS.find((x) => x.id === id);

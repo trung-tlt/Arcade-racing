@@ -35,6 +35,7 @@ const MOBILE_NAMES: Record<string, string> = {
   xa_lo_ha_noi: 'Hanoi Hwy',
   pham_van_dong: 'P.V. Đồng',
   monte_carlo: 'Monaco',
+  ardennes: 'Ardennes',
 };
 
 /** In-game renders of each map (from the design canvas), shown on the track card. */
@@ -71,6 +72,11 @@ const NOTES: Record<string, { sub: string; note: string; feature: { v: string; l
     sub: 'Day · Circuit du Port',
     note: 'Day · harbour street circuit · tunnel, 12 m wide, no-fire zones',
     feature: { v: '+42 m', l: 'Casino climb' },
+  },
+  ardennes: {
+    sub: 'Day · Circuit des Ardennes',
+    note: 'Day · 6.9 km forest circuit · Eau Rouge climb, 102 m of elevation, no-fire zones',
+    feature: { v: '+30 m', l: 'Raidillon climb' },
   },
 };
 

@@ -68,6 +68,7 @@ async function race(name, track, car, { viewport = { width: 1280, height: 720 },
 await race('race-cat-lai', 'cat_lai', 'kestrel_gt');
 await race('race-pham-van-dong', 'pham_van_dong', 'rhino_x4', { wait: 30_000 });
 await race('race-monte-carlo', 'monte_carlo', 'fulmine_fx', { wait: 26_000 });
+await race('race-ardennes', 'ardennes', 'fulmine_fx', { wait: 40_000 });
 await race('race-hanoi', 'xa_lo_ha_noi', 'wisp_r');
 await race('race-phone', 'cat_lai', 'kestrel_gt', { viewport: { width: 844, height: 390 }, touch: true });
 
