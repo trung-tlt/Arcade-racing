@@ -36,6 +36,8 @@ export interface RoomOptions {
   /** Data hash a joining client must match. */
   hash: string;
   maxPlayers?: number;
+  /** Tests: false turns the guns, rockets and damage off, so only driving and contact are simulated. */
+  combat?: boolean;
   /** Bots fill empty grid slots up to this many cars (default 6). */
   gridSize?: number;
   /** Monotonic milliseconds (injectable for tests). */
@@ -139,13 +141,14 @@ export class Room {
   private sampleMaxRun = new Map<string, number>();
   private snapBytes = 0;
   private raceTicks = 0;
-  private grid: GridEntry[] = [];
+  grid: GridEntry[] = [];
   private firstFinishAt: number | null = null;
   private readonly slotOf = new Map<string, SlotSpec>();
   private readonly names = new Map<string, string>();
   private readonly resets = new Map<string, number>();
   /** Events since the last snapshot, sent with the next one. */
   private pending: NetEvent[] = [];
+  private readonly combatOff: boolean;
 
   constructor(o: RoomOptions) {
     this.code = o.code;
@@ -162,6 +165,7 @@ export class Room {
     this.minPlayers = o.minPlayers ?? 2;
     this.needAllReady = o.needAllReady ?? true;
     this.rematchSec = o.rematchSec ?? REMATCH_SECONDS;
+    this.combatOff = o.combat === false;
   }
 
   /** Quick match can send a newcomer here: waiting in the lobby with a free seat. */
@@ -393,7 +397,13 @@ export class Room {
       slots.push({ id, carId: r.car, kind: 'ai', skill: r.skill, laneOffsetM: r.laneOffsetM, gridSlot });
       this.names.set(id, r.name);
     });
-    this.sim = new RaceSim({ trackId: this.trackId, laps: this.laps, slots, fx: this.netFx() });
+    this.sim = new RaceSim({
+      trackId: this.trackId,
+      laps: this.laps,
+      slots,
+      fx: this.netFx(),
+      ...(this.combatOff ? { combat: false } : {}),
+    });
     const ev = this.sim.events;
     ev.on('carReset', (e) => this.resets.set(e.carId, (this.resets.get(e.carId) ?? 0) + 1));
     ev.on('gunOverheated', (e) => this.pending.push({ k: 'heat', c: e.carId }));

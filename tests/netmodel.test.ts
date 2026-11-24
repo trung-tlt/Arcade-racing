@@ -258,7 +258,15 @@ function race(
   const clients = Array.from(
     { length: humans },
     (_, i) =>
-      new SimClient({ net, room, trackId, carId: CARS6[i % CARS6.length], name: `P${i + 1}`, up: link, down: link }),
+      new SimClient({
+        net,
+        room,
+        trackId,
+        carId: CARS6[i % CARS6.length],
+        name: `P${i + 1}`,
+        up: link,
+        down: link,
+      }),
   );
   clients[0].send({ t: 'start' });
   const dt = 1000 / 60;
@@ -294,6 +302,11 @@ describe('two humans + four bots over a bad network (virtual time)', () => {
           aloneMean: mean,
           aloneWorst: worstOf(alone),
           aloneSnaps: alone.filter((r) => r.kind === 'snap').length,
+          nearN: all.length - alone.length,
+          nearMean:
+            all.filter((r) => r.nearOther).reduce((a, r) => a + r.errM, 0) / Math.max(1, all.length - alone.length),
+          nearOver50: all.filter((r) => r.nearOther && r.errM > 0.5).length,
+          aloneOver50: alone.filter((r) => r.errM > 0.5).length,
           nearSnaps: all.filter((r) => r.nearOther && r.kind === 'snap').length,
           jumps: c.jumps.length,
           worstJump,
@@ -307,7 +320,7 @@ describe('two humans + four bots over a bad network (virtual time)', () => {
           stats
             .map(
               (s) =>
-                `   ${s.id}: n=${s.n} alone: mean=${s.aloneMean.toFixed(2)} worst=${s.aloneWorst.toFixed(2)} snaps=${s.aloneSnaps} | near-car snaps=${s.nearSnaps} | jumps=${s.jumps} worst=${s.worstJump.toFixed(1)} | late=${s.late} minMargin=${s.margin} | ${s.at}`,
+                `   ${s.id}: n=${s.n} alone: mean=${s.aloneMean.toFixed(2)} worst=${s.aloneWorst.toFixed(2)} snaps=${s.aloneSnaps} | near-car n=${s.nearN} mean=${s.nearMean.toFixed(2)} >0.5m=${s.nearOver50} snaps=${s.nearSnaps} (alone >0.5m=${s.aloneOver50}) | jumps=${s.jumps} worst=${s.worstJump.toFixed(1)} | late=${s.late} minMargin=${s.margin} | ${s.at}`,
             )
             .join('\n'),
       );
