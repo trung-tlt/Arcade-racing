@@ -29,6 +29,7 @@ import {
   placementClearances,
   planBarriers,
   planBridges,
+  dropOnRoad,
   planPlacements,
   planSigns,
   planStands,
@@ -453,6 +454,22 @@ describe('forest and scatter', () => {
 
 describe('placements', () => {
   const items = planPlacements(data, ground, (t) => frameAt(path, t).y);
+
+  it('keeps paddock buildings, trucks and crowds off the carriageway', () => {
+    const kept = dropOnRoad(items, (x, z) => projectRoad(index, x, z, 80)?.d ?? Infinity);
+    expect(kept.length).toBeLessThan(items.length);
+    expect(items.length - kept.length).toBeLessThan(30);
+    for (const w of kept.filter((i) => /pit_wall/.test(i.model))) {
+      for (const k of [-20, 0, 20]) {
+        const d = projectRoad(index, w.x + Math.sin(w.rotY) * k, w.z + Math.cos(w.rotY) * k, 80)?.d ?? Infinity;
+        expect(d).toBeGreaterThanOrEqual(8);
+      }
+    }
+    for (const it of kept) {
+      if (!/hospitality_|transporter_|spectators_/.test(it.model)) continue;
+      expect(projectRoad(index, it.x, it.z, 80)?.d ?? Infinity).toBeGreaterThan(12);
+    }
+  });
 
   it('resolves all 2193 objects of the 10 groups to a GLB and a world pose', () => {
     expect(items).toHaveLength(2193);

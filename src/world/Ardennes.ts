@@ -27,6 +27,8 @@ import {
   placementClearances,
   planBarriers,
   planBridges,
+  dropOnRoad,
+  projectRoad,
   planPlacements,
   planSigns,
   planStands,
@@ -387,7 +389,10 @@ export class Ardennes {
     this.group.add(this.buildTerrain());
     this.body = this.buildCollider(R);
 
-    const items = planPlacements(PLACEMENTS, this.ground, (t) => frameAt(path, t).y);
+    const items = dropOnRoad(
+      planPlacements(PLACEMENTS, this.ground, (t) => frameAt(path, t).y),
+      (x, z) => projectRoad(this.index, x, z, 80)?.d ?? Infinity,
+    );
     const stands = planStands(def, this.index, 22);
     const pits = (def.raw.pits as { building: { segments: { position: [number, number, number] }[] } }).building
       .segments;

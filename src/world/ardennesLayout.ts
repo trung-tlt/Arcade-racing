@@ -539,6 +539,44 @@ export function planPlacements(
   return out;
 }
 
+/** Groups and models that belong at the road edge (or on it): everything else must stand clear of the carriageway. */
+const ROADSIDE_GROUPS = new Set(['kerbs', 'grass', 'landmarks', 'marshals']);
+const ROADSIDE_MODEL = /marshal_hut|brook_culvert/;
+const PIT_WALL = /pit_wall/;
+/** The pit wall is 40 m long: it stays only where every point along it keeps this far from the carriageway. */
+const PIT_WALL_CLEAR_M = 8;
+/** Rough footprint radius (m) per model family, for keeping props off the road. */
+const FOOTPRINT_M: [RegExp, number][] = [
+  [/hospitality_/, 9],
+  [/transporter_/, 6],
+  [/race_control|customs_house|ardennes_house_|village_church/, 9],
+  [/big_screen|tv_tower/, 4],
+  [/spectators_|campervan_|tent_/, 3.5],
+];
+/** Carriageway half width (15 m road) plus its kerbs. */
+export const ROAD_CLEAR_M = 9.5;
+
+/**
+ * Drops the props whose footprint reaches onto the carriageway. The design placements were authored against the
+ * spline, but a few paddock rows (hospitality, transporters, spectators) land on the La Source return leg.
+ */
+export function dropOnRoad(
+  items: readonly PlacementInstance[],
+  roadDistance: (x: number, z: number) => number,
+): PlacementInstance[] {
+  return items.filter((it) => {
+    if (ROADSIDE_GROUPS.has(it.group) || ROADSIDE_MODEL.test(it.model)) return true;
+    if (PIT_WALL.test(it.model)) {
+      // Its long axis is local Z: a wall that runs on past the end of the straight would cut across La Source.
+      const ax = Math.sin(it.rotY);
+      const az = Math.cos(it.rotY);
+      return [-20, -10, 0, 10, 20].every((k) => roadDistance(it.x + ax * k, it.z + az * k) >= PIT_WALL_CLEAR_M);
+    }
+    const r = FOOTPRINT_M.find(([re]) => re.test(it.model))?.[1] ?? 3;
+    return roadDistance(it.x, it.z) >= ROAD_CLEAR_M + r;
+  });
+}
+
 /** Crowds are 3,000+ triangles a group: only worth drawing close up, whichever group places them. */
 export const CROWD_WINDOW_M = 160;
 
