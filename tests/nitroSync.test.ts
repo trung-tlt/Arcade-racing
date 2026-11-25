@@ -7,9 +7,28 @@ import type { ServerMsg } from '../src/shared/protocol';
 type Snap = Extract<ServerMsg, { t: 'snap' }>;
 
 const body: ReconcileBody = { read: (o) => void (o.p = [0, 0, 0]), nudge: () => undefined, set: () => undefined };
-const own = (nb: number) => ({ id: 'p1', p: [0, 0, 0], q: [0, 0, 0, 1], v: [0, 0, 0], w: [0, 0, 0], hp: 100, nb, rs: 0 });
+const own = (nb: number) => ({
+  id: 'p1',
+  p: [0, 0, 0],
+  q: [0, 0, 0, 1],
+  v: [0, 0, 0],
+  w: [0, 0, 0],
+  hp: 100,
+  nb,
+  rs: 0,
+});
 const snap = (tick: number, nb: number): Snap =>
-  ({ t: 'snap', tick, time: tick / 60, ack: tick + 6, late: 0, cars: [own(nb)], ev: [], rk: [], pk: [] }) as unknown as Snap;
+  ({
+    t: 'snap',
+    tick,
+    time: tick / 60,
+    ack: tick + 6,
+    late: 0,
+    cars: [own(nb)],
+    ev: [],
+    rk: [],
+    pk: [],
+  }) as unknown as Snap;
 
 /** A session whose own tank is stepped `ticks` times, burning `burnPerTick` bars each tick. */
 function session(ticks: number, burnPerTick = 0): { s: OnlineSession; tank: NitroTank } {
