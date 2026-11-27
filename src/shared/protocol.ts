@@ -107,7 +107,7 @@ export type ClientMsg =
     }
   | { t: 'ready'; ready: boolean }
   | { t: 'car'; car: string }
-  | { t: 'settings'; track?: string; laps?: number }
+  | { t: 'settings'; track?: string; laps?: number; bots?: boolean }
   | { t: 'start' }
   /** Host only, mid-race: abandon this race and load the same one again with everyone ready. */
   | { t: 'restart' }
@@ -230,6 +230,8 @@ export type ServerMsg =
       phase: RoomPhase;
       track: string;
       laps: number;
+      /** Whether bots fill the grid (the host's choice; off by default). */
+      bots?: boolean;
       roster: RosterEntry[];
       grid?: GridEntry[];
       results?: ResultRow[];
@@ -373,7 +375,16 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
       if (m.track !== undefined && (typeof m.track !== 'string' || m.track.length > 32)) return bad;
       const laps = m.laps === undefined ? undefined : isNum(m.laps) ? clamp(Math.round(m.laps), 1, 9) : null;
       if (laps === null) return bad;
-      return { ok: true, msg: { t: 'settings', track: m.track as string | undefined, laps } };
+      if (m.bots !== undefined && typeof m.bots !== 'boolean') return bad;
+      return {
+        ok: true,
+        msg: {
+          t: 'settings',
+          track: m.track as string | undefined,
+          laps,
+          ...(m.bots === undefined ? {} : { bots: m.bots }),
+        },
+      };
     }
     case 'car':
       return typeof m.car === 'string' && m.car.length <= 32 ? { ok: true, msg: { t: 'car', car: m.car } } : bad;

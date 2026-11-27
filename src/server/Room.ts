@@ -164,7 +164,7 @@ export class Room {
   private readonly hash: string;
   private readonly maxPlayers: number;
   private readonly gridSize: number;
-  private readonly bots: boolean;
+  private bots: boolean;
   private readonly now: () => number;
   private readonly finishGraceSec: number;
   private readonly inputRate: number;
@@ -352,6 +352,7 @@ export class Room {
         if (this.phase === 'lobby' && player.host) {
           if (msg.track !== undefined && TRACKS.some((t) => t.id === msg.track)) this.trackId = msg.track;
           if (msg.laps !== undefined) this.laps = msg.laps;
+          if (msg.bots !== undefined) this.bots = msg.bots;
           // Changing the race un-readies everyone: they agreed to a different one.
           for (const p of this.players.values()) p.ready = false;
           this.broadcastState();
@@ -726,6 +727,7 @@ export class Room {
       phase: this.phase,
       track: this.trackId,
       laps: this.laps,
+      bots: this.bots,
       roster: this.roster(),
       code: this.code,
       open: this.open,

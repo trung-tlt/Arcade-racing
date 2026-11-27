@@ -30,6 +30,8 @@ export interface RoomView {
   phase: RoomPhase;
   track: string;
   laps: number;
+  /** Bots fill the grid (host's choice). */
+  bots: boolean;
   roster: RosterEntry[];
   selfId: string;
   isHost: boolean;
@@ -138,6 +140,7 @@ export class LobbyClient {
       phase: m.phase,
       track: m.track,
       laps: m.laps,
+      bots: m.bots === true,
       roster: m.roster,
       selfId: self,
       isHost: !!host && host.id === self,
@@ -168,8 +171,8 @@ export class LobbyClient {
   car(id: string): void {
     this.client.car(id);
   }
-  settings(track?: string, laps?: number): void {
-    this.client.settings(track, laps);
+  settings(track?: string, laps?: number, bots?: boolean): void {
+    this.client.settings(track, laps, bots);
   }
   rematch(vote: RematchVote): void {
     this.client.rematch(vote);

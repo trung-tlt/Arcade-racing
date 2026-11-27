@@ -121,6 +121,26 @@ describe('lobby rules', () => {
     room.dispose();
   });
 
+  it('the host toggles bots; a room built without them starts with only the humans on the grid', () => {
+    const room = new Room({ code: 'ABCDEF', trackId: 'cat_lai', laps: 1, hash: dataHash(), bots: false });
+    const a = seat(room);
+    const b = seat(room);
+    expect(a.state()?.bots).toBe(false);
+    send(room, b, { t: 'settings', bots: true });
+    expect(room.phase).toBe('lobby');
+    expect(a.state()?.bots).toBe(false);
+    send(room, a, { t: 'settings', bots: true });
+    expect(a.state()?.bots).toBe(true);
+    send(room, a, { t: 'settings', bots: false });
+    expect(b.state()?.bots).toBe(false);
+    send(room, a, { t: 'ready', ready: true });
+    send(room, b, { t: 'ready', ready: true });
+    send(room, a, { t: 'start' });
+    expect(room.phase).toBe('loading');
+    expect(a.state()?.grid).toHaveLength(2);
+    room.dispose();
+  });
+
   it('only the host changes track and laps, and that clears everyone ready', () => {
     const room = new Room({ code: 'ABCDEF', trackId: 'cat_lai', laps: 3, hash: dataHash() });
     const a = seat(room);

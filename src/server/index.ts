@@ -10,7 +10,7 @@ const server = new NetServer({
   maxRooms: Number(process.env.MAX_ROOMS ?? 12),
   // Dev and the browser e2e: start a race alone, without waiting for everyone to be ready.
   soloStart: process.env.SOLO_START === '1',
-  bots: process.env.BOTS !== '0',
+  bots: process.env.BOTS === '1',
   maxConnections: Number(process.env.MAX_CONNECTIONS ?? 200),
   // One IP per NAT / mobile carrier can be many players; the default of 8 suits a public deploy (the load test raises it).
   maxConnectionsPerIp: Number(process.env.MAX_CONNECTIONS_PER_IP ?? 8),

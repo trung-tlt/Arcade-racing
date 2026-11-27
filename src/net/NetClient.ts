@@ -94,8 +94,8 @@ export class NetClient {
   }
 
   /** Host only: change the track and/or laps (this un-readies everyone). */
-  settings(track?: string, laps?: number): void {
-    this.send({ t: 'settings', track, laps });
+  settings(track?: string, laps?: number, bots?: boolean): void {
+    this.send({ t: 'settings', track, laps, ...(bots === undefined ? {} : { bots }) });
   }
 
   /** Results screen: 'yes' votes for a rematch, 'lobby' asks for the lobby, 'none' withdraws the vote. */

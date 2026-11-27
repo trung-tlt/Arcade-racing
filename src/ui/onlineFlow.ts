@@ -97,7 +97,7 @@ export class OnlineFlow {
     this.lobbyScreen = new LobbyScreen(root, {
       onReady: (r) => this.lobby?.ready(r),
       onStart: () => this.lobby?.start(),
-      onSettings: (t, l) => this.lobby?.settings(t, l),
+      onSettings: (t, l, b) => this.lobby?.settings(t, l, b),
       onChangeCar: () => deps.changeCar(),
       onLeave: () => this.leave(),
       thumb: (id) => (this.thumbs ??= deps.createThumbs?.() ?? null)?.get(id) ?? '',

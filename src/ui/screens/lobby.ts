@@ -21,7 +21,7 @@ import './online.css';
 export interface LobbyDeps {
   onReady(ready: boolean): void;
   onStart(): void;
-  onSettings(track?: string, laps?: number): void;
+  onSettings(track?: string, laps?: number, bots?: boolean): void;
   onChangeCar(): void;
   onLeave(): void;
   /** Picture URL for a car (a cached data URL, '' when it cannot be rendered); omitted in tests. */
@@ -179,6 +179,8 @@ export class LobbyScreen implements Screen {
         return this.stepTrack(1);
       case 'laps':
         return this.deps.onSettings(undefined, Number(el.dataset.n));
+      case 'bots':
+        return this.deps.onSettings(undefined, undefined, el.dataset.n === '1');
     }
   }
 
@@ -214,6 +216,12 @@ export class LobbyScreen implements Screen {
           `<button type="button" class="pill${n === view.laps ? ' on' : ''}" data-act="laps" data-n="${n}" data-sfx="toggle_on" aria-pressed="${n === view.laps}"${view.isHost ? '' : ' disabled'}>${n}</button>`,
       )
       .join('');
+    const botPills = [false, true]
+      .map(
+        (on) =>
+          `<button type="button" class="pill${on === view.bots ? ' on' : ''}" data-act="bots" data-n="${on ? 1 : 0}" data-sfx="toggle_on" aria-pressed="${on === view.bots}"${view.isHost ? '' : ' disabled'}>${on ? 'ON' : 'OFF'}</button>`,
+      )
+      .join('');
     const hostBtns = view.isHost
       ? `<button type="button" class="ol-arrow l" data-act="prev" data-sfx="track_switch" aria-label="Previous track">←</button><button type="button" class="ol-arrow r" data-act="next" data-sfx="track_switch" aria-label="Next track">→</button>`
       : '';
@@ -240,6 +248,7 @@ export class LobbyScreen implements Screen {
               <div class="ol-trackbody">
                 <div class="ol-trackname"><b>${esc(t.name)}</b><span>${esc(t.timeOfDay)} · ${(t.lapLengthM / 1000).toFixed(1)} km</span></div>
                 <div class="ol-laps"><span class="mn-eyebrow">LAPS</span>${lapPills}${view.isHost ? `<span class="keys">${kc('←')}${kc('→')}${kc('L')}</span>` : ''}</div>
+                <div class="ol-laps"><span class="mn-eyebrow">BOTS</span>${botPills}</div>
                 ${view.isHost ? '' : `<div class="ol-lock">${icon('lock', 16)}${esc(str('lobby.hostonly'))}</div>`}
               </div>
             </div>

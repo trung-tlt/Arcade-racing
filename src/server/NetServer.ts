@@ -46,7 +46,7 @@ export interface NetServerOptions {
   defaultLaps?: number;
   /** Let the host start a race alone and without everyone being ready (dev and tests; the lobby rule is 2+ ready). */
   soloStart?: boolean;
-  /** false: no bots fill the grid, only the humans race (default true). */
+  /** Whether a new room starts with bots filling the grid (the host can toggle it in the lobby; default false). */
   bots?: boolean;
   /** Seconds the rematch vote runs on the results screen (default 30). */
   rematchSec?: number;
@@ -117,7 +117,7 @@ export class NetServer {
       defaultTrack: TRACKS[0].id,
       defaultLaps: 3,
       soloStart: false,
-      bots: true,
+      bots: false,
       rematchSec: REMATCH_SECONDS,
       logLevel: 'info',
       log: () => undefined,
@@ -444,7 +444,7 @@ export class NetServer {
       hash: this.hash,
       isPublic: msg.mode === 'quick',
       rematchSec: this.opts.rematchSec,
-      ...(this.opts.bots === false ? { bots: false } : {}),
+      bots: this.opts.bots,
       ...(this.opts.soloStart ? { minPlayers: 1, needAllReady: false } : {}),
     });
     this.rooms.set(code, room);

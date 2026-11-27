@@ -82,6 +82,14 @@ describe('client message validation', () => {
     expect(partial.ok && partial.msg).toEqual({ t: 'ping', c: 5 });
   });
 
+  it('a settings message carries the bots toggle as a boolean only', () => {
+    const on = ok({ t: 'settings', bots: true });
+    expect(on.ok && on.msg.t === 'settings' && on.msg.bots).toBe(true);
+    const none = ok({ t: 'settings', laps: 2 });
+    expect(none.ok && none.msg.t === 'settings' && 'bots' in none.msg).toBe(false);
+    expect(ok({ t: 'settings', bots: 'yes' }).ok).toBe(false);
+  });
+
   it('parses a server message and survives garbage', () => {
     expect(parseServerMessage('{"t":"pong","c":1,"s":2}')).toEqual({ t: 'pong', c: 1, s: 2 });
     expect(parseServerMessage('garbage')).toBeNull();
