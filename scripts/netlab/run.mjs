@@ -198,6 +198,7 @@ async function scenario(browser, profileName, track) {
       })),
       server: {
         raceSamples: samples.length,
+        clientReports: samples.flatMap((s) => s.players).filter((p) => p.client).length,
         missedTicksP95: pct(missed, 0.95),
         lateFramesTotal: late.reduce((a, b) => a + b, 0),
         snapBytes: samples.length ? samples[samples.length - 1].snapBytes : null,
