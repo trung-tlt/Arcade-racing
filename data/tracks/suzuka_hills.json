@@ -3406,10 +3406,11 @@
     },
     "sky": {
       "physicalSky": true,
-      "turbidity": 10,
-      "rayleigh": 3.2,
-      "mie": 0.008,
-      "mieG": 0.86
+      "turbidity": 3,
+      "rayleigh": 1.6,
+      "mie": 0.002,
+      "mieG": 0.7,
+      "note": "Toned down for the game: the design's turbidity 10 / rayleigh 3.2 / mie 0.008 / mieG 0.86 whites out the whole screen when the road points at the sun, which made the race unplayable."
     },
     "fog": {
       "color": "#D9BFA0",
@@ -3421,7 +3422,8 @@
   "barriers": {
     "armco": {
       "lateralM": 16.3,
-      "note": "Added for the game: the invisible side walls stand where most of the Armco does (median 16.3 m from the centre line); the placements draw the barriers themselves. Marks the map as a circuit (no generic sidewalk strip)."
+      "note": "Added for the game: the invisible side walls stand where most of the Armco does (median 16.3 m from the centre line); the placements draw the barriers themselves. Marks the map as a circuit (no generic sidewalk strip) and, with driveToWall, the road collider extends flat out to the walls (there is no terrain collider: the terrain is only drawn).",
+      "driveToWall": true
     }
   },
   "rotateToStartLine": true

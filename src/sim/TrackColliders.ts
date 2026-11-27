@@ -12,6 +12,8 @@ export interface TrackShape {
   readonly circuit: boolean;
   /** How far the wall collider sits inside the carriageway edge: it stops cars at the Armco's face. */
   readonly wallInsetM: number;
+  /** The driving surface (the road collider) extends flat out to the side walls: a map without a terrain collider (Map 7). */
+  readonly driveToWall: boolean;
   /** Half the carriageway width at each path sample (varies on maps with a narrower stretch). */
   readonly half: Float32Array;
   /** Per sample, the most the left / right edge may sit from the centre line: a hairpin tighter than the road is wide
@@ -21,7 +23,7 @@ export interface TrackShape {
 }
 
 export function computeTrackShape(def: TrackDef, path: TrackPath): TrackShape {
-  const armco = (def.raw.barriers as { armco?: { lateralM: number } } | undefined)?.armco;
+  const armco = (def.raw.barriers as { armco?: { lateralM: number; driveToWall?: boolean } } | undefined)?.armco;
   const n = path.count;
   const half = new Float32Array(n);
   for (let i = 0; i < n; i++) half[i] = roadWidthAt(def, i / n) / 2;
@@ -40,6 +42,7 @@ export function computeTrackShape(def: TrackDef, path: TrackPath): TrackShape {
   return {
     circuit: !!armco,
     wallInsetM: armco ? armco.lateralM - 0.2 - roadWidthAt(def, 0) / 2 : 0,
+    driveToWall: armco?.driveToWall === true,
     half,
     limitL,
     limitR,
@@ -134,7 +137,8 @@ function buildRoadCollider(
   const layers = [0, -ROAD_UNDERLAY_M];
   const verts = new Float32Array(n * 2 * layers.length * 3);
   for (let i = 0; i < n; i++) {
-    const edges = [trackEdge(shape, i, 1), -trackEdge(shape, i, -1)];
+    const out = shape.driveToWall ? shape.wallInsetM : 0;
+    const edges = [trackEdge(shape, i, 1) + out, -(trackEdge(shape, i, -1) + out)];
     layers.forEach((dy, k) => {
       edges.forEach((d, r) => {
         const o = ((k * n + i) * 2 + r) * 3;

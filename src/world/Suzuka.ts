@@ -2,7 +2,7 @@ import type RAPIER from '@dimforge/rapier3d-compat';
 import * as THREE from 'three';
 import { Sky } from 'three/examples/jsm/objects/Sky.js';
 import type { Assets } from '../core/Assets';
-import { HANDLING, RACE, roadWidthAt, type TrackDef } from '../core/Data';
+import { RACE, roadWidthAt, type TrackDef } from '../core/Data';
 import terrainJson from '../../data/tracks/suzuka_terrain.json';
 import {
   GroundField,
@@ -14,8 +14,8 @@ import {
   groundNoise,
   projectRoad,
   racingLineOffset,
-  terrainBand,
   GROUND_FAR_M,
+  ROAD_DROP_M,
   type GroundSample,
   type TerrainGrid,
   type TerrainMeta,
@@ -94,12 +94,84 @@ export const SUZUKA_TEXTURES: string[] = [
   'textures/suzuka_mountains.png',
 ];
 
-/** The land: the heightmap as it is (its corridor under the road is already cut), with landcover for the colours. */
+/** Within this distance (m) of a road the ground is a flat shelf 0.35 m under it; it blends to the hills by `GROUND_FAR_M`. */
+const SHELF_M = 24;
+/** The road is looked for in the 3x3 cells around a point (cell size m; covers `GROUND_FAR_M`). */
+const ROAD_CELL_M = 64;
+/**
+ * Around the crossover the two legs lie 8.5 m apart in height over the same ground, so there (and only there) a height
+ * gap counts this many times as much as a plan distance when picking the road leg. Everywhere else the nearest road in
+ * plan is the right one, even where a hillside road lies above or below.
+ */
+const HEIGHT_WEIGHT = 3;
+const CROSSOVER_ZONE_M = 110;
+const smoothstep = (a: number, b: number, x: number): number => {
+  const k = Math.min(1, Math.max(0, (x - a) / (b - a)));
+  return k * k * (3 - 2 * k);
+};
+
+/**
+ * The land: a flat shelf under the road (so the coarse grid never makes a lip or bank at the road's edge, which a fast
+ * car would take off from) blending out to the heightmap's hills. The road leg is picked by height as well as plan
+ * distance, so the lower road of the crossover is not lifted to the bridge deck.
+ */
 class SuzukaGround extends GroundField {
+  private readonly cells = new Map<number, number[]>();
+
+  constructor(
+    height: HeightField,
+    index: RoadIndex,
+    /** The crossover's world x and z. */
+    private readonly crossing: readonly [number, number] | null,
+  ) {
+    super(height, index);
+    for (let i = 0; i < index.count; i++) {
+      const k = this.key(Math.floor(index.xs[i] / ROAD_CELL_M), Math.floor(index.zs[i] / ROAD_CELL_M));
+      const list = this.cells.get(k);
+      if (list) list.push(i);
+      else this.cells.set(k, [i]);
+    }
+  }
+
+  private key(cx: number, cz: number): number {
+    return (cx + 1024) * 4096 + (cz + 1024);
+  }
+
   override sample(x: number, z: number, out: GroundSample = { y: 0, roadD: Infinity }): GroundSample {
-    const hit = projectRoad(this.index, x, z, GROUND_FAR_M);
-    out.roadD = hit ? hit.d : Infinity;
-    out.y = this.height.heightAt(x, z);
+    const natural = this.height.heightAt(x, z);
+    const { xs, zs, ys } = this.index;
+    const cx = Math.floor(x / ROAD_CELL_M);
+    const cz = Math.floor(z / ROAD_CELL_M);
+    const wy =
+      this.crossing && Math.hypot(x - this.crossing[0], z - this.crossing[1]) < CROSSOVER_ZONE_M ? HEIGHT_WEIGHT : 0;
+    let best = Infinity;
+    let bestD = Infinity;
+    let bestY = 0;
+    for (let j = cz - 1; j <= cz + 1; j++) {
+      for (let i = cx - 1; i <= cx + 1; i++) {
+        const list = this.cells.get(this.key(i, j));
+        if (!list) continue;
+        for (const s of list) {
+          const dx = x - xs[s];
+          const dz = z - zs[s];
+          const dy = (ys[s] - natural) * wy;
+          const score = dx * dx + dz * dz + dy * dy;
+          if (score < best) {
+            best = score;
+            bestD = Math.hypot(dx, dz);
+            bestY = ys[s];
+          }
+        }
+      }
+    }
+    if (bestD > GROUND_FAR_M) {
+      out.roadD = Infinity;
+      out.y = natural;
+      return out;
+    }
+    out.roadD = bestD;
+    const k = smoothstep(SHELF_M, GROUND_FAR_M, bestD);
+    out.y = (bestY - ROAD_DROP_M) * (1 - k) + natural * k;
     return out;
   }
 }
@@ -111,6 +183,22 @@ const MOVE_M = 15;
 const TURN_RAD = (6 * Math.PI) / 180;
 const TERRAIN_CELL_M = 16;
 const SKY_SCALE = 1000;
+/**
+ * The brightest value the sky may output (before tone mapping): the Sky shader's sun glow is far above 1, which bloomed
+ * into a white-out (and a black hole where the bloom overflowed) whenever the road pointed at the low sun.
+ */
+const SKY_MAX = 1.8;
+
+/** Caps the sky shader's output so the sun is a bright spot, not a veil over the whole screen. */
+function clampSky(sky: Sky): void {
+  sky.material.onBeforeCompile = (shader) => {
+    shader.fragmentShader = shader.fragmentShader.replace(
+      'gl_FragColor = vec4( texColor, 1.0 );',
+      `gl_FragColor = vec4( min( texColor, vec3( ${SKY_MAX.toFixed(2)} ) ), 1.0 );`,
+    );
+  };
+  sky.material.needsUpdate = true;
+}
 /** The sky's share of the ambient light: the design render's full-strength environment is too bright at exposure 0.62 here. */
 const ENV_INTENSITY = 0.3;
 const MOUNTAIN_RADIUS_M = 1300;
@@ -142,8 +230,8 @@ export class Suzuka {
 
   constructor(
     private readonly scene: THREE.Scene,
-    R: Rapier,
-    private readonly world: RAPIER.World,
+    _R: Rapier,
+    _world: RAPIER.World,
     private readonly assets: Assets,
     private readonly def: TrackDef,
     private readonly path: TrackPath,
@@ -157,10 +245,10 @@ export class Suzuka {
       readPixels(assets.texture('textures/suzuka_terrain_height.png')),
       readPixels(assets.texture('textures/suzuka_landcover.png')),
     );
-    this.ground = new SuzukaGround(field, this.index);
+    const bridge = (def.raw.crossover as { bridge?: { position: [number, number, number] } } | undefined)?.bridge;
+    this.ground = new SuzukaGround(field, this.index, bridge ? [bridge.position[0], bridge.position[2]] : null);
     this.grid = buildTerrainGrid(this.ground, TERRAIN_CELL_M);
     this.group.add(this.buildTerrain());
-    this.buildCollider(R);
 
     this.sky = this.buildSky();
     this.buildEnvironment();
@@ -274,21 +362,12 @@ export class Suzuka {
     return out;
   }
 
-  /** The reachable land (a band along the road, ~36 m each side) as a fixed trimesh: cars that leave the road don't fall. */
-  private buildCollider(R: Rapier): void {
-    const band = terrainBand(this.grid, 36);
-    const body = this.world.createRigidBody(R.RigidBodyDesc.fixed());
-    this.world.createCollider(
-      R.ColliderDesc.trimesh(band.positions, band.indices).setFriction(HANDLING.world.groundFriction),
-      body,
-    );
-  }
-
   // ------------------------------------------------------------------------------------------------ sky
 
   /** The physical sky (low west-south-west sun), drawn at the far plane around the camera. */
   private buildSky(): Sky {
     const sky = new Sky();
+    clampSky(sky);
     sky.scale.setScalar(SKY_SCALE);
     sky.frustumCulled = false;
     sky.name = 'sky';
@@ -316,6 +395,7 @@ export class Suzuka {
     const pm = new THREE.PMREMGenerator(renderer);
     const env = new THREE.Scene();
     const copy = new Sky();
+    clampSky(copy);
     copy.scale.setScalar(SKY_SCALE);
     for (const k of Object.keys(this.sky.material.uniforms)) {
       const src = this.sky.material.uniforms[k].value as { copy?: (v: unknown) => void } | number;
