@@ -92,6 +92,211 @@
 }
 
 @media (max-height: 560px) {
+  .mn.mn-online,
+  .mn.mn-lobby,
+  .mn.mn-oresults,
+  .mn.mn-name {
+    min-width: 0;
+    min-height: 0;
+  }
+  /* ---- Online results (board 48) ---- */
+  .mn-oresults {
+    background: #0e1116;
+  }
+  .mn-oresults .ol-page {
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 0;
+    gap: 8px;
+    padding: max(12px, env(safe-area-inset-top)) max(44px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom)) max(44px, env(safe-area-inset-left));
+  }
+  .mn-oresults .ol-head {
+    flex: none;
+    padding: 0;
+    align-items: flex-end;
+  }
+  .mn-oresults .ol-title {
+    gap: 0;
+    min-width: 0;
+  }
+  .mn-oresults .ol-title .mn-eyebrow {
+    font-size: 9px;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mn-oresults .ol-head h2 {
+    font-size: 26px;
+  }
+  .mn-oresults .ol-stats {
+    gap: 6px;
+  }
+  .mn-oresults .ol-stats > div:first-child,
+  .mn-oresults .ol-legend,
+  .mn-oresults .ol-ocols,
+  .mn-oresults .ol-orow .ko,
+  .mn-oresults .mn-keybar,
+  .mn-oresults .ol-votebox .mn-eyebrow,
+  .mn-oresults .ol-rematch small,
+  .mn-oresults .ol-rematch .kc,
+  .mn-oresults .ol-lobbybtn .kc,
+  .mn-oresults .ol-leave .kc {
+    display: none;
+  }
+  .mn-oresults .ol-stats > div {
+    padding: 5px 10px;
+    border-radius: 10px;
+    background: rgba(22, 27, 35, 0.94);
+  }
+  .mn-oresults .ol-stats b {
+    font-size: 15px;
+  }
+  .mn-oresults .ol-stats span {
+    font-size: 9px;
+  }
+  .mn-oresults .ol-results {
+    flex: 1;
+    min-height: 0;
+    gap: 16px;
+    padding: 0;
+    align-items: flex-start;
+  }
+  .mn-oresults .ol-table {
+    flex: 0 0 470px;
+    max-width: 470px;
+    gap: 0;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.95);
+    overflow: hidden;
+  }
+  .mn-oresults .ol-orow {
+    grid-template-columns: 26px minmax(0, 1fr) 84px 76px 56px;
+    grid-template-rows: auto auto;
+    column-gap: 6px;
+    row-gap: 0;
+    padding: 8px 10px;
+    font-size: 12px;
+    border-top: 1px solid #2a3240;
+  }
+  .mn-oresults .ol-orow:first-of-type {
+    border-top: 0;
+  }
+  .mn-oresults .ol-orow .pos {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    font-size: 17px;
+  }
+  .mn-oresults .ol-orow .pos.first {
+    color: #f2c14e;
+  }
+  .mn-oresults .ol-orow .who {
+    grid-column: 2;
+    grid-row: 1;
+    gap: 6px;
+  }
+  .mn-oresults .ol-orow .who b {
+    font-size: 14px;
+  }
+  .mn-oresults .ol-orow .who .chip {
+    width: 6px;
+    height: 22px;
+  }
+  .mn-oresults .ol-orow .car {
+    grid-column: 2;
+    grid-row: 2;
+    padding-left: 12px;
+    font-size: 10px;
+    color: #9aa4b5;
+  }
+  .mn-oresults .ol-orow .time {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    text-align: right;
+  }
+  .mn-oresults .ol-orow .best {
+    grid-column: 4;
+    grid-row: 1 / span 2;
+    text-align: right;
+  }
+  .mn-oresults .ol-orow .vote {
+    grid-column: 5;
+    grid-row: 1 / span 2;
+    justify-self: end;
+    font-size: 9px;
+    letter-spacing: 1px;
+  }
+  .mn-oresults .ol-orow .vote .ol-icon {
+    width: 12px;
+    height: 12px;
+  }
+  /* Right column: the vote, then REMATCH, Back to lobby, Leave room. */
+  .mn-oresults .ol-vote {
+    flex: 1;
+    min-width: 0;
+    gap: 7px;
+  }
+  .mn-oresults .ol-votebox {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    row-gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.96);
+  }
+  .mn-oresults .ol-votebox .big {
+    grid-column: 1;
+    grid-row: 1;
+    font-size: 15px;
+    white-space: nowrap;
+  }
+  .mn-oresults .ol-votebox .back {
+    grid-column: 2;
+    grid-row: 1;
+    font-size: 10.5px;
+    white-space: nowrap;
+  }
+  .mn-oresults .ol-votebox .bar {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    height: 6px;
+  }
+  .mn-oresults .ol-votebox .note {
+    display: block;
+    grid-column: 1 / -1;
+    grid-row: 3;
+    font-size: 10.5px;
+    line-height: 1.4;
+  }
+  .mn-oresults .ol-rematch,
+  .mn-oresults .ol-lobbybtn,
+  .mn-oresults .ol-leave {
+    justify-content: center;
+    min-height: 48px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    text-align: center;
+  }
+  .mn-oresults .ol-rematch {
+    min-height: 56px;
+    font-size: 19px;
+    background: #ff6a1a;
+    border-color: #ff6a1a;
+    color: #0e1116;
+  }
+  .mn-oresults .ol-rematch.voted {
+    background: rgba(198, 255, 61, 0.12);
+    border: 2px solid #c6ff3d;
+    color: #c6ff3d;
+  }
+  .mn-oresults .ol-leave {
+    color: #ff8fa9;
+    border-color: #ff3d6e;
+  }
+
   /* ---- Racer name (board 52) ---- */
   .mn-name {
     background: radial-gradient(ellipse at 70% 0%, #151c27 0%, #0e1116 60%);
@@ -278,7 +483,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    filter: brightness(0.5) saturate(0.9);
+    filter: brightness(0.9) saturate(1);
   }
   .mn-lobby .ol-page::before {
     content: '';
@@ -287,8 +492,8 @@
     z-index: -1;
     pointer-events: none;
     background:
-      linear-gradient(90deg, rgba(14, 17, 22, 0.78) 0%, rgba(14, 17, 22, 0.45) 58%, rgba(14, 17, 22, 0.2) 100%),
-      linear-gradient(180deg, rgba(14, 17, 22, 0.55) 0%, transparent 22%, transparent 70%, rgba(14, 17, 22, 0.6) 100%);
+      linear-gradient(90deg, rgba(14, 17, 22, 0.5) 0%, rgba(14, 17, 22, 0.22) 58%, rgba(14, 17, 22, 0.08) 100%),
+      linear-gradient(180deg, rgba(14, 17, 22, 0.4) 0%, transparent 22%, transparent 75%, rgba(14, 17, 22, 0.4) 100%);
   }
   .mn-lobby .ol-head {
     flex: none;
@@ -406,15 +611,7 @@
     border-color: #ff6a1a;
   }
   .mn-lobby .ol-row.empty {
-    display: flex;
-    min-height: 36px;
-    padding: 0 10px;
-    border: 1px dashed rgba(255, 255, 255, 0.18);
-    background: rgba(14, 17, 22, 0.4);
-    font-size: 12px;
-  }
-  .mn-lobby .ol-row.empty .ol-open {
-    font-size: 12px;
+    display: none;
   }
   .mn-lobby .ol-row .who {
     grid-column: 1;

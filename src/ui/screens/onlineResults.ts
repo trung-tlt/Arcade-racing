@@ -6,6 +6,7 @@ import { enableMenuNav, focusFirst } from '../nav';
 import type { Screen } from '../types';
 import { ONLINE, carName, esc, formatRoomCode, icon, str, trackOf } from './onlineCommon';
 import './online.css';
+import './onlineMobile.css';
 
 export interface OnlineResultsDeps {
   onRematch(): void;
