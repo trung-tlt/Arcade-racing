@@ -379,7 +379,8 @@ function dayLighting(r: RawTrack): DayLighting | null {
     );
     return {
       sun: {
-        dir: sunDirection(l.sun.azimuthDeg, l.sun.elevationDeg),
+        // Map 7 gives a compass bearing (from north, clockwise; z = -north); sunDirection measures from +Z towards +X.
+        dir: sunDirection('physicalSky' in l.sky ? 180 - l.sun.azimuthDeg : l.sun.azimuthDeg, l.sun.elevationDeg),
         color: l.sun.color,
         intensity: l.sun.intensity,
       },

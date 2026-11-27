@@ -10,6 +10,11 @@ describe('Suzuka Hills Circuit track data (Map 7)', () => {
     expect(SUZUKA.lapLengthM).toBe(5789);
     expect(SUZUKA.hasElevation).toBe(true);
     expect(SUZUKA.daylight?.sun.intensity).toBe(5);
+    // A low sun from the west-south-west: the light travels east (+x) and north (-z), downwards.
+    const [dx, dy, dz] = SUZUKA.daylight?.sun.dir ?? [0, 0, 0];
+    expect(dx).toBeGreaterThan(0.8);
+    expect(dz).toBeLessThan(-0.3);
+    expect(dy).toBeLessThan(-0.1);
     expect(SUZUKA.daylight?.toneMappingExposure).toBeCloseTo(0.62, 2);
   });
 

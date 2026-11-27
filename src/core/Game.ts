@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { AudioBus } from '../audio/AudioBus';
 import { EngineSound } from '../audio/EngineSound';
 import { ArdennesAudio, trackAudioFiles as ardennesAudioFiles } from '../audio/ArdennesAudio';
+import { SuzukaAudio, trackAudioFiles as suzukaAudioFiles } from '../audio/SuzukaAudio';
 import { CatLaiAudio, trackAudioFiles as catLaiAudioFiles } from '../audio/CatLaiAudio';
 import { MonteCarloAudio, trackAudioFiles } from '../audio/MonteCarloAudio';
 import { bindSfx, playCountdown, playStartGo, playStartLamp, sfxFiles } from '../audio/Sfx';
@@ -53,6 +54,7 @@ import { PvdDressing } from '../world/PvdDressing';
 import { PvdStructures, pvdTerrainHoles } from '../world/PvdStructures';
 import { PvdTraffic } from '../world/PvdTraffic';
 import { Ardennes } from '../world/Ardennes';
+import { Suzuka, suzukaPlacements } from '../world/Suzuka';
 import { MonteCarlo } from '../world/MonteCarlo';
 import { Sponsors } from '../world/Sponsors';
 import { WeatherSystem } from '../weather/WeatherSystem';
@@ -95,6 +97,7 @@ import {
   roadWidthAt,
   XA_LO,
   ARDENNES,
+  SUZUKA,
   MONTE_CARLO,
   PHAM_VAN_DONG,
   type TrackDef,
@@ -222,6 +225,9 @@ export class Game {
   /** Map 6 (Ardennes Forest Circuit): heightmap terrain, forest, circuit furniture and the start gantry. */
   private ardennes: Ardennes | null = null;
   private ardennesAudio: ArdennesAudio | null = null;
+  /** Map 7 (Suzuka Hills Circuit): heightmap terrain, sky, OpenStreetMap surroundings and the placed props. */
+  private suzuka: Suzuka | null = null;
+  private suzukaAudio: SuzukaAudio | null = null;
   private catLaiAudio: CatLaiAudio | null = null;
   private dressing: CongHoaDressing | null = null;
   private landmarks: CongHoaLandmarks | null = null;
@@ -365,9 +371,11 @@ export class Game {
           ? trackAudioFiles(mapDef)
           : mapDef.id === ARDENNES.id
             ? ardennesAudioFiles(mapDef)
-            : mapDef.id === CAT_LAI.id
-              ? catLaiAudioFiles(mapDef)
-              : [],
+            : mapDef.id === SUZUKA.id
+              ? suzukaAudioFiles(mapDef)
+              : mapDef.id === CAT_LAI.id
+                ? catLaiAudioFiles(mapDef)
+                : [],
       ),
     );
     g.engineSound = new EngineSound(g.audio, g.carId);
@@ -482,6 +490,13 @@ export class Game {
         () => this.places.get('player') ?? 1,
         () => this.car.physics.curr.p,
       );
+    } else if (this.trackDef.id === SUZUKA.id) {
+      this.suzuka = new Suzuka(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path, {
+        camera: this.chase.camera,
+        quality: userSettings.preset,
+        renderer: this.renderer,
+      });
+      this.suzukaAudio = new SuzukaAudio(this.audio, this.trackDef, this.events, suzukaPlacements());
     } else {
       this.dressing = new CongHoaDressing(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
       this.landmarks = new CongHoaLandmarks(this.scene, RAPIER, this.world, this.assets, this.trackDef, this.path);
@@ -1937,6 +1952,7 @@ export class Game {
     this.weather?.update(dt, this.weatherLap());
     this.updateMonteCarlo(dt);
     this.updateArdennes(dt);
+    this.updateSuzuka(dt);
     this.startLights?.update(dt);
     this.updateWeaponLocks();
     if (this.online) {
@@ -2123,6 +2139,32 @@ export class Game {
     });
   }
 
+  /** Map 7: the props around the camera, the sky, and the gantry's lamp sequence. */
+  private updateSuzuka(dt: number): void {
+    const s = this.suzuka;
+    if (!s) return;
+    s.update();
+    const sl = this.startLights;
+    s.gantry.setLamps(sl && !sl.released ? sl.lit : 0);
+    const pp = this.car.physics;
+    this.suzukaAudio?.update(dt, {
+      t: this.carTs.get('player') ?? 0,
+      lap: this.race.laps.lap,
+      x: pp.curr.p.x,
+      y: pp.curr.p.y,
+      z: pp.curr.p.z,
+      yaw: pp.yaw,
+      cars: this.cars.map((c) => ({
+        id: c.id,
+        t: this.carTs.get(c.id) ?? 0,
+        x: c.physics.curr.p.x,
+        y: c.physics.curr.p.y,
+        z: c.physics.curr.p.z,
+        speedKmh: c.physics.speedMps * 3.6,
+      })),
+    });
+  }
+
   /** Map 6: forest and scatter around the camera, and the gantry's lamp sequence. */
   private updateArdennes(dt: number): void {
     const a = this.ardennes;
@@ -2250,7 +2292,7 @@ export class Game {
       this.lastCountdown = cd;
     }
     // Underpass: the car's own height is below the trench threshold.
-    if (!this.monteAudio && !this.ardennesAudio && !this.catLaiAudio)
+    if (!this.monteAudio && !this.ardennesAudio && !this.suzukaAudio && !this.catLaiAudio)
       this.audio.setReverb(this.car.physics.curr.p.y < AUDIO.reverb.underRoadY ? 1 : 0);
     if (!this.paused)
       this.engineSound.update(dt, {
@@ -2430,6 +2472,10 @@ export class Game {
     this.ardennesAudio = null;
     this.ardennes?.dispose();
     this.ardennes = null;
+    this.suzukaAudio?.dispose();
+    this.suzukaAudio = null;
+    this.suzuka?.dispose();
+    this.suzuka = null;
     if (this.pvd) for (const m of Object.values(this.pvd)) m.dispose();
     this.pvd = null;
     if (this.xaLo) for (const m of Object.values(this.xaLo)) m.dispose();

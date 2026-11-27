@@ -1,6 +1,6 @@
 import { Assets } from './core/Assets';
 import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
-import { AI, ARDENNES, CARS, CAT_LAI, MONTE_CARLO, TRACKS, getTrack } from './core/Data';
+import { AI, ARDENNES, CARS, CAT_LAI, MONTE_CARLO, SUZUKA, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { NetClient } from './net/NetClient';
 import { OnlineFlow } from './ui/onlineFlow';
@@ -26,6 +26,7 @@ import { makeShowroomFactory } from './ui/Showroom';
 import { uiAudio } from './ui/uiAudio';
 import type { RaceSetup, Screen } from './ui/types';
 import { ARDENNES_MODELS, ARDENNES_TEXTURES } from './world/Ardennes';
+import { SUZUKA_TEXTURES, loadSuzukaData, suzukaModels } from './world/Suzuka';
 import { MONTE_CARLO_MODELS, MONTE_CARLO_TEXTURES } from './world/MonteCarlo';
 import { TRACK_MODELS, TRACK_TEXTURES } from './world/Track';
 import { CONG_HOA_MODELS, CONG_HOA_TEXTURES } from './world/trackAssets';
@@ -393,6 +394,11 @@ async function boot(): Promise<void> {
     // Map 6's props are not in the boot download either (~5 MB): fetched the first time that map is raced.
     if (s.trackId === ARDENNES.id) {
       await assets.extend({ models: ARDENNES_MODELS, textures: ARDENNES_TEXTURES });
+    }
+    // Map 7's props, textures and OpenStreetMap data are fetched the first time that map is raced.
+    if (s.trackId === SUZUKA.id) {
+      const data = await loadSuzukaData();
+      await assets.extend({ models: suzukaModels(data), textures: SUZUKA_TEXTURES });
     }
     // A fresh canvas per race: a disposed WebGL context can't be reused.
     const canvas = document.createElement('canvas');

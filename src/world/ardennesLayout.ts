@@ -65,6 +65,11 @@ export class HeightField {
     return this.bilinear(this.maskPx, x, z, (d, k) => d[k] / 255);
   }
 
+  /** Map 7's landcover: channel 0 forest, 1 paddy, 2 built-up, 3 inverted water (alpha), each 0..1. */
+  channelAt(x: number, z: number, channel: number): number {
+    return this.bilinear(this.maskPx, x, z, (d, k) => d[k + channel] / 255);
+  }
+
   /** Splat R: 1 on the verge ring along the road, 0 elsewhere (G is the forest floor). */
   splatAt(x: number, z: number): number {
     return this.splatPx ? this.bilinear(this.splatPx, x, z, (d, k) => d[k] / 255) : 0;

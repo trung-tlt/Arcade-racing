@@ -21,10 +21,10 @@ async function toRaceSetup(page: Page, url: string): Promise<string[]> {
 const pills = (page: Page) => page.locator('[data-group="track"] .pill');
 const picked = (page: Page, group: string) => page.locator(`[data-group="${group}"] [aria-pressed="true"]`);
 
-test('race setup lists 6 maps; Pham Van Dong is a 2-lap storm map with its own copy', async ({ page }) => {
+test('race setup lists 7 maps; Pham Van Dong is a 2-lap storm map with its own copy', async ({ page }) => {
   test.setTimeout(90_000);
   const errors = await toRaceSetup(page, '/');
-  await expect(pills(page)).toHaveCount(6);
+  await expect(pills(page)).toHaveCount(7);
   await expect(pills(page).nth(3)).toContainText('Pham Van Dong Blvd');
 
   // The start screen is Cat Lai with 3 laps; T walks Cong Hoa → Hanoi → Pham Van Dong.
@@ -47,6 +47,9 @@ test('race setup lists 6 maps; Pham Van Dong is a 2-lap storm map with its own c
   await page.keyboard.press('t'); // Ardennes
   await expect(page.locator('.mn-setup .tname')).toHaveText('Ardennes Forest Circuit');
   await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await page.keyboard.press('t'); // Suzuka Hills
+  await expect(page.locator('.mn-setup .tname')).toHaveText('Suzuka Hills Circuit');
+  await expect(picked(page, 'laps')).toHaveText('3 laps');
   await page.keyboard.press('t'); // wraps to Cat Lai
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
   await expect(picked(page, 'laps')).toHaveText('3 laps');
@@ -59,10 +62,10 @@ test('race setup lists 6 maps; Pham Van Dong is a 2-lap storm map with its own c
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 
-  test('the six map buttons use short labels and all fit on one row', async ({ page }) => {
+  test('the seven map buttons use short labels and all fit on one row', async ({ page }) => {
     test.setTimeout(90_000);
     const errors = await toRaceSetup(page, '/?touch=1');
-    await expect(pills(page)).toHaveCount(6);
+    await expect(pills(page)).toHaveCount(7);
     // The DOM keeps the full names; CSS paints the short label (`::after`) and hides the full text on phones.
     await expect(pills(page).nth(3)).toHaveText('Pham Van Dong Blvd');
     const labels = await pills(page).evaluateAll((els) =>
@@ -71,7 +74,15 @@ test.describe('on a phone', () => {
         size: getComputedStyle(e).fontSize,
       })),
     );
-    expect(labels.map((l) => l.short)).toEqual(['Cat Lai', 'Cong Hoa', 'Hanoi', 'P.V.Đồng', 'Monaco', 'Ardennes']);
+    expect(labels.map((l) => l.short)).toEqual([
+      'Cat Lai',
+      'Cong Hoa',
+      'Hanoi',
+      'P.V.Đồng',
+      'Monaco',
+      'Ardennes',
+      'Suzuka',
+    ]);
     expect(labels.every((l) => l.size === '0px')).toBe(true);
     const boxes = await pills(page).evaluateAll((els) =>
       els.map((e) => {

@@ -4714,5 +4714,11 @@
     },
     "toneMappingExposure": 0.62,
     "backdrop": "textures/suzuka_mountains.png on an 11 km cylinder (Suzuka range W/NW); Ise Bay sea plane from x = 5.5 km east"
+  },
+  "barriers": {
+    "armco": {
+      "lateralM": 16.3,
+      "note": "Added for the game: the invisible side walls stand where most of the Armco does (median 16.3 m from the centre line); the placements draw the barriers themselves. Marks the map as a circuit (no generic sidewalk strip)."
+    }
   }
 }
