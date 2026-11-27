@@ -120,6 +120,24 @@ class FakeBody implements ReconcileBody {
   }
 }
 
+describe('Reconciler sunk car', () => {
+  it('snaps to the server on request even when the error is small', () => {
+    const body = new FakeBody();
+    const rec = new Reconciler();
+    for (let seq = 0; seq < 30; seq++) {
+      rec.apply(body);
+      body.step();
+      rec.record(seq, body);
+    }
+    body.s.p[1] = -1.5; // the predicted car sits inside the road; the server's car is on it
+    rec.requestSnap();
+    const r = rec.onSnapshot(20, car({ p: [0, 0.5, 20 / 6], v: [0, 0, 10] }), body, 20);
+    expect(r.kind).toBe('snap');
+    expect(body.s.p[1]).toBeCloseTo(0.5, 5);
+    expect(body.s.v[2]).toBeCloseTo(10, 5);
+  });
+});
+
 describe('Reconciler', () => {
   const run = (serverOffset: number, ticks: number, ackLag = 6): { body: FakeBody; kinds: string[] } => {
     const body = new FakeBody();

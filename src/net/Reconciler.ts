@@ -96,6 +96,7 @@ export class Reconciler {
   private appliedP: V3 = [0, 0, 0];
   private appliedV: V3 = [0, 0, 0];
   private appliedQ: Q4 = IDENT;
+  private forceSnap = false;
   private readonly scratch: BodyState = { p: [0, 0, 0], q: [0, 0, 0, 1], v: [0, 0, 0], w: [0, 0, 0] };
 
   constructor(
@@ -155,7 +156,8 @@ export class Reconciler {
       const kind = errM > this.cfg.snapM ? 'snap' : errM > this.cfg.deadbandM ? 'smooth' : 'none';
       return { kind, errM, errRad };
     }
-    if (errM > this.cfg.snapM) {
+    if (errM > this.cfg.snapM || this.forceSnap) {
+      this.forceSnap = false;
       body.set(this.advanced(srv, Math.max(0, localTick - tick)));
       this.hist.length = 0;
       this.pendingP = [0, 0, 0];
@@ -171,7 +173,14 @@ export class Reconciler {
     return { kind: moveP || moveQ ? 'smooth' : 'none', errM, errRad };
   }
 
-  /** The server's state moved forward by `ticks` along its velocity and yaw rate (dead reckoning). */
+  /** Hard-snap to the server's car at the next snapshot whatever the error (the predicted car is stuck inside the road). */
+  requestSnap(): void {
+    this.forceSnap = true;
+  }
+
+  /**
+   * The server's state moved forward by `ticks` along its velocity and yaw rate (dead reckoning).
+   */
   advanced(srv: SnapCar, ticks: number): BodyState {
     const t = ticks * this.cfg.dtSec;
     let q: Q4 = [...srv.q];
@@ -214,6 +223,7 @@ export class Reconciler {
   /** Forget everything (the car was respawned locally or the race restarted). */
   reset(): void {
     this.hist.length = 0;
+    this.forceSnap = false;
     this.pendingP = [0, 0, 0];
     this.pendingV = [0, 0, 0];
     this.pendingQ = IDENT;

@@ -1982,7 +1982,11 @@ export class Game {
     } else if (this.trackDef.hasElevation && this.localTick % 6 === 0) {
       // Online the server owns recoveries; this only counts the episodes where the predicted car sits inside the road.
       const depth = depthUnderRoad(this.car.physics.curr.p, this.world, RAPIER, this.sunkRay);
-      if (this.deepWatch.update(6 * dt, depth, 0.5)) this.statWin.deep++;
+      if (this.deepWatch.update(6 * dt, depth, 0.5)) {
+        this.statWin.deep++;
+        // Inside the road while the server's car is fine: take the server's state at the next snapshot.
+        this.online.session.reconciler.requestSnap();
+      }
     }
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
     const shared = this.online ? this.localTick / 60 : undefined; // scenery on one clock for every player
