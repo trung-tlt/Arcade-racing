@@ -17,6 +17,15 @@ const TARGET_MAX_MARGIN = 18;
 /** Most the controller will ask for in one review: catching up a stalled tab, or holding back after a burst. */
 const MAX_CATCHUP_TICKS = 600;
 const MAX_HOLD_TICKS = 120;
+/**
+ * The server only takes input frames up to 90 ticks ahead of its own tick, and stops acking beyond that. A client that
+ * ran further ahead then reads "no acks" as "I am behind", catches up more and never comes back (a runaway). So the lead
+ * over the newest snapshot is measured directly: above `MAX_SANE_LEAD_TICKS` the client holds back toward
+ * `TARGET_LEAD_TICKS`, whatever the margins say, and no catch-up may take it past `SAFE_CATCHUP_LEAD_TICKS`.
+ */
+const MAX_SANE_LEAD_TICKS = 70;
+const TARGET_LEAD_TICKS = 30;
+const SAFE_CATCHUP_LEAD_TICKS = 60;
 /** When the server has acked nothing yet (we have been too far behind to send), assume this one-way delay (ticks). */
 const FALLBACK_LATENCY_TICKS = 6;
 /** Seconds the drawn remote cars lag behind the newest snapshot. */
@@ -201,6 +210,12 @@ export class OnlineSession {
     this.margins.push(this.lastMargin);
     const newLate = m.late > this.lastLate;
     this.lastLate = m.late;
+    const lead = this.localTick - m.tick;
+    if (lead > MAX_SANE_LEAD_TICKS) {
+      this.advance = -Math.min(MAX_HOLD_TICKS, lead - TARGET_LEAD_TICKS);
+      this.margins.length = 0;
+      return;
+    }
     if (Math.abs(this.advance) >= 1) {
       this.margins.length = 0; // still correcting: these margins describe the old situation
       return;
@@ -213,7 +228,9 @@ export class OnlineSession {
     this.margins.length = 0;
     if (min < TARGET_MIN_MARGIN || newLate) {
       // A small shortfall is trimmed gently; a big one (a throttled tab, a long stall) is caught up in one go.
-      this.advance = Math.min(MAX_CATCHUP_TICKS, Math.max(1, TARGET_MIN_MARGIN - min));
+      const wanted = Math.min(MAX_CATCHUP_TICKS, Math.max(1, TARGET_MIN_MARGIN - min));
+      // Never catch up past the point where the server would stop accepting the frames.
+      this.advance = Math.min(wanted, SAFE_CATCHUP_LEAD_TICKS - lead);
     } else if (min > TARGET_MAX_MARGIN) {
       this.advance = -Math.min(MAX_HOLD_TICKS, min - TARGET_MAX_MARGIN + 2);
     }
