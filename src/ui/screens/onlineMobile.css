@@ -53,7 +53,205 @@
   display: none;
 }
 
+/* Racer name (every size): the counter, live rule ticks and the saved note */
+.ol-inwrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.ol-count {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 12px;
+  color: #9aa4b5;
+}
+.ol-count.bad {
+  color: #ff3d6e;
+}
+.ol-rules li.ok::marker {
+  content: '\2713  ';
+  color: #c6ff3d;
+}
+.ol-rules li.no::marker {
+  content: '\2715  ';
+  color: #ff3d6e;
+}
+.ol-savedmsg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #c6ff3d;
+}
+.ol-savedmsg[hidden] {
+  display: none;
+}
+
 @media (max-height: 560px) {
+  /* ---- Racer name (board 52) ---- */
+  .mn-name {
+    background: radial-gradient(ellipse at 70% 0%, #151c27 0%, #0e1116 60%);
+  }
+  .mn-name .ol-page {
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 0;
+    gap: 8px;
+    padding: max(12px, env(safe-area-inset-top)) max(44px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom)) max(44px, env(safe-area-inset-left));
+  }
+  .mn-name .ol-head {
+    flex: none;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    padding: 0;
+  }
+  .mn-name .ol-mback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid #2a3240;
+    background: rgba(22, 27, 35, 0.92);
+    color: #e8ecf2;
+    cursor: pointer;
+  }
+  .mn-name .ol-title {
+    gap: 0;
+  }
+  .mn-name .ol-head h2 {
+    font-size: 20px;
+  }
+  .mn-name .ol-namebody {
+    flex: 1;
+    min-height: 0;
+    padding: 0;
+    gap: 8px;
+    grid-template-columns: 210px 210px minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto 1fr auto;
+    column-gap: 8px;
+    align-content: stretch;
+  }
+  .mn-name .ol-namecard,
+  .mn-name .ol-nameacts,
+  .mn-name .ol-namepreview {
+    display: contents;
+  }
+  .mn-name .ol-namecard > .mn-eyebrow,
+  .mn-name .ol-help,
+  .mn-name .ol-note,
+  .mn-name .ol-namepreview > .mn-eyebrow,
+  .mn-name .ol-namepreview .ol-row,
+  .mn-name .ol-namepreview .ol-note:not(.tagnote),
+  .mn-name .mn-keybar,
+  .mn-name .ol-act .kc,
+  .mn-name .ol-nameacts [data-act='cancel'] .kc {
+    display: none;
+  }
+  .mn-name .ol-inwrap {
+    grid-column: 1 / 3;
+    grid-row: 1;
+  }
+  .mn-name .ol-namein {
+    box-sizing: border-box;
+    width: 100%;
+    height: 56px;
+    padding: 0 70px 0 14px;
+    border-radius: 12px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0;
+  }
+  .mn-name .ol-namemsg {
+    grid-column: 1 / 3;
+    grid-row: 2;
+    min-height: 16px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .mn-name .ol-rules {
+    grid-column: 1 / 3;
+    grid-row: 3;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-left: 22px;
+    font-size: 11.5px;
+    color: #c9d1dd;
+  }
+  .mn-name .ol-act {
+    min-height: 48px;
+    border-radius: 12px;
+    font-size: 14px;
+    justify-content: center;
+  }
+  .mn-name [data-act='suggest'] {
+    grid-column: 1;
+    grid-row: 4;
+  }
+  .mn-name [data-act='fix'] {
+    grid-column: 2;
+    grid-row: 4;
+    background: #2ec5ff;
+    border-color: #2ec5ff;
+    color: #0e1116;
+  }
+  .mn-name .ol-tagprev {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: start;
+    padding: 12px 0;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.92);
+    border: 1px solid #2a3240;
+  }
+  .mn-name .ol-namepreview .tagnote {
+    grid-column: 3;
+    grid-row: 3;
+    margin: 0;
+    font-size: 10.5px;
+    color: #9aa4b5;
+  }
+  .mn-name .ol-savedmsg {
+    grid-column: 3;
+    grid-row: 4;
+  }
+  .mn-name [data-act='save'] {
+    grid-column: 3;
+    grid-row: 5;
+    align-self: end;
+    min-height: 56px;
+    border-radius: 12px;
+    font-size: 19px;
+    background: #ff6a1a;
+    border-color: #ff6a1a;
+    color: #0e1116;
+  }
+  .mn-name [data-act='save'][aria-disabled='true'] {
+    background: #2a3240;
+    border-color: #2a3240;
+    color: #6b7585;
+    opacity: 1;
+    cursor: not-allowed;
+  }
+  .mn-name [data-act='cancel'] {
+    grid-column: 3;
+    grid-row: 6;
+    min-height: 48px;
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
   /* ---- Lobby (board 46) ---- */
   .mn-lobby {
     position: relative;

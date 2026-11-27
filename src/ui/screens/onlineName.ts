@@ -1,10 +1,19 @@
 import { uiAudio } from '../uiAudio';
 import { keyBar, kc } from '../hotkeys';
 import { enableMenuNav, focusFirst } from '../nav';
-import { NAME_INPUT_MAX, checkName, removeAccents, suggestName, tagText, type NameCheck } from '../onlineName';
+import {
+  NAME_INPUT_MAX,
+  NAME_MAX,
+  checkName,
+  removeAccents,
+  suggestName,
+  tagText,
+  type NameCheck,
+} from '../onlineName';
 import type { Screen } from '../types';
 import { ONLINE, esc, icon, str } from './onlineCommon';
 import './online.css';
+import './onlineMobile.css';
 
 export interface OnlineNameDeps {
   /** The pre-filled name: the server-style `RACER-###`, or the saved one when editing. */
@@ -58,6 +67,7 @@ export class OnlineNameScreen implements Screen {
     this.el.innerHTML = `
       <div class="ol-page">
         <header class="ol-head">
+          <button type="button" class="ol-mback" data-act="cancel" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
           <div class="ol-title">
             <div class="mn-eyebrow">${esc(str(f ? 'name.step.first' : 'name.step.edit'))}</div>
             <h2>${esc(str(f ? 'name.title.first' : 'name.title.edit'))}</h2>
@@ -66,7 +76,7 @@ export class OnlineNameScreen implements Screen {
         <div class="ol-namebody">
           <div class="ol-namecard">
             <label class="mn-eyebrow" for="ol-name-in">${esc(str('name.label'))}</label>
-            <input id="ol-name-in" class="ol-namein mn-mono" type="text" maxlength="${NAME_INPUT_MAX}" autocomplete="off" spellcheck="false" />
+            <div class="ol-inwrap"><input id="ol-name-in" class="ol-namein mn-mono" type="text" maxlength="${NAME_INPUT_MAX}" autocomplete="off" spellcheck="false" /><span class="ol-count mn-mono"></span></div>
             <div class="ol-namemsg" role="status" aria-live="polite"></div>
             <p class="ol-help">${esc(str('name.help'))}</p>
             <ul class="ol-rules">
@@ -84,6 +94,7 @@ export class OnlineNameScreen implements Screen {
             <div class="mn-eyebrow">PREVIEW</div>
             <div class="ol-tagprev"><span class="ol-tagchip"><b></b></span></div>
             <p class="ol-note tagnote"></p>
+            <p class="ol-savedmsg" hidden>${icon('ready', 16)}Saved on this device</p>
             <div class="ol-row you"><span class="n">1</span><span class="who"><i class="chip" style="background:${ONLINE.colors.own}"></i><b class="pname"></b><em class="badge">YOU</em></span></div>
             <p class="ol-note">${esc(str('name.sameName'))}</p>
           </div>
@@ -126,6 +137,18 @@ export class OnlineNameScreen implements Screen {
     msg.className = `ol-namemsg ${w.tone}`;
     msg.innerHTML = `${w.tone === 'ok' ? icon('ready', 16) : ''}${w.text}`;
     this.input.classList.toggle('bad', w.tone === 'bad');
+    const len = this.input.value.trim().length;
+    const count = this.el.querySelector('.ol-count') as HTMLElement;
+    count.textContent = `${len} / ${NAME_MAX}`;
+    count.classList.toggle('bad', c.kind === 'tooLong');
+    // One tick per rule, live: length, allowed characters, no accents.
+    const rules = this.el.querySelectorAll('.ol-rules li');
+    const okLen = c.kind !== 'empty' && c.kind !== 'tooLong';
+    [okLen, c.kind !== 'badChars', c.kind !== 'accents'].forEach((ok, i) => {
+      rules[i]?.classList.toggle('ok', ok);
+      rules[i]?.classList.toggle('no', !ok);
+    });
+    (this.el.querySelector('.ol-savedmsg') as HTMLElement).hidden = !(this.saved && c.kind === 'ok');
     (this.el.querySelector('[data-act="fix"]') as HTMLElement).hidden = c.kind !== 'accents';
     (this.el.querySelector('[data-act="save"]') as HTMLElement).setAttribute('aria-disabled', String(c.kind !== 'ok'));
     const shown = c.kind === 'ok' ? c.name : c.kind === 'empty' ? this.deps.suggestion() : this.input.value.trim();
