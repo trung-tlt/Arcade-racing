@@ -556,11 +556,15 @@ export class Suzuka {
 
   private buildPlaced(placements: SuzukaPlacements): void {
     const field = this.ground.height;
+    // The placements list design `t`s; the spline was rotated to the start line by `startShiftT`. The design's gantry
+    // is the game's `StartGantry`, drawn separately.
+    const shift = (this.def.raw.startShiftT as number | undefined) ?? 0;
     const byModel = planPlacements(
       placements,
       (x, z) => field.heightAt(x, z),
-      (t) => frameAt(this.path, t).y,
+      (t) => frameAt(this.path, t - shift).y,
     );
+    byModel.delete(GANTRY);
     const detail = DETAIL[this.opts.quality];
     for (const [model, items] of byModel) {
       const base = windowFor(model);

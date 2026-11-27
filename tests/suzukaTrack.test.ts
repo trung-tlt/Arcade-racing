@@ -18,6 +18,25 @@ describe('Suzuka Hills Circuit track data (Map 7)', () => {
     expect(SUZUKA.daylight?.toneMappingExposure).toBeCloseTo(0.62, 2);
   });
 
+  it('rotates the spline to the start line: the lap line is t = 0 and every along-track value moved with it', () => {
+    const shift = SUZUKA.raw.startShiftT as number;
+    expect(shift).toBeGreaterThan(0.05);
+    expect(shift).toBeLessThan(0.065);
+    expect((SUZUKA.raw.startLine as { t: number }).t).toBe(0);
+    // The first spline point is the design's start line (world -82.5, 32.65, -81.2).
+    expect(SUZUKA.spline.points[0][0]).toBeCloseTo(-82.5, 0);
+    expect(SUZUKA.spline.points[0][2]).toBeCloseTo(-81.2, 0);
+    expect(SUZUKA.checkpoints[0].t).toBeCloseTo(0.1088 - shift, 4);
+    const pit = (SUZUKA.raw.startLine as { pitLane: { entryT: number; exitT: number } }).pitLane;
+    expect(pit.entryT).toBeCloseTo(0.981 - shift, 4);
+    expect(pit.exitT).toBeCloseTo(0.1365 - shift, 4);
+    expect(SUZUKA.noFireZones[0].name).toBe('S-Curves');
+    expect(SUZUKA.noFireZones[0].fromT).toBeCloseTo(0.2074 - shift, 4);
+    // Widths stay ascending from the new origin.
+    const w = (SUZUKA.raw.width as { fromT: number }[]).map((x) => x.fromT);
+    expect([...w].sort((a, b) => a - b)).toEqual(w);
+  });
+
   it('is a figure-eight: the spline crosses itself in plan, 8.5 m above the road underneath', () => {
     const c = SUZUKA.raw.crossover as { upperT: number; lowerT: number; deckClearM: number };
     const path = SUZUKA.spline.points;

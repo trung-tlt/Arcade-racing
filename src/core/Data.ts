@@ -15,6 +15,7 @@ import xaLoJson from '../../data/tracks/xa_lo_ha_noi.json';
 import monteCarloJson from '../../data/tracks/monte_carlo.json';
 import ardennesJson from '../../data/tracks/ardennes.json';
 import suzukaJson from '../../data/tracks/suzuka_hills.json';
+import { rotateToStartLine } from './startLine';
 
 export type VehicleType = 'car' | 'apc8x8' | 'bike';
 
@@ -437,8 +438,10 @@ export function interpolateByT(table: readonly (readonly [number, number])[], t:
   return span > 0 ? a[1] + ((b[1] - a[1]) * (tt - a[0])) / span : a[1];
 }
 
-export function loadTrack(json: unknown): TrackDef {
-  const raw = json as RawTrack;
+export function loadTrack(input: unknown): TrackDef {
+  // Map 7 begins its spline away from the start line: rotate it (and every along-track t) so the lap line is t = 0.
+  const json = rotateToStartLine(input as Record<string, unknown>);
+  const raw = json as unknown as RawTrack;
   // Map 7's "golden hour (autumn, ~16:40)" is a day map with a low sun.
   const r: RawTrack = /golden/i.test(String(raw.timeOfDay)) ? { ...raw, timeOfDay: 'day' } : raw;
   // Map 4: outbound runs on the 3 car lanes, inbound on the 2 motorbike lanes (the narrower, textured stretch).

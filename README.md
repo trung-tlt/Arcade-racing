@@ -36,12 +36,12 @@ gamepad or touch (phones, landscape): nothing to install.
 
 ## Screenshots
 
-|                                                             |                                                                                     |
-| ----------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| ![Title screen](docs/screenshots/title.jpg)                 | ![Garage](docs/screenshots/car-select.jpg)                                          |
+|                                                              |                                                                                     |
+| ------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| ![Title screen](docs/screenshots/title.jpg)                  | ![Garage](docs/screenshots/car-select.jpg)                                          |
 | ![Cat Lai Port, daylight](docs/screenshots/race-cat-lai.jpg) | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg)                       |
-| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg)   | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
-| ![Online hub](docs/screenshots/online-hub.jpg)              | ![Online lobby](docs/screenshots/online-lobby.jpg)                                  |
+| ![Hanoi Highway at dusk](docs/screenshots/race-hanoi.jpg)    | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
+| ![Online hub](docs/screenshots/online-hub.jpg)               | ![Online lobby](docs/screenshots/online-lobby.jpg)                                  |
 
 Phone, landscape, with the on-screen pads:
 
@@ -70,14 +70,15 @@ network diagnostics panel (ping, snapshot gaps, frame hitches, prediction correc
 
 ## Maps
 
-| Map                          | Setting       | Notes                                                                                                                                                               |
-| ---------------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Cat Lai Port                 | Day           | 3.6 km, 3 laps on the real Tân Cảng Cát Lái layout (OpenStreetMap + satellite tracing): Nguyễn Thị Định road, Gate B, a 1 km quay under the STS cranes, yard lane 7, the north road; 35,000 containers, ships, the ferry                                                                                               |
-| Cong Hoa Boulevard           | Day           | HCMC avenue with a median, landmarks and a U-turn                                                                                                                   |
-| Hanoi Highway (Xa Lo Ha Noi) | Dusk          | River bridge, underpass, metro viaduct, ambient traffic                                                                                                             |
-| Pham Van Dong Boulevard      | Monsoon storm | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning                                          |
-| Monte-Carlo Harbour          | Day           | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start                                                   |
-| Ardennes Forest Circuit      | Day           | 6.9 km, 2 laps: heightmap terrain and spruce forest, 102 m of elevation, the Eau Rouge and Raidillon climb (no-fire zone), pits and grandstands, a five-light start |
+| Map                          | Setting           | Notes                                                                                                                                                                                                                    |
+| ---------------------------- | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Cat Lai Port                 | Day               | 3.6 km, 3 laps on the real Tân Cảng Cát Lái layout (OpenStreetMap + satellite tracing): Nguyễn Thị Định road, Gate B, a 1 km quay under the STS cranes, yard lane 7, the north road; 35,000 containers, ships, the ferry |
+| Cong Hoa Boulevard           | Day               | HCMC avenue with a median, landmarks and a U-turn                                                                                                                                                                        |
+| Hanoi Highway (Xa Lo Ha Noi) | Dusk              | River bridge, underpass, metro viaduct, ambient traffic                                                                                                                                                                  |
+| Pham Van Dong Boulevard      | Monsoon storm     | 4.8 km, 2 laps: out on the car lanes, back on the motorbike lanes; heavy rain, wet grip, puddles, a flooded dip, lightning                                                                                               |
+| Monte-Carlo Harbour          | Day               | 3.3 km, 3 laps: climb to the casino square, a tunnel with a no-fire zone, the harbour chicane, a five-light start                                                                                                        |
+| Ardennes Forest Circuit      | Day               | 6.9 km, 2 laps: heightmap terrain and spruce forest, 102 m of elevation, the Eau Rouge and Raidillon climb (no-fire zone), pits and grandstands, a five-light start                                                      |
+| Suzuka Hills Circuit         | Day (golden hour) | 5.8 km figure-eight, 2 laps: real layout and elevation (17 to 60 m), a crossover bridge you drive under and over, autumn trees, an amusement-park wheel, S-Curves, Degner, Spoon and 130R, a five-light start            |
 
 ## Run it locally
 
@@ -105,7 +106,7 @@ The browser tests run serially because software WebGL is slow.
 
 Dev URL parameters: `?quick=1` skips the menus and starts a race, `?mode=practice` starts solo with dummy targets,
 `?car=<id>` and `?track=<id>` pick the car and the map (`cat_lai`, `cong_hoa`, `xa_lo_ha_noi`, `pham_van_dong`,
-`monte_carlo`, `ardennes`). In dev builds `window.__voltline` exposes test helpers (fast-forward, teleport, autopilot).
+`monte_carlo`, `ardennes`, `suzuka_hills`). In dev builds `window.__voltline` exposes test helpers (fast-forward, teleport, autopilot).
 
 ## Online multiplayer
 
