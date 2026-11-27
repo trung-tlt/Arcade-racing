@@ -132,6 +132,7 @@ function addClientStats(sum: ClientStatsSum | null, cs: ClientStats): ClientStat
     holds: sum.holds + cs.holds,
     catchUps: sum.catchUps + cs.catchUps,
     interpMs: Math.max(sum.interpMs, cs.interpMs),
+    deep: sum.deep + cs.deep,
     reports: sum.reports + 1,
   };
 }
@@ -372,7 +373,10 @@ export class Room {
         return null;
       case 'ping':
         if (msg.rtt !== undefined) player.rtt = Math.round(msg.rtt);
-        if (msg.cs) player.cs = addClientStats(player.cs, msg.cs);
+        if (msg.cs) {
+          player.cs = addClientStats(player.cs, msg.cs);
+          if (msg.cs.deep > 0) this.noteClientDeep(player, msg.cs.deep);
+        }
         this.send(player, { t: 'pong', c: msg.c, s: Date.now() });
         return null;
       case 'leave':
@@ -495,6 +499,8 @@ export class Room {
     }
     this.consumeInputs(sim);
     sim.step();
+    for (const d of sim.deepLog.splice(0))
+      this.note('car_deep', { ...d, track: this.trackId, name: this.players.get(d.id)?.name ?? d.id });
     if (++this.raceTicks % SAMPLE_EVERY_TICKS === 0) this.sample(sim);
     const ref = sim.entries.find((e) => e.kind === 'human');
     if (this.phase === 'countdown' && ref && ref.race.phase !== 'countdown') {
@@ -503,6 +509,20 @@ export class Room {
     }
     if (sim.tick % SNAPSHOT_EVERY_TICKS === 0) this.sendSnapshots(sim);
     this.checkFinish(sim);
+  }
+
+  /** A client says its predicted car sat inside the road: log where the authoritative car was, to tell who was wrong. */
+  private noteClientDeep(player: Player, count: number): void {
+    const e = this.sim?.entries.find((x) => x.id === player.id);
+    const p = e?.car.physics.curr.p;
+    this.note('client_deep', {
+      name: player.name,
+      track: this.trackId,
+      count,
+      server: p
+        ? { x: +p.x.toFixed(1), y: +p.y.toFixed(2), z: +p.z.toFixed(1), speedMps: +e.car.physics.speedMps.toFixed(1) }
+        : null,
+    });
   }
 
   /** The frame for this tick from each player; a missing one repeats the previous input (and is counted). */

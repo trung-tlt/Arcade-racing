@@ -72,3 +72,51 @@ export function hasFallen(f: FallInput, world: RAPIER.World, R: typeof RAPIER, r
   );
   return !!hit && ray.origin.y - hit.timeOfImpact > f.y + RACE.fall.sunkBelowRoadM;
 }
+
+/** A car this far under the road surface (m) counts as inside the road: a car resting on the road sits ~0.1 m under the first surface hit. */
+export const DEEP_UNDER_ROAD_M = 0.9;
+
+/**
+ * How far the car's centre sits under the first fixed surface found just above it (m; about 0.1 when driving on the
+ * road, 1.6 on the sheet 1.5 m below it), or null when no surface is found. Not a rule: a car in the underpass reads
+ * deep too, so it is only logged (with the path height beside it) to tell the two apart in real games.
+ */
+export function depthUnderRoad(
+  p: { x: number; y: number; z: number },
+  world: RAPIER.World,
+  R: typeof RAPIER,
+  ray: RAPIER.Ray,
+): number | null {
+  ray.origin.x = p.x;
+  ray.origin.y = p.y + RACE.fall.sunkRayAboveM;
+  ray.origin.z = p.z;
+  const hit = world.castRay(
+    ray,
+    RACE.fall.sunkRayAboveM + 3,
+    true,
+    undefined,
+    undefined,
+    undefined,
+    undefined,
+    (col) => col.parent()?.bodyType() === R.RigidBodyType.Fixed,
+  );
+  return hit ? ray.origin.y - hit.timeOfImpact - p.y : null;
+}
+
+/** Fires once when a car has been deep under the road for `holdSec` without a break; it re-arms when the car comes back up. */
+export class DeepWatch {
+  private deepSec = 0;
+  private fired = false;
+
+  update(dt: number, depthM: number | null, holdSec: number): boolean {
+    if (depthM === null || depthM < DEEP_UNDER_ROAD_M) {
+      this.deepSec = 0;
+      this.fired = false;
+      return false;
+    }
+    this.deepSec += dt;
+    if (this.fired || this.deepSec < holdSec) return false;
+    this.fired = true;
+    return true;
+  }
+}

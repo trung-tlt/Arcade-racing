@@ -60,7 +60,8 @@ for await (const line of createInterface({ input })) {
           });
           c.sec += p.client.sec;
           c.frames += p.client.fps * p.client.sec;
-          for (const k of ['hitches', 'over50', 'nearOver50', 'snaps', 'holds', 'catchUps']) c[k] += p.client[k];
+          for (const k of ['hitches', 'over50', 'nearOver50', 'snaps', 'holds', 'catchUps', 'deep'])
+            c[k] += p.client[k];
           c.maxErrM = Math.max(c.maxErrM, p.client.maxErrM);
           c.interp.push(p.client.interpMs);
         }
@@ -75,7 +76,17 @@ for (const rm of rooms.values()) {
   console.log(`\n== room ${rm.code}  ${rm.events[0]?.at ?? ''}`);
   for (const e of rm.events) {
     if (
-      ['player_join', 'player_leave', 'restart', 'loading_done', 'finish', 'race_start', 'race_end'].includes(e.event)
+      [
+        'player_join',
+        'player_leave',
+        'restart',
+        'loading_done',
+        'finish',
+        'race_start',
+        'race_end',
+        'car_deep',
+        'client_deep',
+      ].includes(e.event)
     ) {
       const { at, level, event, room: _r, track, ...rest } = e;
       console.log(`  ${at?.slice(11, 19)} ${event.padEnd(13)} ${JSON.stringify(rest)}`);
@@ -93,7 +104,7 @@ for (const rm of rooms.values()) {
     if (c) {
       const min = c.sec / 60;
       console.log(
-        `  ${''.padEnd(14)} client (${Math.round(c.sec)} s): fps ${Math.round(c.frames / c.sec)} | hitches ${c.hitches} | corrections >0.5 m ${c.over50} (${c.nearOver50} near a car) | snaps ${c.snaps} | max err ${c.maxErrM} m | holds/min ${(c.holds / min).toFixed(0)} catch-ups/min ${(c.catchUps / min).toFixed(0)} | interp p50 ${pct(c.interp, 0.5)} ms`,
+        `  ${''.padEnd(14)} client (${Math.round(c.sec)} s): fps ${Math.round(c.frames / c.sec)} | hitches ${c.hitches} | corrections >0.5 m ${c.over50} (${c.nearOver50} near a car) | snaps ${c.snaps} | max err ${c.maxErrM} m | holds/min ${(c.holds / min).toFixed(0)} catch-ups/min ${(c.catchUps / min).toFixed(0)} | sunk-in-road episodes ${c.deep} | interp p50 ${pct(c.interp, 0.5)} ms`,
       );
     }
   }

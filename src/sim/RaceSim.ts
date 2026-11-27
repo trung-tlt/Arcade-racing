@@ -21,10 +21,13 @@ import { HitRules } from './HitRules';
 import { PoseHistory, nlerpQuat, type Quat } from './lagcomp';
 import { pickupPositions } from './pickupPositions';
 import { PvdTrafficSim } from './PvdTrafficSim';
-import { hasFallen, StuckWatch, upY } from './Recovery';
+import { DeepWatch, depthUnderRoad, hasFallen, StuckWatch, upY } from './Recovery';
 import { buildTrackColliders, computeTrackShape } from './TrackColliders';
 import { WeatherSim } from './WeatherSim';
 import { XaLoTrafficSim } from './XaLoTrafficSim';
+
+const DEEP_CHECK_TICKS = 6;
+const DEEP_HOLD_SEC = 0.5;
 
 export type SlotKind = 'human' | 'ai' | 'pilot';
 
@@ -97,6 +100,7 @@ export interface SimEntry {
   others: OtherCar[];
   lane: number;
   readonly stuck: StuckWatch;
+  readonly deep: DeepWatch;
   /** Latest controls received for a human car. */
   input: CarControls;
   resetRequested: boolean;
@@ -127,6 +131,17 @@ export class RaceSim {
   private readonly viewTicks = new Map<string, number>();
   private readonly maxRewindTicks = Math.ceil((COMBAT.lagComp.maxRewindMs * 60) / 1000);
   private readonly hitRules: HitRules;
+  /** Cars seen deep under the road surface; the server drains this into its log. */
+  readonly deepLog: {
+    id: string;
+    x: number;
+    y: number;
+    z: number;
+    depthM: number;
+    belowPathM: number;
+    t: number;
+    speedMps: number;
+  }[] = [];
   private readonly sunkRay = new RAPIER.Ray({ x: 0, y: 0, z: 0 }, { x: 0, y: -1, z: 0 });
   private readonly holdFire: boolean;
   private readonly reference: () => SimEntry;
@@ -196,6 +211,7 @@ export class RaceSim {
         race,
         t: 0,
         recoveries: 0,
+        deep: new DeepWatch(),
         driver: null,
         others: [],
         lane,
@@ -462,6 +478,22 @@ export class RaceSim {
       if (fell) {
         e.car.respawn(respawnPose(path, e.t, 0));
         e.recoveries++;
+      }
+      // Logged, not acted on: every 6th tick, a car that stays deep under the road surface (any speed) is reported.
+      if (def.hasElevation && this.tick % DEEP_CHECK_TICKS === 0) {
+        const depth = depthUnderRoad(p, world, RAPIER, this.sunkRay);
+        if (e.deep.update(DEEP_CHECK_TICKS * STEP, depth, DEEP_HOLD_SEC) && this.deepLog.length < 200) {
+          this.deepLog.push({
+            id: e.id,
+            x: +p.x.toFixed(1),
+            y: +p.y.toFixed(2),
+            z: +p.z.toFixed(1),
+            depthM: +(depth ?? 0).toFixed(2),
+            belowPathM: +(path.pointAt(e.t).y - p.y).toFixed(2),
+            t: +e.t.toFixed(4),
+            speedMps: +e.car.physics.speedMps.toFixed(1),
+          });
+        }
       }
     }
     for (const e of this.entries) {

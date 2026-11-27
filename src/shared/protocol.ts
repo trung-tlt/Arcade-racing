@@ -78,6 +78,8 @@ export interface ClientStats {
   catchUps: number;
   /** Adaptive interpolation delay (ms). */
   interpMs: number;
+  /** Times the predicted own car sat deep under the road surface for half a second. */
+  deep: number;
 }
 
 export type ClientMsg =
@@ -400,6 +402,7 @@ const STAT_KEYS: readonly (keyof ClientStats)[] = [
   'holds',
   'catchUps',
   'interpMs',
+  'deep',
 ];
 
 /** A stats block with every field a finite number, clamped; anything else is dropped (the ping still counts). */

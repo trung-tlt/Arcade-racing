@@ -72,6 +72,7 @@ describe('client message validation', () => {
       holds: 0,
       catchUps: 1,
       interpMs: 120,
+      deep: 0,
     };
     const good = ok({ t: 'ping', c: 5, rtt: 50, cs });
     expect(good.ok && good.msg).toEqual({ t: 'ping', c: 5, rtt: 50, cs });

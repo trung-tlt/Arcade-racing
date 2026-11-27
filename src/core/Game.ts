@@ -41,7 +41,7 @@ import {
   type NetEvent,
 } from '../shared/protocol';
 import { rotateBy } from '../sim/lagcomp';
-import { StuckWatch, upY } from '../sim/Recovery';
+import { DeepWatch, depthUnderRoad, StuckWatch, upY } from '../sim/Recovery';
 import { gridPose, respawnPose } from '../race/Respawn';
 import { RaceHud } from '../ui/raceHud';
 import { CongHoaDressing } from '../world/CongHoaDressing';
@@ -248,7 +248,8 @@ export class Game {
   private extrapFrames = 0;
   private renderFrames = 0;
   /** What the server is told about this client's last few seconds (see `ClientStats`). */
-  private statWin = { sec: 0, frames: 0, hitches: 0, logIdx: 0, holds: 0, catchUps: 0 };
+  private statWin = { sec: 0, frames: 0, hitches: 0, logIdx: 0, holds: 0, catchUps: 0, deep: 0 };
+  private readonly deepWatch = new DeepWatch();
   private readonly tagSeen = new Map<string, { at: number; occluded: boolean }>();
   private drawCalls = 0;
   private triangles = 0;
@@ -1845,8 +1846,9 @@ export class Game {
       holds: holds - w.holds,
       catchUps: catchUps - w.catchUps,
       interpMs: Math.round(net.session.interpDelay * 1000),
+      deep: w.deep,
     };
-    Object.assign(w, { sec: 0, frames: 0, hitches: 0, holds, catchUps });
+    Object.assign(w, { sec: 0, frames: 0, hitches: 0, holds, catchUps, deep: 0 });
     return out;
   }
 
@@ -1907,6 +1909,10 @@ export class Game {
     if (!this.online) {
       this.recoverFallen();
       this.recoverStuckAi(dt);
+    } else if (this.trackDef.hasElevation && this.localTick % 6 === 0) {
+      // Online the server owns recoveries; this only counts the episodes where the predicted car sits inside the road.
+      const depth = depthUnderRoad(this.car.physics.curr.p, this.world, RAPIER, this.sunkRay);
+      if (this.deepWatch.update(6 * dt, depth, 0.5)) this.statWin.deep++;
     }
     this.landmarks?.setFocus(this.car.physics.curr.p.x, this.car.physics.curr.p.z);
     const shared = this.online ? this.localTick / 60 : undefined; // scenery on one clock for every player
