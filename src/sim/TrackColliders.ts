@@ -5,6 +5,8 @@ import type { TrackPath } from '../world/TrackPath';
 type Rapier = typeof RAPIER;
 
 const ROAD_UNDERLAY_M = 1.5;
+/** A wall this close (m) outside the road edge gets the road surface out to it. */
+const MAX_GAP_FILL_M = 1;
 
 /** Road geometry shared by the track meshes and the colliders: per-sample half widths and bend limits. */
 export interface TrackShape {
@@ -137,7 +139,10 @@ function buildRoadCollider(
   const layers = [0, -ROAD_UNDERLAY_M];
   const verts = new Float32Array(n * 2 * layers.length * 3);
   for (let i = 0; i < n; i++) {
-    const out = shape.driveToWall ? shape.wallInsetM : 0;
+    // A wall standing just outside the carriageway edge (Monte-Carlo: 0.4 m) leaves a floorless gap: a wheel that drops
+    // in lets the car slide between the road and the sheet under it. The road runs out to such a wall. A wall far out
+    // (Ardennes) stands over the terrain collider and is left alone.
+    const out = shape.driveToWall || shape.wallInsetM <= MAX_GAP_FILL_M ? Math.max(0, shape.wallInsetM) : 0;
     const edges = [trackEdge(shape, i, 1) + out, -(trackEdge(shape, i, -1) + out)];
     layers.forEach((dy, k) => {
       edges.forEach((d, r) => {
