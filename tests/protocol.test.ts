@@ -60,6 +60,27 @@ describe('client message validation', () => {
     expect(sanitizeName('x'.repeat(40), 16, 'P')).toHaveLength(16);
   });
 
+  it('a ping carries the client stats, clamped; a malformed block is dropped but the ping stays', () => {
+    const cs = {
+      sec: 2,
+      frames: 120,
+      hitches: 1,
+      over50: 3,
+      snaps: 0,
+      maxErrM: 0.9,
+      nearOver50: 2,
+      holds: 0,
+      catchUps: 1,
+      interpMs: 120,
+    };
+    const good = ok({ t: 'ping', c: 5, rtt: 50, cs });
+    expect(good.ok && good.msg).toEqual({ t: 'ping', c: 5, rtt: 50, cs });
+    const huge = ok({ t: 'ping', c: 5, cs: { ...cs, frames: 1e12 } });
+    expect(huge.ok && huge.msg.t === 'ping' && huge.msg.cs?.frames).toBe(1e6);
+    const partial = ok({ t: 'ping', c: 5, cs: { sec: 2 } });
+    expect(partial.ok && partial.msg).toEqual({ t: 'ping', c: 5 });
+  });
+
   it('parses a server message and survives garbage', () => {
     expect(parseServerMessage('{"t":"pong","c":1,"s":2}')).toEqual({ t: 'pong', c: 1, s: 2 });
     expect(parseServerMessage('garbage')).toBeNull();

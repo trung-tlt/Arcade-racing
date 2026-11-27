@@ -30,13 +30,40 @@ for await (const line of createInterface({ input })) {
     if (r.event === 'race_sample') {
       rm.samples.push(r);
       for (const p of r.players) {
-        const a = rm.players.get(p.name) ?? { rtt: [], stepped: 0, late: 0, missed: 0, maxRun: 0, margin: [] };
+        const a = rm.players.get(p.name) ?? {
+          rtt: [],
+          stepped: 0,
+          late: 0,
+          missed: 0,
+          maxRun: 0,
+          margin: [],
+          cs: null,
+        };
         if (p.rttMs >= 0) a.rtt.push(p.rttMs);
         a.stepped += p.stepped;
         a.late += p.late;
         a.missed += p.missed;
         a.maxRun = Math.max(a.maxRun, p.maxRun);
         if (p.marginTicks !== null) a.margin.push(p.marginTicks);
+        if (p.client) {
+          const c = (a.cs ??= {
+            sec: 0,
+            frames: 0,
+            hitches: 0,
+            over50: 0,
+            nearOver50: 0,
+            snaps: 0,
+            maxErrM: 0,
+            holds: 0,
+            catchUps: 0,
+            interp: [],
+          });
+          c.sec += p.client.sec;
+          c.frames += p.client.fps * p.client.sec;
+          for (const k of ['hitches', 'over50', 'nearOver50', 'snaps', 'holds', 'catchUps']) c[k] += p.client[k];
+          c.maxErrM = Math.max(c.maxErrM, p.client.maxErrM);
+          c.interp.push(p.client.interpMs);
+        }
         rm.players.set(p.name, a);
       }
     }
@@ -62,6 +89,13 @@ for (const rm of rooms.values()) {
     console.log(
       `  ${name.padEnd(14)} rtt p50 ${pct(a.rtt, 0.5)} p95 ${pct(a.rtt, 0.95)} ms | ticks without input ${missPct}% | late frames ${a.late} | longest gap ${a.maxRun} ticks | lead margin p5 ${pct(a.margin, 0.05)} ticks`,
     );
+    const c = a.cs;
+    if (c) {
+      const min = c.sec / 60;
+      console.log(
+        `  ${''.padEnd(14)} client (${Math.round(c.sec)} s): fps ${Math.round(c.frames / c.sec)} | hitches ${c.hitches} | corrections >0.5 m ${c.over50} (${c.nearOver50} near a car) | snaps ${c.snaps} | max err ${c.maxErrM} m | holds/min ${(c.holds / min).toFixed(0)} catch-ups/min ${(c.catchUps / min).toFixed(0)} | interp p50 ${pct(c.interp, 0.5)} ms`,
+      );
+    }
   }
   void ev;
 }

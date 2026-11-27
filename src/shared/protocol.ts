@@ -61,6 +61,25 @@ export interface InputFrame extends CarControls {
   vt?: number;
 }
 
+/** What a client saw over the last few seconds (sent with the ping, logged by the server to read a lag report against). */
+export interface ClientStats {
+  /** Seconds the window covers. */
+  sec: number;
+  /** Frames drawn, and frames over 50 ms. */
+  frames: number;
+  hitches: number;
+  /** Own-car corrections: over 0.5 m, hard snaps, the largest (m), and how many of the over-0.5 m ones had a car within 9 m. */
+  over50: number;
+  snaps: number;
+  maxErrM: number;
+  nearOver50: number;
+  /** Frames the lead controller held or caught up. */
+  holds: number;
+  catchUps: number;
+  /** Adaptive interpolation delay (ms). */
+  interpMs: number;
+}
+
 export type ClientMsg =
   | {
       t: 'join';
@@ -83,7 +102,7 @@ export type ClientMsg =
   | { t: 'rematch'; vote: RematchVote }
   | ({ t: 'input' } & InputFrame)
   | { t: 'reset' }
-  | { t: 'ping'; c: number; rtt?: number }
+  | { t: 'ping'; c: number; rtt?: number; cs?: ClientStats }
   | { t: 'leave' };
 
 /** Car flag bits in a snapshot. */
@@ -350,7 +369,15 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
     case 'ping':
       if (!isNum(m.c)) return bad;
       if (m.rtt !== undefined && !isNum(m.rtt)) return bad;
-      return { ok: true, msg: { t: 'ping', c: m.c, ...(m.rtt === undefined ? {} : { rtt: clamp(m.rtt, 0, 5000) }) } };
+      return {
+        ok: true,
+        msg: {
+          t: 'ping',
+          c: m.c,
+          ...(m.rtt === undefined ? {} : { rtt: clamp(m.rtt, 0, 5000) }),
+          ...(m.cs === undefined ? {} : parseClientStats(m.cs)),
+        },
+      };
     default:
       return bad;
   }
@@ -361,6 +388,31 @@ export const round = (v: number, dp: number): number => {
   const k = 10 ** dp;
   return Math.round(v * k) / k;
 };
+
+const STAT_KEYS: readonly (keyof ClientStats)[] = [
+  'sec',
+  'frames',
+  'hitches',
+  'over50',
+  'snaps',
+  'maxErrM',
+  'nearOver50',
+  'holds',
+  'catchUps',
+  'interpMs',
+];
+
+/** A stats block with every field a finite number, clamped; anything else is dropped (the ping still counts). */
+function parseClientStats(raw: unknown): { cs?: ClientStats } {
+  if (typeof raw !== 'object' || raw === null) return {};
+  const r = raw as Record<string, unknown>;
+  const cs = {} as Record<string, number>;
+  for (const k of STAT_KEYS) {
+    if (!isNum(r[k])) return {};
+    cs[k] = clamp(r[k] as number, 0, 1e6);
+  }
+  return { cs: cs as unknown as ClientStats };
+}
 
 export const encode = (msg: ServerMsg | ClientMsg): string => JSON.stringify(msg);
 

@@ -7,6 +7,7 @@ import {
   encode,
   round,
   type ClientMsg,
+  type ClientStats,
   type GridEntry,
   type NetEvent,
   type SnapRocket,
@@ -69,6 +70,8 @@ export interface Player {
   connected: boolean;
   /** Round trip as the client last reported it (ms, -1 = not yet). */
   rtt: number;
+  /** What the client reported since the last log sample, summed (see `ClientStats`). */
+  cs: ClientStatsSum | null;
   /** Results screen: 'yes' = wants a rematch, 'no' = asked for the lobby, null = no vote (or withdrawn). */
   vote: 'yes' | 'no' | null;
   /** The lap the player was on when they left mid-race. */
@@ -111,6 +114,37 @@ const MAX_AHEAD_TICKS = 90;
  * One online race room: lobby -> countdown -> racing -> results. The server owns everything; clients only send inputs.
  * `tick()` advances the sim by one 60 Hz step and sends snapshots every `SNAPSHOT_EVERY_TICKS`.
  */
+/** The client's reports between two log samples, added up (maxErrM and interpMs keep the largest). */
+interface ClientStatsSum extends ClientStats {
+  reports: number;
+}
+
+function addClientStats(sum: ClientStatsSum | null, cs: ClientStats): ClientStatsSum {
+  if (!sum) return { ...cs, reports: 1 };
+  return {
+    sec: sum.sec + cs.sec,
+    frames: sum.frames + cs.frames,
+    hitches: sum.hitches + cs.hitches,
+    over50: sum.over50 + cs.over50,
+    snaps: sum.snaps + cs.snaps,
+    maxErrM: Math.max(sum.maxErrM, cs.maxErrM),
+    nearOver50: sum.nearOver50 + cs.nearOver50,
+    holds: sum.holds + cs.holds,
+    catchUps: sum.catchUps + cs.catchUps,
+    interpMs: Math.max(sum.interpMs, cs.interpMs),
+    reports: sum.reports + 1,
+  };
+}
+
+/** The log line's view of a player's client report: fps over the window, and the counts. Null if the client sent none. */
+function takeClientStats(p: { cs: ClientStatsSum | null }): Record<string, number> | null {
+  const c = p.cs;
+  p.cs = null;
+  if (!c || c.sec <= 0) return null;
+  const { sec, frames, reports, ...rest } = c;
+  return { fps: Math.round(frames / sec), ...rest, sec: +sec.toFixed(1), reports };
+}
+
 export class Room {
   readonly code: string;
   trackId: string;
@@ -203,6 +237,7 @@ export class Room {
       host: this.players.size === 0,
       connected: true,
       rtt: -1,
+      cs: null,
       vote: null,
       leftLap: null,
       frames: new Map(),
@@ -337,6 +372,7 @@ export class Room {
         return null;
       case 'ping':
         if (msg.rtt !== undefined) player.rtt = Math.round(msg.rtt);
+        if (msg.cs) player.cs = addClientStats(player.cs, msg.cs);
         this.send(player, { t: 'pong', c: msg.c, s: Date.now() });
         return null;
       case 'leave':
@@ -575,6 +611,7 @@ export class Room {
           missed: p.missed - b.missed,
           maxRun: run,
           marginTicks: p.ackTick >= 0 ? p.ackTick - sim.tick : null,
+          client: takeClientStats(p),
         };
       });
     this.note('race_sample', { raceSec: +sim.time.toFixed(1), phase: this.phase, snapBytes: this.snapBytes, players });

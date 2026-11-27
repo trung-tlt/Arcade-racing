@@ -37,6 +37,7 @@ import {
   FLAG_INVULNERABLE,
   FLAG_NITRO,
   FLAG_WRECKED,
+  type ClientStats,
   type NetEvent,
 } from '../shared/protocol';
 import { rotateBy } from '../sim/lagcomp';
@@ -246,6 +247,8 @@ export class Game {
   private netDebugLogIdx = 0;
   private extrapFrames = 0;
   private renderFrames = 0;
+  /** What the server is told about this client's last few seconds (see `ClientStats`). */
+  private statWin = { sec: 0, frames: 0, hitches: 0, logIdx: 0, holds: 0, catchUps: 0 };
   private readonly tagSeen = new Map<string, { at: number; occluded: boolean }>();
   private drawCalls = 0;
   private triangles = 0;
@@ -295,6 +298,7 @@ export class Game {
     this.carId = cfg.carId;
     this.mode = cfg.mode;
     this.online = cfg.online ?? null;
+    if (this.online) this.online.client.statsProvider = () => this.takeClientStats();
     // Maps with their own grid (Map 5's open-wheel field) override the rolled cars and give each a livery.
     // Online, the grid is whatever the server announced: everyone keeps the vehicle they picked.
     this.rivals = this.online
@@ -1814,6 +1818,38 @@ export class Game {
     if (extrapolating) this.extrapFrames++;
   }
 
+  private noteFrame(frameDt: number): void {
+    const w = this.statWin;
+    w.sec += frameDt;
+    w.frames++;
+    if (frameDt > 0.05) w.hitches++;
+  }
+
+  /** The window since the last ping, for the server's log; null when nothing was drawn (a hidden tab). */
+  private takeClientStats(): ClientStats | null {
+    const net = this.online;
+    const w = this.statWin;
+    if (!net || w.frames === 0) return null;
+    const recon = net.session.log.slice(w.logIdx).filter((r) => r.kind !== 'none');
+    w.logIdx = net.session.log.length;
+    const big = recon.filter((r) => r.errM > 0.5);
+    const { holds, catchUps } = net.session.stepStats;
+    const out: ClientStats = {
+      sec: +w.sec.toFixed(2),
+      frames: w.frames,
+      hitches: w.hitches,
+      over50: big.length,
+      snaps: recon.filter((r) => r.kind === 'snap').length,
+      maxErrM: +recon.reduce((m, r) => Math.max(m, r.errM), 0).toFixed(2),
+      nearOver50: big.filter((r) => r.nearOther).length,
+      holds: holds - w.holds,
+      catchUps: catchUps - w.catchUps,
+      interpMs: Math.round(net.session.interpDelay * 1000),
+    };
+    Object.assign(w, { sec: 0, frames: 0, hitches: 0, holds, catchUps });
+    return out;
+  }
+
   /** Feed the F8 panel: every frame's duration, and a fresh sample about twice a second. */
   private updateNetDebug(frameDt: number): void {
     const panel = this.netDebug as NetDebugPanel;
@@ -2194,6 +2230,7 @@ export class Game {
       this.car.physics.yaw,
     );
     if (this.onlineTags) this.onlineTags.update(this.chase.camera, this.onlineTagList(), frameDt);
+    if (this.online) this.noteFrame(frameDt);
     if (this.netDebug) this.updateNetDebug(frameDt);
     else {
       this.nameTags.update(

@@ -4,6 +4,7 @@ import {
   encode,
   parseServerMessage,
   type ClientMsg,
+  type ClientStats,
   type JoinMode,
   type RejectReason,
   type RematchVote,
@@ -42,6 +43,8 @@ export class NetClient {
   lastSentTick = -1;
   /** Round-trip time in ms (smoothed). */
   pingMs = 0;
+  /** Read (and reset) by each ping: what the game saw since the last one. */
+  statsProvider: (() => ClientStats | null) | null = null;
   /** server clock minus client clock, ms. */
   clockOffsetMs = 0;
   private pingTimer: ReturnType<typeof setInterval> | null = null;
@@ -58,7 +61,12 @@ export class NetClient {
       this.ws = ws;
       ws.onopen = () => {
         const ping = (): void =>
-          this.send({ t: 'ping', c: performance.now(), ...(this.pingMs > 0 ? { rtt: Math.round(this.pingMs) } : {}) });
+          this.send({
+            t: 'ping',
+            c: performance.now(),
+            ...(this.pingMs > 0 ? { rtt: Math.round(this.pingMs) } : {}),
+            ...this.statsPart(),
+          });
         this.pingTimer = setInterval(ping, 2000);
         resolve();
       };
@@ -136,6 +144,11 @@ export class NetClient {
   close(): void {
     if (this.pingTimer) clearInterval(this.pingTimer);
     this.ws?.close();
+  }
+
+  private statsPart(): { cs?: ClientStats } {
+    const cs = this.statsProvider?.();
+    return cs ? { cs } : {};
   }
 
   private send(m: ClientMsg): void {
