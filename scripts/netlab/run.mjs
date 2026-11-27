@@ -50,7 +50,14 @@ function startServer() {
   execSync('npm run server:build', { stdio: 'ignore' });
   const lines = [];
   const p = spawn('node', ['dist-server/index.mjs'], {
-    env: { ...process.env, PORT: String(SERVER_PORT), LOG_LEVEL: 'info', REMATCH_SEC: '600', SOLO_START: '1' },
+    env: {
+      ...process.env,
+      PORT: String(SERVER_PORT),
+      LOG_LEVEL: 'info',
+      REMATCH_SEC: '600',
+      SOLO_START: '1',
+      BOTS: process.env.NETLAB_BOTS ?? '1',
+    },
     stdio: ['ignore', 'pipe', 'inherit'],
   });
   let buf = '';
@@ -219,6 +226,12 @@ async function scenario(browser, profileName, track) {
           );
         }
       });
+    if (process.env.NETLAB_TRACE) {
+      const hist = {};
+      for (const l of lines) hist[l.event] = (hist[l.event] ?? 0) + 1;
+      console.log('  server log events:', JSON.stringify(hist));
+      for (const l of lines) if (l.event === 'car_wrecked') console.log('   ', JSON.stringify(l));
+    }
     const samples = lines.filter((l) => l.event === 'race_sample');
     const serverSamples = lines.filter((l) => l.event === 'server_sample');
     const missed = samples.flatMap((s) => s.players.map((p) => p.missed));

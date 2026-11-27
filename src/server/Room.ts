@@ -41,6 +41,8 @@ export interface RoomOptions {
   combat?: boolean;
   /** Bots fill empty grid slots up to this many cars (default 6). */
   gridSize?: number;
+  /** false: no bots fill the free grid slots (default true). */
+  bots?: boolean;
   /** Monotonic milliseconds (injectable for tests). */
   now?: () => number;
   /** Seconds after the first human finishes before the race is closed for the rest (default 30). */
@@ -72,6 +74,9 @@ export interface Player {
   rtt: number;
   /** What the client reported since the last log sample, summed (see `ClientStats`). */
   cs: ClientStatsSum | null;
+  /** Client-authority mode: pose frames followed / ignored (a reset the client had not seen yet). */
+  posesApplied: number;
+  posesSkipped: number;
   /** Results screen: 'yes' = wants a rematch, 'no' = asked for the lobby, null = no vote (or withdrawn). */
   vote: 'yes' | 'no' | null;
   /** The lap the player was on when they left mid-race. */
@@ -159,6 +164,7 @@ export class Room {
   private readonly hash: string;
   private readonly maxPlayers: number;
   private readonly gridSize: number;
+  private readonly bots: boolean;
   private readonly now: () => number;
   private readonly finishGraceSec: number;
   private readonly inputRate: number;
@@ -191,6 +197,7 @@ export class Room {
     this.laps = o.laps;
     this.hash = o.hash;
     this.gridSize = o.gridSize ?? 6;
+    this.bots = o.bots !== false;
     this.maxPlayers = Math.min(o.maxPlayers ?? 6, this.gridSize);
     this.now = o.now ?? (() => performance.now());
     this.finishGraceSec = o.finishGraceSec ?? 30;
@@ -239,6 +246,8 @@ export class Room {
       connected: true,
       rtt: -1,
       cs: null,
+      posesApplied: 0,
+      posesSkipped: 0,
       vote: null,
       leftLap: null,
       frames: new Map(),
@@ -430,7 +439,7 @@ export class Room {
       this.slotOf.set(p.id, spec);
       this.names.set(p.id, p.name);
     }
-    const free = Array.from({ length: this.gridSize }, (_, k) => k).filter((k) => !taken.has(k));
+    const free = this.bots ? Array.from({ length: this.gridSize }, (_, k) => k).filter((k) => !taken.has(k)) : [];
     free.forEach((gridSlot, k) => {
       const r = AI.rivals[k % AI.rivals.length];
       const id = `b${k + 1}`;
@@ -452,6 +461,7 @@ export class Room {
     ev.on('carHit', (e) => this.pending.push({ k: 'hit', c: e.carId, by: e.attackerId, d: Math.round(e.damage) }));
     ev.on('carWrecked', (e) => {
       this.pending.push({ k: 'wreck', c: e.carId, by: e.attackerId });
+      this.note('car_wrecked', { car: e.carId, by: e.attackerId, human: this.players.has(e.carId) });
       if (e.attackerId && e.attackerId !== e.carId) {
         this.takedowns.set(e.attackerId, (this.takedowns.get(e.attackerId) ?? 0) + 1);
       }
@@ -534,6 +544,13 @@ export class Room {
       if (frame) {
         p.repeats = 0;
         sim.setInput(p.id, frame);
+        // Client-authority mode: follow the client's own car, unless a reset it has not seen yet is in flight.
+        if (frame.ps) {
+          if ((frame.rs ?? 0) === (this.resets.get(p.id) ?? 0)) {
+            sim.setPose(p.id, frame.ps);
+            p.posesApplied++;
+          } else p.posesSkipped++;
+        }
         sim.setViewTick(p.id, frame.vt);
       } else if (p.ackTick >= 0) {
         p.repeats++;
@@ -632,6 +649,7 @@ export class Room {
           maxRun: run,
           marginTicks: p.ackTick >= 0 ? p.ackTick - sim.tick : null,
           client: takeClientStats(p),
+          poses: p.posesApplied + p.posesSkipped > 0 ? { applied: p.posesApplied, skipped: p.posesSkipped } : undefined,
         };
       });
     this.note('race_sample', { raceSec: +sim.time.toFixed(1), phase: this.phase, snapBytes: this.snapBytes, players });

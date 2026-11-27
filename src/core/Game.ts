@@ -30,6 +30,7 @@ import { RaceManager } from '../race/RaceManager';
 import { HitRules } from '../sim/HitRules';
 import type { OnlineRace } from '../net/OnlineRace';
 import { rapierBody } from '../net/RapierBody';
+import type { BodyState, ReconcileBody } from '../net/Reconciler';
 import {
   FLAG_AIRBORNE,
   FLAG_BRAKING,
@@ -39,6 +40,7 @@ import {
   FLAG_WRECKED,
   type ClientStats,
   type NetEvent,
+  type PoseFrame,
 } from '../shared/protocol';
 import { rotateBy } from '../sim/lagcomp';
 import { DeepWatch, depthUnderRoad, StuckWatch, upY } from '../sim/Recovery';
@@ -242,6 +244,10 @@ export class Game {
   /** F8 network panel (online only) and the counters it reads. */
   private netDebug: NetDebugPanel | null = null;
   /** `?render=0` (netlab): everything runs as usual but the GPU draw is skipped, so many clients fit on one machine. */
+  /** `?auth=client`: the own car is simulated here and never corrected; the server follows it; remote cars are solid. */
+  private readonly clientAuth = new URLSearchParams(location.search).get('auth') === 'client';
+  private ownBody!: ReconcileBody;
+  private readonly poseOut: BodyState = { p: [0, 0, 0], q: [0, 0, 0, 1], v: [0, 0, 0], w: [0, 0, 0] };
   private readonly skipGpu = new URLSearchParams(location.search).get('render') === '0';
   private netDebugAcc = 0;
   private netDebugLogIdx = 0;
@@ -299,7 +305,10 @@ export class Game {
     this.carId = cfg.carId;
     this.mode = cfg.mode;
     this.online = cfg.online ?? null;
-    if (this.online) this.online.client.statsProvider = () => this.takeClientStats();
+    if (this.online) {
+      this.online.client.statsProvider = () => this.takeClientStats();
+      this.online.session.clientAuthority = this.clientAuth;
+    }
     // Maps with their own grid (Map 5's open-wheel field) override the rolled cars and give each a livery.
     // Online, the grid is whatever the server announced: everyone keeps the vehicle they picked.
     this.rivals = this.online
@@ -501,7 +510,8 @@ export class Game {
       scene: this.scene,
     });
     this.cars = [this.car];
-    this.online?.session.setBody(rapierBody(this.car.physics.body));
+    this.ownBody = rapierBody(this.car.physics.body);
+    this.online?.session.setBody(this.ownBody);
     this.online?.session.setNitro(this.car.physics.nitro);
     this.spawnPoses.set('player', grid);
     this.setupFirstPerson();
@@ -529,7 +539,7 @@ export class Game {
             tint: COMBAT.enemyTint,
             livery: r.livery,
           });
-          puppet.physics.makePuppet();
+          puppet.physics.makePuppet(this.clientAuth);
           this.puppets.set(r.id, puppet);
           this.spawnPoses.set(r.id, pose);
           this.cars.push(puppet);
@@ -1020,8 +1030,29 @@ export class Game {
     // Online: this step's input is for server tick `localTick`; the server applies it when it simulates that tick.
     // Frames for ticks the server has already simulated are useless (they would only arrive late): while catching up, skip them.
     if (this.online && this.onlineLive && this.localTick >= (this.online.session.snap?.tick ?? 0))
-      this.online.client.sendInput(this.localTick, out, this.online.session.viewTick(performance.now() / 1000));
+      this.online.client.sendInput(
+        this.localTick,
+        out,
+        this.online.session.viewTick(performance.now() / 1000),
+        this.clientAuth ? this.poseFrame() : undefined,
+      );
     return out;
+  }
+
+  /** The own car's state right now (before this tick is stepped), for the server to follow. */
+  private poseFrame(): { ps: PoseFrame; rs: number } {
+    this.ownBody.read(this.poseOut);
+    const r = (n: number, d: number): number => Math.round(n * 10 ** d) / 10 ** d;
+    const o = this.poseOut;
+    return {
+      ps: {
+        p: [r(o.p[0], 3), r(o.p[1], 3), r(o.p[2], 3)],
+        q: [r(o.q[0], 5), r(o.q[1], 5), r(o.q[2], 5), r(o.q[3], 5)],
+        v: [r(o.v[0], 3), r(o.v[1], 3), r(o.v[2], 3)],
+        w: [r(o.w[0], 3), r(o.w[1], 3), r(o.w[2], 3)],
+      },
+      rs: this.online?.session.adoptedResets ?? 0,
+    };
   }
 
   /** The controls for this step: the keyboard / pad (or the dev autopilot), idle while the race is locked. */

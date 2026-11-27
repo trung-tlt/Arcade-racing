@@ -517,10 +517,11 @@ export class CarPhysics {
    * server decides contacts; the local sim runs ahead of the remote cars' drawn time, so local contact would be
    * phantom), just the pose and wheel state a snapshot describes.
    */
-  makePuppet(): void {
+  makePuppet(solid = false): void {
     this.puppet = true;
     this.body.setBodyType(2 as RAPIER.RigidBodyType, true); // KinematicPositionBased
-    this.collider.setEnabled(false);
+    // Solid: the own car (predicted locally, never corrected) bumps it; otherwise it is only drawn.
+    this.collider.setEnabled(solid);
   }
 
   /** Move a puppet to a snapshot pose and refresh what the car model reads (wheel steer, brake lights, nitro flames). */

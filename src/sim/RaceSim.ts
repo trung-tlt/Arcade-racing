@@ -406,6 +406,17 @@ export class RaceSim {
     if (e && e.kind === 'human') e.input = controls;
   }
 
+  /** Client-authority mode: put a human's car where its own client says it is (cheating is accepted in this mode). */
+  setPose(id: string, ps: { p: number[]; q: number[]; v: number[]; w: number[] }): void {
+    const e = this.byId.get(id);
+    if (!e || e.kind !== 'human' || e.car.hull.wrecked || e.race.phase === 'finished') return;
+    const b = e.car.physics.body;
+    b.setTranslation({ x: ps.p[0], y: ps.p[1], z: ps.p[2] }, true);
+    b.setRotation({ x: ps.q[0], y: ps.q[1], z: ps.q[2], w: ps.q[3] }, true);
+    b.setLinvel({ x: ps.v[0], y: ps.v[1], z: ps.v[2] }, true);
+    b.setAngvel({ x: ps.w[0], y: ps.w[1], z: ps.w[2] }, true);
+  }
+
   /** A human asked to be put back on the track at their last checkpoint (executed on the next step). */
   requestReset(id: string): void {
     const e = this.byId.get(id);

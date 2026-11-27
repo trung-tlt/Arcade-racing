@@ -39,3 +39,9 @@ Results land in `netlab-out/` (ignored).
   (was the minimum over 10, band 2-8) cut holds/catch-ups on `mobile` from ~310/120 to ~40/25 per minute and, on
   `60ms`, hitches from 233 to 0. `serverMissedTicksP95` on `mobile` stays high (stall-driven, 100-200), so the next step
   there is the input redundancy / bots-local work.
+
+## Client authority and no bots (switches, off by default)
+
+- `?auth=client` (netlab: `--params auth=client`): the browser sends its own car's state with every input frame; the server puts that human car there before each step and keeps running the bots, combat and race rules. The own car is never corrected (the reconciler only measures), and remote cars get solid colliders so the own car bumps them. A pose is ignored while a server reset (wreck respawn, fall recovery) is in flight (`rs` mismatch). Server log: `poses: {applied, skipped}` per player in `race_sample`.
+- `BOTS=0` on the server (netlab: `NETLAB_BOTS=0`): no bots fill the grid, only the humans race.
+- Measured on xa_lo_ha_noi, 2 players, 60 ms, 90 s: with bots, standard mode 899 corrections over 0.5 m and 40 hard snaps; without bots 328 and 11. With `auth=client` and no bots the only differences left are the server's copy being one tick off (0.5 to 0.9 m at 40 to 60 m/s), which the browser does not apply; no hard snaps in two runs. Contact damage between cars is not yet decided by the clients in this mode.

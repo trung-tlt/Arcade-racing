@@ -5,6 +5,7 @@ import {
   parseServerMessage,
   type ClientMsg,
   type ClientStats,
+  type PoseFrame,
   type JoinMode,
   type RejectReason,
   type RematchVote,
@@ -125,10 +126,16 @@ export class NetClient {
   }
 
   /** Send one control frame for server tick `tick` (see `InputFrame`). */
-  sendInput(tick: number, c: CarControls, vt?: number): void {
+  sendInput(tick: number, c: CarControls, vt?: number, pose?: { ps: PoseFrame; rs: number }): void {
     this.sentFrames++;
     this.lastSentTick = tick;
-    this.send({ t: 'input', tick, ...c, ...(vt === undefined ? {} : { vt: Math.round(vt * 100) / 100 }) });
+    this.send({
+      t: 'input',
+      tick,
+      ...c,
+      ...(vt === undefined ? {} : { vt: Math.round(vt * 100) / 100 }),
+      ...(pose ?? {}),
+    });
   }
 
   /** The server's sim tick right now, estimated from the newest snapshot and how long ago it arrived. */

@@ -52,8 +52,19 @@ export type JoinMode = 'create' | 'join' | 'quick';
  * One control frame (60 Hz). `tick` is the server sim tick the frame is for: the client runs a few ticks ahead of the
  * server and the server applies the frame for tick N during its Nth step (or repeats the previous frame if it is missing).
  */
+/** A car's body state (client-authority mode): the client says where its own car is at the start of the frame's tick. */
+export interface PoseFrame {
+  p: [number, number, number];
+  q: [number, number, number, number];
+  v: [number, number, number];
+  w: [number, number, number];
+}
+
 export interface InputFrame extends CarControls {
   tick: number;
+  /** Client-authority mode: the sender's own car state before this tick, and the reset count it has adopted (`SnapCar.rs`). */
+  ps?: PoseFrame;
+  rs?: number;
   /**
    * The server time, in ticks, of the remote cars as this client was drawing them when it made the frame. The server
    * rewinds other cars to that moment when it resolves this frame's hitscan (lag compensation), within a cap.
@@ -298,12 +309,17 @@ export function parseClientMessage(raw: string): ParseResult<ClientMsg> {
       if (!isNum(throttle) || !isNum(brake) || !isNum(steer)) return bad;
       const vt = m.vt === undefined ? undefined : isNum(m.vt) ? clamp(m.vt, 0, 1e9) : null;
       if (vt === null) return bad;
+      const ps = m.ps === undefined ? undefined : parsePose(m.ps);
+      if (ps === null) return bad;
+      const rs = m.rs === undefined ? undefined : isNum(m.rs) ? clamp(Math.trunc(m.rs), 0, 1e6) : null;
+      if (rs === null) return bad;
       return {
         ok: true,
         msg: {
           t: 'input',
           tick,
           vt,
+          ...(ps ? { ps, rs: rs ?? 0 } : {}),
           throttle: clamp(throttle, 0, 1),
           brake: clamp(brake, 0, 1),
           steer: clamp(steer, -1, 1),
@@ -390,6 +406,22 @@ export const round = (v: number, dp: number): number => {
   const k = 10 ** dp;
   return Math.round(v * k) / k;
 };
+
+const POSE_LIMIT_M = 20000;
+
+/** Four finite vectors of the right sizes, clamped to sane ranges; anything else is rejected. */
+function parsePose(raw: unknown): PoseFrame | null {
+  if (typeof raw !== 'object' || raw === null) return null;
+  const r = raw as Record<string, unknown>;
+  const vec = (v: unknown, n: number, lim: number): number[] | null =>
+    Array.isArray(v) && v.length === n && v.every(isNum) ? v.map((x: number) => clamp(x, -lim, lim)) : null;
+  const p = vec(r.p, 3, POSE_LIMIT_M);
+  const q = vec(r.q, 4, 1);
+  const v = vec(r.v, 3, 400);
+  const w = vec(r.w, 3, 100);
+  if (!p || !q || !v || !w) return null;
+  return { p, q, v, w } as PoseFrame;
+}
 
 const STAT_KEYS: readonly (keyof ClientStats)[] = [
   'sec',

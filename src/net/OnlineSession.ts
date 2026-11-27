@@ -50,6 +50,8 @@ export class OnlineSession {
   readonly clock = new ClockSync();
   readonly reconciler = new Reconciler();
   readonly log: ReconcileLogEntry[] = [];
+  /** Client-authority mode: the own car is never corrected (the server follows it); the reconciler only measures. */
+  clientAuthority = false;
   snap: Snap | null = null;
   /** Ticks the sim should add (+) or skip (-), steered from the server's margin reports. */
   private advance = 0;
@@ -60,6 +62,10 @@ export class OnlineSession {
   /** The delay remote cars are drawn behind the newest snapshot (adapts to the link's jitter). */
   private delaySec: number;
   private ownRs = -1;
+  /** The server's reset count for the own car as last adopted (sent with pose frames so a teleport in flight wins). */
+  get adoptedResets(): number {
+    return Math.max(0, this.ownRs);
+  }
   private readonly remotes = new Map<string, { ip: Interpolator; sm: PoseSmoother; pose: RemotePose }>();
   private body: ReconcileBody | null = null;
   /** Ticks still to add (+) or hold (-): diagnostics. */
@@ -161,7 +167,7 @@ export class OnlineSession {
       if (this.nitro) this.nitro.bars = c.nb;
       this.log.push({ kind: 'snap', errM: 0, errRad: 0, nearOther: false, tick: m.tick });
     } else {
-      const res = this.reconciler.onSnapshot(m.tick, c, body, this.localTick);
+      const res = this.reconciler.onSnapshot(m.tick, c, body, this.localTick, this.clientAuthority);
       this.reconcileNitro(m.tick, c.nb);
       const near = m.cars.some((o) => o.id !== c.id && Math.hypot(o.p[0] - c.p[0], o.p[2] - c.p[2]) < 9);
       this.log.push({ ...res, nearOther: near, tick: m.tick });

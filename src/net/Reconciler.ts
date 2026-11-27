@@ -125,7 +125,7 @@ export class Reconciler {
    * The server's state for our car after `tick` sim ticks (a snapshot's `tick`). `localTick` is how far the local sim has
    * got: it runs a few ticks ahead of the server, so a hard snap puts the car where the server's car will be by then.
    */
-  onSnapshot(tick: number, srv: SnapCar, body: ReconcileBody, localTick = tick): ReconcileResult {
+  onSnapshot(tick: number, srv: SnapCar, body: ReconcileBody, localTick = tick, observeOnly = false): ReconcileResult {
     const h0 = this.hist[0];
     const h = h0 && tick >= h0.seq ? this.hist[tick - h0.seq] : undefined;
     if (!h || h.seq !== tick) return { kind: 'unknown', errM: 0, errRad: 0 };
@@ -147,6 +147,14 @@ export class Reconciler {
     const eq = qnorm(qmul(srv.q as Q4, qconj(predQ)));
     const errRad = qangle(eq);
 
+    // Observe only (client-authority mode): measure how far the server's car is from ours, correct nothing.
+    if (observeOnly) {
+      this.pendingP = [0, 0, 0];
+      this.pendingV = [0, 0, 0];
+      this.pendingQ = IDENT;
+      const kind = errM > this.cfg.snapM ? 'snap' : errM > this.cfg.deadbandM ? 'smooth' : 'none';
+      return { kind, errM, errRad };
+    }
     if (errM > this.cfg.snapM) {
       body.set(this.advanced(srv, Math.max(0, localTick - tick)));
       this.hist.length = 0;
