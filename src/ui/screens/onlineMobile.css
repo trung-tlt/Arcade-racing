@@ -1,0 +1,499 @@
+/* Phone landscape (about 844x390) layouts for the online screens: boards 45-54. Safe areas are 44 px left/right and 14 px
+   top/bottom (or the device's own inset when larger); touch targets are 44-48 px or more. Desktop is untouched. */
+
+/* Bots switch (every size) */
+.ol-bots .bl {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+.ol-bots .bl .sub {
+  font-size: 12px;
+  color: #b4bdcb;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ol-switch {
+  position: relative;
+  flex: none;
+  width: 64px;
+  height: 40px;
+  padding: 0;
+  border-radius: 20px;
+  border: 1px solid #2a3240;
+  background: #0e1116;
+  cursor: pointer;
+}
+.ol-switch i {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6b7585;
+  transition: left 0.15s;
+}
+.ol-switch.on {
+  background: #2ec5ff;
+  border-color: #2ec5ff;
+}
+.ol-switch.on i {
+  left: 28px;
+  background: #0e1116;
+}
+.ol-switch:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+.ol-mback,
+.ol-trackname .tp {
+  display: none;
+}
+
+@media (max-height: 560px) {
+  /* ---- Lobby (board 46) ---- */
+  .mn-lobby {
+    position: relative;
+    isolation: isolate;
+    background: #05070a;
+  }
+  .mn-lobby .ol-page {
+    box-sizing: border-box;
+    height: 100%;
+    min-height: 0;
+    gap: 8px;
+    padding: max(14px, env(safe-area-inset-top)) max(44px, env(safe-area-inset-right))
+      max(14px, env(safe-area-inset-bottom)) max(44px, env(safe-area-inset-left));
+  }
+  /* The picked track is the backdrop, dimmed. */
+  .mn-lobby .ol-track,
+  .mn-lobby .ol-trackimg {
+    position: static;
+  }
+  .mn-lobby .ol-trackimg img {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: brightness(0.5) saturate(0.9);
+  }
+  .mn-lobby .ol-page::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgba(14, 17, 22, 0.78) 0%, rgba(14, 17, 22, 0.45) 58%, rgba(14, 17, 22, 0.2) 100%),
+      linear-gradient(180deg, rgba(14, 17, 22, 0.55) 0%, transparent 22%, transparent 70%, rgba(14, 17, 22, 0.6) 100%);
+  }
+  .mn-lobby .ol-head {
+    flex: none;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 10px;
+    height: 48px;
+    padding: 0;
+  }
+  .mn-lobby .ol-mback {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    width: 48px;
+    height: 48px;
+    padding: 0;
+    border-radius: 12px;
+    border: 1px solid #2a3240;
+    background: rgba(22, 27, 35, 0.92);
+    color: #e8ecf2;
+    cursor: pointer;
+  }
+  .mn-lobby .ol-title {
+    gap: 0;
+    min-width: 0;
+  }
+  .mn-lobby .ol-title .mn-eyebrow {
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mn-lobby .ol-head h2 {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+  .mn-lobby .ol-head h2 .sub {
+    font-size: 14px;
+  }
+  .mn-lobby .ol-codebox {
+    margin-left: auto;
+    align-items: center;
+    gap: 8px;
+  }
+  .mn-lobby .ol-codebox > div {
+    padding: 0;
+    background: none;
+    border: 0;
+  }
+  .mn-lobby .ol-codebox .mn-eyebrow,
+  .mn-lobby .ol-copybtn .kc,
+  .mn-lobby .ol-note,
+  .mn-lobby .ol-cols,
+  .mn-lobby .ol-laps .keys,
+  .mn-lobby .ol-leave,
+  .mn-lobby .ol-lock,
+  .mn-lobby .ol-row .n,
+  .mn-lobby .ol-row .car .ol-thumb,
+  .mn-lobby .ol-mycar .ol-thumb,
+  .mn-lobby .ol-mycar .chg .kc,
+  .mn-lobby .ol-ready .kc,
+  .mn-lobby .ol-start .kc,
+  .mn-lobby .ol-ready small:not(.keep),
+  .mn-lobby .mn-keybar {
+    display: none;
+  }
+  .mn-lobby .ol-code-val {
+    font-size: 20px;
+    letter-spacing: 3px;
+  }
+  .mn-lobby .ol-copybtn {
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+  .mn-lobby .ol-copybtn .ol-icon {
+    width: 16px;
+    height: 16px;
+  }
+  .mn-lobby .ol-lobby {
+    flex: 1;
+    min-height: 0;
+    gap: 12px;
+    padding: 0;
+  }
+
+  /* Players: one row per slot, the room fills the list height. */
+  .mn-lobby .ol-players {
+    gap: 4px;
+  }
+  .mn-lobby .ol-row,
+  .mn-lobby .ol-row:not(.empty) {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto 76px;
+    grid-template-rows: auto auto;
+    column-gap: 8px;
+    align-items: center;
+    flex: 1 1 0;
+    min-height: 36px;
+    max-height: 48px;
+    box-sizing: border-box;
+    padding: 0 10px 0 22px;
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(22, 27, 35, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .mn-lobby .ol-row.you {
+    background: rgba(42, 26, 16, 0.8);
+    border-color: #ff6a1a;
+  }
+  .mn-lobby .ol-row.empty {
+    display: flex;
+    min-height: 36px;
+    padding: 0 10px;
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+    background: rgba(14, 17, 22, 0.4);
+    font-size: 12px;
+  }
+  .mn-lobby .ol-row.empty .ol-open {
+    font-size: 12px;
+  }
+  .mn-lobby .ol-row .who {
+    grid-column: 1;
+    grid-row: 1;
+    gap: 6px;
+  }
+  .mn-lobby .who b {
+    font-size: 15px;
+  }
+  .mn-lobby .who .chip {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    height: 26px;
+    transform: translateY(-50%);
+  }
+  .mn-lobby .badge {
+    font-size: 9px;
+    letter-spacing: 0;
+    padding: 1px 4px;
+    border-radius: 3px;
+  }
+  .mn-lobby .host {
+    font-size: 0;
+    gap: 0;
+  }
+  .mn-lobby .host .ol-icon {
+    width: 15px;
+    height: 15px;
+  }
+  .mn-lobby .ol-row .car {
+    grid-column: 1;
+    grid-row: 2;
+    font-size: 11px;
+    color: #9aa4b5;
+    line-height: 1.1;
+  }
+  .mn-lobby .ol-row .ping {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    gap: 4px;
+  }
+  .mn-lobby .ol-ping-ms {
+    font-size: 10px;
+  }
+  .mn-lobby .ol-row .status {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    justify-content: center;
+    min-width: 76px;
+    box-sizing: border-box;
+    padding: 4px 7px;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
+  .mn-lobby .ol-row .status .ol-icon {
+    width: 14px;
+    height: 14px;
+  }
+
+  /* Side column: track stepper, laps, bots, car, then READY / START together. */
+  .mn-lobby .ol-side {
+    flex: 0 0 288px;
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    grid-template-rows: auto auto 1fr;
+    gap: 6px;
+    align-content: stretch;
+  }
+  .mn-lobby .ol-track {
+    grid-column: 1 / -1;
+    grid-row: 1;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+    gap: 6px;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    overflow: visible;
+  }
+  .mn-lobby .ol-trackimg,
+  .mn-lobby .ol-trackbody {
+    display: contents;
+  }
+  .mn-lobby .ol-track::before {
+    content: '';
+    grid-column: 1 / -1;
+    grid-row: 1;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .mn-lobby .ol-arrow {
+    position: relative;
+    z-index: 1;
+    align-self: center;
+    justify-self: center;
+    grid-row: 1;
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid #2a3240;
+    background: rgba(14, 17, 22, 0.85);
+    font-size: 18px;
+  }
+  .mn-lobby .ol-arrow.l {
+    grid-column: 1;
+  }
+  .mn-lobby .ol-arrow.r {
+    grid-column: 3;
+  }
+  .mn-lobby .ol-trackname {
+    grid-column: 2;
+    grid-row: 1;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 56px;
+  }
+  .mn-lobby .ol-trackname .tp {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #9aa4b5;
+    font-weight: 600;
+  }
+  .mn-lobby .ol-trackname b {
+    max-width: 100%;
+    font-size: 16px;
+    line-height: 1.15;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mn-lobby .ol-trackname span {
+    font-size: 11px;
+    color: #b4bdcb;
+  }
+  /* A guest has no arrows: the name takes the whole row. */
+  .mn-lobby .ol-track:not(:has(.ol-arrow)) .ol-trackname {
+    grid-column: 1 / -1;
+  }
+  .mn-lobby .ol-laps {
+    grid-column: 1 / -1;
+    z-index: 1;
+    gap: 3px;
+    padding: 3px;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.72);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .mn-lobby .ol-laps .mn-eyebrow {
+    width: auto;
+    padding: 0 8px;
+    font-size: 10px;
+  }
+  .mn-lobby .ol-laps .pill {
+    flex: 1;
+    min-height: 44px;
+    border-radius: 9px;
+  }
+  .mn-lobby .ol-laps.ol-bots {
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 4px 0 12px;
+  }
+  .mn-lobby .ol-laps.ol-bots .mn-eyebrow {
+    padding: 0;
+  }
+  .mn-lobby .ol-mycar {
+    grid-column: 1 / -1;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 12px;
+    font-size: 14px;
+    letter-spacing: 0;
+    background: rgba(22, 27, 35, 0.92);
+  }
+  .mn-lobby .ol-mycar .lbl2 {
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .mn-lobby .ol-mycar small {
+    font-family: Inter, sans-serif;
+    font-weight: 500;
+    letter-spacing: 0;
+    font-size: 14px;
+    color: #9aa4b5;
+    text-transform: lowercase;
+  }
+  .mn-lobby .ol-mycar small::first-letter {
+    text-transform: uppercase;
+  }
+  .mn-lobby .ol-mycar .chg {
+    font-size: 0;
+  }
+  .mn-lobby .ol-mycar .chg::after {
+    content: '\203A';
+    font-size: 18px;
+  }
+  .mn-lobby .ol-ready,
+  .mn-lobby .ol-start,
+  .mn-lobby .ol-wait {
+    grid-row: 3;
+    align-self: end;
+    justify-content: center;
+    min-height: 60px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-size: 17px;
+    text-align: center;
+  }
+  .mn-lobby .ol-ready {
+    grid-column: 1;
+    background: #c6ff3d;
+    border-color: #c6ff3d;
+    color: #0e1116;
+  }
+  .mn-lobby .ol-ready.on {
+    background: rgba(198, 255, 61, 0.12);
+    border: 2px solid #c6ff3d;
+    color: #c6ff3d;
+  }
+  .mn-lobby .ol-start,
+  .mn-lobby .ol-wait {
+    grid-column: 2;
+  }
+  .mn-lobby .ol-start {
+    background: #2a3240;
+    border-color: #2a3240;
+    color: #6b7585;
+    opacity: 1;
+    cursor: not-allowed;
+  }
+  .mn-lobby .ol-start.go {
+    background: #ff6a1a;
+    border-color: #ff6a1a;
+    color: #0e1116;
+    cursor: pointer;
+  }
+  .mn-lobby .ol-ready .lbl2,
+  .mn-lobby .ol-start .lbl2 {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+  }
+  .mn-lobby .ol-start small {
+    display: block;
+    font-family: Inter, sans-serif;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.15;
+  }
+  .mn-lobby .ol-wait {
+    font-size: 11px;
+    gap: 6px;
+    padding: 0 6px;
+  }
+  .mn-lobby .ol-notice {
+    position: absolute;
+    left: 50%;
+    top: 68px;
+    z-index: 3;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+}

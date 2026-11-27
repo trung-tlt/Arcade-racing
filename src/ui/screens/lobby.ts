@@ -17,6 +17,7 @@ import {
   trackPreview,
 } from './onlineCommon';
 import './online.css';
+import './onlineMobile.css';
 
 export interface LobbyDeps {
   onReady(ready: boolean): void;
@@ -216,18 +217,22 @@ export class LobbyScreen implements Screen {
           `<button type="button" class="pill${n === view.laps ? ' on' : ''}" data-act="laps" data-n="${n}" data-sfx="toggle_on" aria-pressed="${n === view.laps}"${view.isHost ? '' : ' disabled'}>${n}</button>`,
       )
       .join('');
-    const botPills = [false, true]
-      .map(
-        (on) =>
-          `<button type="button" class="pill${on === view.bots ? ' on' : ''}" data-act="bots" data-n="${on ? 1 : 0}" data-sfx="toggle_on" aria-pressed="${on === view.bots}"${view.isHost ? '' : ' disabled'}>${on ? 'ON' : 'OFF'}</button>`,
-      )
-      .join('');
+    const openSlots = Math.max(0, ONLINE.maxPlayers - view.roster.length);
+    const botsSub = view.bots
+      ? openSlots > 0
+        ? `${openSlots} bot${openSlots > 1 ? 's' : ''} fill open slots`
+        : 'On · room is full'
+      : view.isHost
+        ? 'Off · humans only'
+        : 'Off · host decides';
+    const botsRow = `<div class="ol-laps ol-bots"><span class="bl"><span class="mn-eyebrow">BOTS</span><span class="sub">${esc(botsSub)}</span></span><button type="button" class="ol-switch${view.bots ? ' on' : ''}" role="switch" aria-checked="${view.bots}" aria-label="Bot racers" data-act="bots" data-n="${view.bots ? 0 : 1}" data-sfx="toggle_on"${view.isHost ? '' : ' disabled'}><i></i></button></div>`;
     const hostBtns = view.isHost
       ? `<button type="button" class="ol-arrow l" data-act="prev" data-sfx="track_switch" aria-label="Previous track">←</button><button type="button" class="ol-arrow r" data-act="next" data-sfx="track_switch" aria-label="Next track">→</button>`
       : '';
     this.el.innerHTML = `
       <div class="ol-page">
         <header class="ol-head">
+          <button type="button" class="ol-mback" data-act="leave" aria-label="Leave room"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
           <div class="ol-title">
             <div class="mn-eyebrow">${esc(view.isHost ? str('lobby.host') : str('lobby.guest', { host: view.hostName }))}</div>
             <h2>${esc(str('lobby.title'))} <span class="sub">· ${humans}/${ONLINE.maxPlayers} racers</span></h2>
@@ -246,9 +251,9 @@ export class LobbyScreen implements Screen {
             <div class="ol-track">
               <div class="ol-trackimg"><img src="${trackPreview(t.id)}" alt="${esc(t.name)} preview" />${hostBtns}</div>
               <div class="ol-trackbody">
-                <div class="ol-trackname"><b>${esc(t.name)}</b><span>${esc(t.timeOfDay)} · ${(t.lapLengthM / 1000).toFixed(1)} km</span></div>
+                <div class="ol-trackname"><small class="tp">TRACK ${TRACKS.findIndex((x) => x.id === t.id) + 1}/${TRACKS.length}</small><b>${esc(t.name)}</b><span>${esc(t.timeOfDay)} · ${(t.lapLengthM / 1000).toFixed(1)} km</span></div>
                 <div class="ol-laps"><span class="mn-eyebrow">LAPS</span>${lapPills}${view.isHost ? `<span class="keys">${kc('←')}${kc('→')}${kc('L')}</span>` : ''}</div>
-                <div class="ol-laps"><span class="mn-eyebrow">BOTS</span>${botPills}</div>
+                ${botsRow}
                 ${view.isHost ? '' : `<div class="ol-lock">${icon('lock', 16)}${esc(str('lobby.hostonly'))}</div>`}
               </div>
             </div>
