@@ -145,6 +145,27 @@ async function scenario(browser, profileName, track) {
                 sz: sc ? +sc.p[2].toFixed(1) : null,
                 sv: sc ? +Math.hypot(sc.v[0], sc.v[2]).toFixed(1) : null,
                 sy: sc ? +sc.p[1].toFixed(2) : null,
+                cam: +g.chase.camera.position.distanceTo(g.car.visual.root.position).toFixed(2),
+                sc: +g.car.visual.root.scale.x.toFixed(3),
+                vis: g.car.visual.root.visible ? 1 : 0,
+                gap: (() => {
+                  const r = g.sunkRay;
+                  r.origin.x = c.curr.p.x;
+                  r.origin.y = c.curr.p.y + 2.5;
+                  r.origin.z = c.curr.p.z;
+                  const h = g.world.castRay(
+                    r,
+                    12,
+                    true,
+                    undefined,
+                    undefined,
+                    undefined,
+                    undefined,
+                    (col) => col.parent()?.bodyType() === 1,
+                  );
+                  return h ? +(c.curr.p.y - (r.origin.y - h.timeOfImpact)).toFixed(2) : null;
+                })(),
+                dy: +(c.curr.p.y - g.path.pointAt(g.carTs.get(g.car.id) ?? 0).y).toFixed(2),
               });
             }, 16);
           }
@@ -162,6 +183,25 @@ async function scenario(browser, profileName, track) {
         })),
       ),
     );
+    if (process.env.NETLAB_TRACE)
+      clients.forEach((c, i) => {
+        if (!c.trace?.length) return;
+        const cam = c.trace.map((t) => t.cam).sort((a, b) => a - b);
+        const q = (f) => cam[Math.floor(cam.length * f)];
+        console.log(
+          `\n  P${i + 1} camera-to-car distance: p5 ${q(0.05)} p50 ${q(0.5)} p95 ${q(0.95)} max ${cam.at(-1)} m | car scale ${Math.min(...c.trace.map((t) => t.sc))}..${Math.max(...c.trace.map((t) => t.sc))} | hidden samples ${c.trace.filter((t) => !t.vis).length} | height over road path: min ${Math.min(...c.trace.map((t) => t.dy))} p1 ${c.trace.map((t) => t.dy).sort((a, b) => a - b)[Math.floor(c.trace.length * 0.01)]} max ${Math.max(...c.trace.map((t) => t.dy))} | centre above real road: min ${Math.min(...c.trace.filter((t) => t.gap !== null).map((t) => t.gap))} p1 ${
+            c.trace
+              .filter((t) => t.gap !== null)
+              .map((t) => t.gap)
+              .sort((a, b) => a - b)[Math.floor(c.trace.length * 0.01)]
+          } p50 ${
+            c.trace
+              .filter((t) => t.gap !== null)
+              .map((t) => t.gap)
+              .sort((a, b) => a - b)[Math.floor(c.trace.length * 0.5)]
+          } no-hit ${c.trace.filter((t) => t.gap === null).length}`,
+        );
+      });
     if (process.env.NETLAB_TRACE)
       clients.forEach((c, i) => {
         if (!c.log) return;
