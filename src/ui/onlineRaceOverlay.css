@@ -119,6 +119,11 @@
   color: #7d8a9b;
   font-size: 13px;
 }
+.orr-bar,
+.orr-mebar,
+.orr-auto {
+  display: none;
+}
 /* Finished: banner on top, side panel on the right; nothing covers the race. */
 .orr-banner {
   position: absolute;
@@ -146,6 +151,126 @@
   padding: 14px 16px;
 }
 @media (max-height: 560px) {
+  /* Loading (board 53): the title and my own progress on the left, everyone's progress on the right. */
+  .orr-loading {
+    display: block;
+    background: rgba(8, 10, 14, 0.78);
+    backdrop-filter: blur(3px);
+    -webkit-backdrop-filter: blur(3px);
+  }
+  .orr-loading .orr-card {
+    display: contents;
+  }
+  .orr-loading .orr-card > .mn-eyebrow {
+    position: absolute;
+    left: max(44px, env(safe-area-inset-left));
+    top: 14px;
+    font-size: 9px;
+    letter-spacing: 2px;
+  }
+  .orr-loading .orr-card h2 {
+    position: absolute;
+    left: max(44px, env(safe-area-inset-left));
+    top: 30px;
+    width: 380px;
+    font-size: 26px;
+  }
+  .orr-loading .orr-meblock {
+    position: absolute;
+    left: max(44px, env(safe-area-inset-left));
+    top: 92px;
+    width: 380px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .orr-loading .orr-me {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #e8ecf2;
+  }
+  .orr-mebar {
+    display: block;
+    height: 10px;
+    border-radius: 5px;
+    background: #2a3240;
+    overflow: hidden;
+  }
+  .orr-mebar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    border-radius: 5px;
+    background: #2ec5ff;
+    animation: orr-load 1.6s ease-in-out infinite;
+  }
+  .orr-mebar.ready i {
+    background: #c6ff3d;
+    animation: none;
+  }
+  .orr-mebar.slow i,
+  .orr-bar.slow i {
+    background: #f2c14e;
+  }
+  .orr-loading .orr-foot {
+    position: absolute;
+    left: max(44px, env(safe-area-inset-left));
+    top: 164px;
+    width: 380px;
+    font-size: 12.5px;
+    color: #9aa4b5;
+  }
+  .orr-loading .orr-list {
+    position: absolute;
+    right: max(44px, env(safe-area-inset-right));
+    top: 14px;
+    width: 350px;
+    box-sizing: border-box;
+    gap: 7px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(22, 27, 35, 0.95);
+  }
+  .orr-loading .orr-list li {
+    flex-wrap: wrap;
+    row-gap: 3px;
+    padding: 0;
+    border: 0;
+    background: none;
+    border-radius: 0;
+  }
+  .orr-loading .orr-list li b {
+    font-size: 13px;
+  }
+  .orr-loading .orr-list .orr-st {
+    font-size: 10.5px;
+    font-weight: 700;
+  }
+  .orr-loading .orr-list .orr-st .ol-icon {
+    display: none;
+  }
+  .orr-loading .orr-bar {
+    display: block;
+    flex: 0 0 100%;
+    height: 4px;
+    border-radius: 2px;
+    background: #2a3240;
+    overflow: hidden;
+  }
+  .orr-bar i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: #2ec5ff;
+    animation: orr-load 1.6s ease-in-out infinite;
+  }
+  .orr-bar.ready i {
+    background: #c6ff3d;
+    animation: none;
+  }
+  .orr-loading .orr-rule {
+    display: none;
+  }
   .orr-card {
     padding: 12px 16px;
     gap: 6px;
@@ -158,12 +283,26 @@
   }
   /* Phone: below the pause buttons, one line; the order panel sits between the minimap and the speedo, clear of the pads. */
   .orr-banner {
-    top: 58px;
-    padding: 4px 14px;
+    top: 10px;
+    left: max(44px, env(safe-area-inset-left));
+    transform: none;
+    padding: 6px 14px;
     font-size: 16px;
     flex-direction: row;
     gap: 10px;
     white-space: nowrap;
+    border-width: 2px;
+  }
+  .orr-auto {
+    display: block;
+    position: absolute;
+    left: max(44px, env(safe-area-inset-left));
+    bottom: 10px;
+    padding: 5px 9px;
+    border-radius: 6px;
+    background: rgba(14, 17, 22, 0.8);
+    font-size: 11px;
+    color: #c9d1dd;
   }
   .orr-banner small {
     font-size: 12px;
@@ -198,5 +337,21 @@
   }
   .orr-side .orr-rule {
     display: none;
+  }
+}
+
+@keyframes orr-load {
+  0%,
+  100% {
+    transform: translateX(-60%);
+  }
+  50% {
+    transform: translateX(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .orr-bar i,
+  .orr-mebar i {
+    animation: none;
   }
 }

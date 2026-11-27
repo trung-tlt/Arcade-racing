@@ -108,7 +108,7 @@ export class OnlineRaceOverlay {
             : r.state === 'slow'
               ? `<span class="orr-st slow">${esc(online.strings['loading.slow'].split(' ·')[0])}</span>`
               : `<span class="orr-st">${icon('waiting', 16)}…</span>`;
-        return `<li class="${r.isMe ? 'me' : ''}"><b>${esc(r.name)}</b>${r.isMe ? '<em class="badge">YOU</em>' : ''}${tag}</li>`;
+        return `<li class="${r.isMe ? 'me' : ''}"><b>${esc(r.name)}</b>${r.isMe ? '<em class="badge">YOU</em>' : ''}${tag}<span class="orr-bar ${r.state}"><i></i></span></li>`;
       })
       .join('');
     const meLine = str(
@@ -126,7 +126,7 @@ export class OnlineRaceOverlay {
     return `<div class="orr-card">
       <div class="mn-eyebrow">${str('loading.room', { code: formatRoomCode(view.code), laps: view.laps })}</div>
       <h2>${esc(str('loading.title'))}</h2>
-      <div class="orr-me">${meLine}</div>
+      <div class="orr-meblock"><div class="orr-me">${meLine}</div><div class="orr-mebar ${s.me}"><i></i></div></div>
       <ul class="orr-list">${rows}</ul>
       <div class="orr-foot">${f.kind === 'wait' || f.kind === 'youSlow' ? ring(s.secLeft, online.loading.timeoutSec) : ''}<span>${foot}</span></div>
       <div class="orr-rule">${esc(str('loading.rule'))}</div>
@@ -149,6 +149,7 @@ export class OnlineRaceOverlay {
           ? esc(str('finished.waiting1'))
           : str('finished.waiting', { n: waiting });
     return `<div class="orr-banner"><b>${esc(str('finished.label'))}</b> · ${s.place} · <span class="mn-mono">${esc(s.time)}</span><small>${str('finished.sub', { best: s.best })}</small></div>
+      <div class="orr-auto">${esc(str('finished.autopilot'))}</div>
       <aside class="orr-side">
         <div class="orr-order"><div class="mn-eyebrow">FINISHING ORDER</div><ul class="orr-list">${rows}</ul></div>
         <div class="orr-foot">${s.secLeft !== null && !s.closed ? ring(s.secLeft, online.finished.closeAfterFirstSec) : ''}<span>${head}</span></div>
