@@ -502,3 +502,97 @@ body {
 .view-toast[hidden] {
   display: none;
 }
+
+/* Online race HUD: live standings (board 47) and the ping chip */
+.race-standings {
+  position: fixed;
+  left: 32px;
+  top: 190px;
+  width: 176px;
+  margin: 0;
+  padding: 4px 6px;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, 0.6);
+  font-size: 11px;
+  pointer-events: none;
+}
+.race-standings[hidden],
+.race-ping[hidden] {
+  display: none;
+}
+.race-standings li {
+  display: flex;
+  gap: 6px;
+  padding: 1px 4px;
+  border-radius: 4px;
+}
+.race-standings li.you {
+  background: rgba(255, 106, 26, 0.25);
+}
+.race-standings .p {
+  width: 14px;
+  font-weight: 700;
+  color: #9aa4b5;
+}
+.race-standings .n {
+  flex: 1;
+  min-width: 0;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.race-standings .g {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  color: #9aa4b5;
+}
+.race-ping {
+  position: fixed;
+  right: 260px;
+  top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 8px;
+  border-radius: 8px;
+  background: rgba(14, 17, 22, 0.74);
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: #c6ff3d;
+  pointer-events: none;
+}
+.race-ping .bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 12px;
+}
+.race-ping .bars i {
+  width: 3px;
+  border-radius: 1px;
+  background: #2a3240;
+}
+.race-ping .bars i:nth-child(1) {
+  height: 4px;
+}
+.race-ping .bars i:nth-child(2) {
+  height: 7px;
+}
+.race-ping .bars i:nth-child(3) {
+  height: 10px;
+}
+.race-ping .bars i:nth-child(4) {
+  height: 12px;
+}
+.race-ping .bars.l1 i:nth-child(-n + 1),
+.race-ping .bars.l2 i:nth-child(-n + 2),
+.race-ping .bars.l3 i:nth-child(-n + 3),
+.race-ping .bars.l4 i:nth-child(-n + 4) {
+  background: currentColor;
+}

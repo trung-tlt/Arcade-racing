@@ -15,6 +15,9 @@ export interface RaceHudState {
   bestLap: number | null;
   position: number;
   totalCars: number;
+  /** Online: the first few racers with the time gap to the car ahead (null for the leader), and this client's ping (ms). */
+  standings?: { pos: number; name: string; gapSec: number | null; you: boolean }[];
+  pingMs?: number;
 }
 
 /** Top-left lap/time block, centre countdown banner and the finish card. */
@@ -25,7 +28,9 @@ export class RaceHud {
   private readonly time: HTMLElement;
   private readonly best: HTMLElement;
   private readonly banner: HTMLElement;
-  private last = { pos: '', lap: '', time: '', best: '', banner: '' };
+  private readonly standings: HTMLElement;
+  private readonly ping: HTMLElement;
+  private last = { pos: '', lap: '', time: '', best: '', banner: '', standings: '', ping: '' };
 
   constructor(root: HTMLElement) {
     this.el.innerHTML = `
@@ -37,6 +42,8 @@ export class RaceHud {
         <div class="race-time"></div>
         <div class="race-best"></div>
       </div>
+      <ol class="race-standings" aria-label="Live standings" hidden></ol>
+      <div class="race-ping" hidden></div>
       <div class="race-banner" hidden></div>`;
     root.appendChild(this.el);
     const q = (s: string): HTMLElement => this.el.querySelector(s) as HTMLElement;
@@ -45,6 +52,8 @@ export class RaceHud {
     this.time = q('.race-time');
     this.best = q('.race-best');
     this.banner = q('.race-banner');
+    this.standings = q('.race-standings');
+    this.ping = q('.race-ping');
   }
 
   update(s: RaceHudState): void {
@@ -69,6 +78,7 @@ export class RaceHud {
       this.best.textContent = best;
     }
 
+    this.paintOnline(s);
     if (s.startLights !== undefined && s.startLights !== null) {
       // Five lamps instead of 3-2-1: red ones are lit; they all go out for GO.
       const total = s.startLightsTotal ?? 5;
@@ -90,6 +100,35 @@ export class RaceHud {
       this.banner.classList.toggle('go', s.countdown === 0);
       const hint = s.countdown === 0 ? 'FULL THROTTLE' : 'WAIT FOR GO';
       this.banner.innerHTML = `${banner}<span class="race-banner-hint">${hint}</span>`;
+    }
+  }
+
+  /** Online only: the live standings list and the ping chip. */
+  private paintOnline(s: RaceHudState): void {
+    const rows = s.standings ?? null;
+    const html = rows
+      ? rows
+          .map(
+            (r) =>
+              `<li class="${r.you ? 'you' : ''}"><span class="p">${r.pos}</span><span class="n">${r.name}</span><span class="g">${r.gapSec === null ? '' : `+${r.gapSec.toFixed(1)}`}</span></li>`,
+          )
+          .join('')
+      : '';
+    if (html !== this.last.standings) {
+      this.last.standings = html;
+      this.standings.hidden = rows === null;
+      this.standings.innerHTML = html;
+    }
+    const ms = s.pingMs !== undefined && s.pingMs > 0 ? Math.round(s.pingMs) : null;
+    const level = ms === null ? 0 : ms < 60 ? 4 : ms < 100 ? 3 : ms < 160 ? 2 : 1;
+    const ping =
+      ms === null
+        ? ''
+        : `<span class="bars l${level}" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>${ms} ms</span>`;
+    if (ping !== this.last.ping) {
+      this.last.ping = ping;
+      this.ping.hidden = ms === null;
+      this.ping.innerHTML = ping;
     }
   }
 

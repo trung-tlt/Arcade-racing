@@ -1008,6 +1008,29 @@ export class Game {
     return gridPose(this.path, lateral, Math.abs(behind), this.path.lengthM);
   }
 
+  /** The first racers (and always this player), each with the time gap to the car ahead, for the online standings list. */
+  private onlineStandings(): { pos: number; name: string; gapSec: number | null; you: boolean }[] {
+    const order = [...this.places].sort((a, b) => a[1] - b[1]).map(([id]) => id);
+    const row = (id: string, i: number): { pos: number; name: string; gapSec: number | null; you: boolean } => {
+      const ahead = i > 0 ? order[i - 1] : null;
+      const car = this.cars.find((c) => c.id === id);
+      const gapSec =
+        ahead && car
+          ? gapAheadSec(
+              this.progressOf(ahead),
+              this.progressOf(id),
+              this.path.lengthM,
+              Math.max(10, Math.abs(car.physics.forwardSpeed)),
+            )
+          : null;
+      return { pos: i + 1, name: this.nameOf(id), gapSec, you: id === 'player' };
+    };
+    const rows = order.slice(0, 4).map(row);
+    const me = order.indexOf('player');
+    if (me >= 4) rows[3] = row('player', me);
+    return rows;
+  }
+
   /** Lap + along-track progress (staged cars behind the line count as slightly negative). */
   private progressOf(id: string): number {
     const r = this.races.get(id);
@@ -2219,6 +2242,7 @@ export class Game {
       bestLap: this.race.laps.bestLap,
       position: this.places.get('player') ?? 1,
       totalCars: this.cars.length,
+      ...(this.online ? { standings: this.onlineStandings(), pingMs: this.online.client.pingMs } : {}),
     });
     const cd = this.race.countdownValue;
     if (cd !== this.lastCountdown) {
