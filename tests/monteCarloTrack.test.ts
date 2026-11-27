@@ -45,6 +45,7 @@ describe('Monte-Carlo Harbour track data', () => {
       'pham_van_dong',
       'monte_carlo',
       'ardennes',
+      'suzuka_hills',
     ]);
     expect(getTrack('monte_carlo')).toBe(MONTE_CARLO);
     expect(MONTE_CARLO.timeOfDay).toBe('day');

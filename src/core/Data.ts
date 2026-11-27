@@ -14,6 +14,7 @@ import phamVanDongJson from '../../data/tracks/pham_van_dong.json';
 import xaLoJson from '../../data/tracks/xa_lo_ha_noi.json';
 import monteCarloJson from '../../data/tracks/monte_carlo.json';
 import ardennesJson from '../../data/tracks/ardennes.json';
+import suzukaJson from '../../data/tracks/suzuka_hills.json';
 
 export type VehicleType = 'car' | 'apc8x8' | 'bike';
 
@@ -304,6 +305,8 @@ interface RawTrack {
   laps: number;
   lapLengthM: number;
   roadWidthM?: number | { byT: [number, number][]; [section: string]: unknown };
+  /** Map 7: the carriageway width by section, `{fromT, widthM}` ascending; each change blends over 40 m. */
+  width?: { fromT: number; widthM: number }[];
   /** Map 1 v2: which texture each kind of surface uses. */
   surfaces?: {
     NTD?: { texture: string; tileM: [number, number] };
@@ -344,7 +347,8 @@ interface RawTrack {
 interface CatLaiLighting {
   sun: { azimuthDeg: number; elevationDeg: number; color: string; intensity: number };
   hemi: DayLighting['hemi'];
-  sky: { zenith: string; mid: string; horizon: string };
+  /** Map 1: three gradient colours; Map 7: a physical sky (the map draws it itself). */
+  sky: { zenith: string; mid: string; horizon: string } | { physicalSky: true };
   fog: DayLighting['fog'];
   toneMapping?: string;
 }
@@ -368,7 +372,11 @@ function dayLighting(r: RawTrack): DayLighting | null {
   if (!l) return null;
   if (isCatLaiLighting(l)) {
     // The sky is a custom gradient dome (three's Sky shader washes out at this sun height): no background texture.
-    const exposure = Number(/exposure\s+([\d.]+)/i.exec(l.toneMapping ?? '')?.[1] ?? 0.6);
+    const exposure = Number(
+      /exposure\s+([\d.]+)/i.exec(l.toneMapping ?? '')?.[1] ??
+        (l as { toneMappingExposure?: number }).toneMappingExposure ??
+        0.6,
+    );
     return {
       sun: {
         dir: sunDirection(l.sun.azimuthDeg, l.sun.elevationDeg),
@@ -378,7 +386,7 @@ function dayLighting(r: RawTrack): DayLighting | null {
       hemi: l.hemi,
       fog: l.fog,
       sky: 'textures/day_sky_gradient.png',
-      skyGradient: { zenith: l.sky.zenith, mid: l.sky.mid, horizon: l.sky.horizon },
+      ...('zenith' in l.sky ? { skyGradient: { zenith: l.sky.zenith, mid: l.sky.mid, horizon: l.sky.horizon } } : {}),
       bloom: { strength: 0.16, threshold: 0.93 },
       toneMappingExposure: exposure,
     };
@@ -390,6 +398,19 @@ function dayLighting(r: RawTrack): DayLighting | null {
 function widthTable(r: RawTrack): [number, number][] | null {
   const w = r.roadWidthM;
   return w && typeof w === 'object' && Array.isArray(w.byT) && w.byT.length > 1 ? w.byT : null;
+}
+
+/** Map 7's stepped `width` list as a `[t, w]` table: each section's width is reached 40 m after its start. */
+function widthStepTable(r: RawTrack): [number, number][] | null {
+  const steps = r.width;
+  if (!steps || steps.length < 2) return null;
+  const blend = 40 / r.lapLengthM;
+  const out: [number, number][] = [];
+  steps.forEach((e, i) => {
+    out.push([e.fromT, steps[(i - 1 + steps.length) % steps.length].widthM]);
+    out.push([e.fromT + blend, e.widthM]);
+  });
+  return out.sort((a, b) => a[0] - b[0]);
 }
 
 /** Linear interpolation in a `[t, value]` table that wraps around the lap. */
@@ -416,7 +437,9 @@ export function interpolateByT(table: readonly (readonly [number, number])[], t:
 }
 
 export function loadTrack(json: unknown): TrackDef {
-  const r = json as RawTrack;
+  const raw = json as RawTrack;
+  // Map 7's "golden hour (autumn, ~16:40)" is a day map with a low sun.
+  const r: RawTrack = /golden/i.test(String(raw.timeOfDay)) ? { ...raw, timeOfDay: 'day' } : raw;
   // Map 4: outbound runs on the 3 car lanes, inbound on the 2 motorbike lanes (the narrower, textured stretch).
   const cross = r.roadLayout?.crossSectionFromCentre;
   const carLanes = cross?.find((x) => /car lanes/i.test(x.part));
@@ -433,16 +456,21 @@ export function loadTrack(json: unknown): TrackDef {
       : undefined);
   // Map 1 v2: the width varies along the lap (`roadWidthM.byT`); the reference width is the Nguyen Thi Dinh road's.
   const table = widthTable(r);
+  const stepTable = table ? null : widthStepTable(r);
   const scalarWidth = typeof r.roadWidthM === 'number' ? r.roadWidthM : Number(r.roadWidthM?.NTD ?? Number.NaN);
   const width =
     main?.widthM ??
     r.roadLayout?.carriagewayWidthM ??
     r.road?.widthM ??
-    (Number.isFinite(scalarWidth) ? scalarWidth : 18);
+    (stepTable
+      ? stepTable.reduce((a, e) => a + e[1], 0) / stepTable.length
+      : Number.isFinite(scalarWidth)
+        ? scalarWidth
+        : 18);
   // Lanes across the racing carriageway: the old maps list lanes per direction, Map 3 lists the 4 lanes of its road.
   const lanes = main?.lanes ?? r.roadLayout?.lanesPerDirection ?? 3;
   // The pickup lanes must fit the narrowest stretch.
-  const laneW = (table ? Math.min(...table.map((e) => e[1])) : width) / lanes;
+  const laneW = ((table ?? stepTable) ? Math.min(...(table ?? stepTable ?? []).map((e) => e[1])) : width) / lanes;
   // Map 1's queue of parked trucks fills the left lane of Nguyen Thi Dinh: the left pickup lane sits a metre inside it.
   const laneOffsets =
     r.laneOffsetsM ??
@@ -531,7 +559,7 @@ export function loadTrack(json: unknown): TrackDef {
     hasElevation,
     groundY: minY < -1 ? Math.floor(minY) - 3 : 0,
     widthProfile,
-    widthByT: table,
+    widthByT: table ?? stepTable,
     sidewalkT,
     // Cat Lai's container-truck queue waits in the oncoming (left) lanes; the older maps' queues were on the right.
     blockedLane: table
@@ -580,7 +608,8 @@ export const XA_LO = loadTrack(xaLoJson);
 export const PHAM_VAN_DONG = loadTrack(phamVanDongJson);
 export const MONTE_CARLO = loadTrack(monteCarloJson);
 export const ARDENNES = loadTrack(ardennesJson);
-export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO, ARDENNES];
+export const SUZUKA = loadTrack(suzukaJson);
+export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO, ARDENNES, SUZUKA];
 
 export function getTrack(id: string): TrackDef {
   const t = TRACKS.find((x) => x.id === id);

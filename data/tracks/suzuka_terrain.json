@@ -1,0 +1,25 @@
+{
+ "bounds": {
+  "xMin": -2400,
+  "xMax": 1800,
+  "nMin": -1500,
+  "nMax": 1800
+ },
+ "size": [
+  1050,
+  825
+ ],
+ "metresPerPixel": 4.0,
+ "height": {
+  "encoding": "R*256+G (16-bit) over [-10, 150] m",
+  "min": -10.0,
+  "max": 150.0
+ },
+ "landcover": {
+  "R": "forest",
+  "G": "paddy / farm field",
+  "B": "urban / car park / solar",
+  "A": "255 \u2212 water (ponds, OSM) \u2014 alpha is inverted so the RGB classes survive premultiplied-alpha decoders"
+ },
+ "rows": "row 0 = north edge (nMax)"
+}

@@ -4,7 +4,7 @@ import baked from '../data/colliders/cat_lai.json';
 import raw from '../data/tracks/cat_lai.json';
 import osm from '../data/tracks/cat_lai_osm.json';
 import placements from '../data/tracks/cat_lai_placements.json';
-import { CAT_LAI, RACE, TRACKS, getTrack, interpolateByT, roadWidthAt, sunDirection } from '../src/core/Data';
+import { CAT_LAI, RACE, SUZUKA, TRACKS, getTrack, interpolateByT, roadWidthAt, sunDirection } from '../src/core/Data';
 import { CAT_LAI_MODELS, CAT_LAI_SHARED_MODELS, CAT_LAI_TEXTURES } from '../src/world/CatLai';
 import {
   BAY_GAP_M,
@@ -154,7 +154,9 @@ describe('Cat Lai v2 track data', () => {
       [0, 0.1155],
       [0.929, 1],
     ]);
-    expect(TRACKS.filter((t) => t !== CAT_LAI).every((t) => t.sidewalkT === null && t.widthByT === null)).toBe(true);
+    expect(
+      TRACKS.filter((t) => t !== CAT_LAI && t !== SUZUKA).every((t) => t.sidewalkT === null && t.widthByT === null),
+    ).toBe(true);
   });
 
   it('lines up the 6-car grid and the pickups on the road, with the left pickup lane clear of the truck queue', () => {

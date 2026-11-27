@@ -128,6 +128,7 @@ describe('Ardennes Forest Circuit track data', () => {
       'pham_van_dong',
       'monte_carlo',
       'ardennes',
+      'suzuka_hills',
     ]);
     expect(getTrack('ardennes')).toBe(ARDENNES);
     expect(ARDENNES.timeOfDay).toBe('day');

@@ -36,6 +36,7 @@ const MOBILE_NAMES: Record<string, string> = {
   pham_van_dong: 'P.V.Đồng',
   monte_carlo: 'Monaco',
   ardennes: 'Ardennes',
+  suzuka_hills: 'Suzuka',
 };
 
 /** In-game renders of each map (from the design canvas), shown on the track card. */
@@ -77,6 +78,11 @@ const NOTES: Record<string, { sub: string; note: string; feature: { v: string; l
     sub: 'Day · Circuit des Ardennes',
     note: 'Day · 6.9 km forest circuit · Eau Rouge climb, 102 m of elevation, no-fire zones',
     feature: { v: '+30 m', l: 'Raidillon climb' },
+  },
+  suzuka_hills: {
+    sub: 'Golden hour · Suzuka Hills',
+    note: 'Day · 5.8 km figure-eight · crossover bridge, 17 to 60 m of hills, autumn golden hour, no-fire zones',
+    feature: { v: '8.5 m', l: 'crossover bridge' },
   },
 };
 
