@@ -4,8 +4,9 @@ import { uiAudio } from '../uiAudio';
 import { keyBar, kc } from '../hotkeys';
 import { enableMenuNav, focusFirst } from '../nav';
 import type { Screen } from '../types';
-import { ONLINE, esc, formatRoomCode, icon, str } from './onlineCommon';
+import { ONLINE, esc, formatRoomCode, icon, str, trackPreview } from './onlineCommon';
 import './online.css';
+import './onlineMobile.css';
 
 /** What the hub's right-hand panel shows. Errors and waiting states appear in place, never as pop-ups. */
 export type HubState =
@@ -59,6 +60,7 @@ export class OnlineHubScreen implements Screen {
     this.el.setAttribute('aria-label', str('hub.title'));
     this.el.innerHTML = `
       <div class="ol-page">
+        <img class="ol-bgimg" src="${trackPreview('monte_carlo')}" alt="" aria-hidden="true" />
         <header class="ol-head">
           <button type="button" class="ol-back" data-back data-hotkey="esc" aria-label="Back"><span aria-hidden="true">←</span></button>
           <h2>${esc(str('hub.title'))}</h2>

@@ -11,7 +11,7 @@ import {
   type NameCheck,
 } from '../onlineName';
 import type { Screen } from '../types';
-import { ONLINE, esc, icon, str } from './onlineCommon';
+import { ONLINE, esc, icon, str, trackPreview } from './onlineCommon';
 import './online.css';
 import './onlineMobile.css';
 
@@ -66,6 +66,7 @@ export class OnlineNameScreen implements Screen {
     const f = this.first;
     this.el.innerHTML = `
       <div class="ol-page">
+        <img class="ol-bgimg" src="${trackPreview('monte_carlo')}" alt="" aria-hidden="true" />
         <header class="ol-head">
           <button type="button" class="ol-mback" data-act="cancel" aria-label="Back"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
           <div class="ol-title">

@@ -4,7 +4,7 @@ import { formatTime } from '../format';
 import { keyBar, kc } from '../hotkeys';
 import { enableMenuNav, focusFirst } from '../nav';
 import type { Screen } from '../types';
-import { ONLINE, carName, esc, formatRoomCode, icon, str, trackOf } from './onlineCommon';
+import { ONLINE, carName, esc, formatRoomCode, icon, str, trackOf, trackPreview } from './onlineCommon';
 import './online.css';
 import './onlineMobile.css';
 
@@ -111,6 +111,7 @@ export class OnlineResultsScreen implements Screen {
     const title = mine && mine.timeSec !== null ? str('results.title', { place: ordinal(mine.place) }) : 'Race over';
     this.el.innerHTML = `
       <div class="ol-page">
+        <img class="ol-bgimg" src="${trackPreview(view.track)}" alt="" aria-hidden="true" />
         <header class="ol-head">
           <div class="ol-title">
             <div class="mn-eyebrow">ONLINE RESULTS · ${esc(t.name.toUpperCase())} · ${view.laps} LAP${view.laps === 1 ? '' : 'S'} · ROOM ${formatRoomCode(view.code)}</div>

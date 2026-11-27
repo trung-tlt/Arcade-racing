@@ -53,6 +53,10 @@
   display: none;
 }
 
+.ol-bgimg {
+  display: none;
+}
+
 /* Racer name (every size): the counter, live rule ticks and the saved note */
 .ol-inwrap {
   position: relative;
@@ -92,6 +96,23 @@
 }
 
 @media (max-height: 560px) {
+  /* Hub, racer name and results: the track picture, blurred and dimmed, behind the page. */
+  .mn-online,
+  .mn-name,
+  .mn-oresults {
+    position: relative;
+    isolation: isolate;
+  }
+  .ol-bgimg {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: blur(4px) brightness(0.4);
+  }
   .mn.mn-online,
   .mn.mn-lobby,
   .mn.mn-oresults,
