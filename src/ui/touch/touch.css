@@ -960,3 +960,44 @@ body.is-touch .race-ping {
   right: 150px;
   top: 12px;
 }
+
+/* iOS Safari: how to get full screen (installHint.ts) */
+.install-hint {
+  position: fixed;
+  left: 50%;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  transform: translateX(-50%);
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: min(640px, calc(100vw - 88px));
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid #2ec5ff;
+  background: rgba(14, 17, 22, 0.94);
+  color: #e8ecf2;
+  font-size: 13px;
+  line-height: 1.35;
+}
+.install-hint b {
+  color: #2ec5ff;
+}
+.install-hint button {
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid #2a3240;
+  background: #161b23;
+  color: #e8ecf2;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.install-hint .ok {
+  background: #2ec5ff;
+  border-color: #2ec5ff;
+  color: #0e1116;
+}
