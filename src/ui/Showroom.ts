@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { Assets } from '../core/Assets';
 import { LIGHTING, getCarDef } from '../core/Data';
 import type { CarPreview, PreviewFactory } from './types';
+import { hideCarDecals } from '../vehicle/CarVisual';
 
 const FOV = 32;
 const SPIN_RAD_PER_SEC = 0.5;
@@ -131,6 +132,7 @@ export class Showroom implements CarPreview {
     this.carId = carId;
 
     const car = this.assets.cloneModel(def.file);
+    hideCarDecals(car);
     const paint = new THREE.Color(def.paint);
     const states: MaterialState[] = [];
     car.traverse((o) => {

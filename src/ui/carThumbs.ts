@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import type { Assets } from '../core/Assets';
 import { CARS, LIGHTING, type CarDef } from '../core/Data';
+import { hideCarDecals } from '../vehicle/CarVisual';
 
 export interface CarThumbs {
   /** Data URL of the vehicle's picture, rendered on first request ('' if rendering is impossible). */
@@ -160,6 +161,7 @@ export function makeThumbnailRenderer(assets: Assets): CarThumbs {
     if (!gl) return '';
     const { renderer, scene, camera, shadow } = gl;
     const car = assets.cloneModel(def.file);
+    hideCarDecals(car);
     const paint = new THREE.Color(def.paint);
     car.traverse((o) => {
       if (!(o instanceof THREE.Mesh)) return;

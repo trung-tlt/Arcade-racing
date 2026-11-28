@@ -19,6 +19,15 @@ const Z_AXIS = new THREE.Vector3(0, 0, 1);
 
 /** Beyond this distance from the camera a car draws only its chassis (wheels and gun are a few pixels). */
 const DETAIL_DISTANCE_M = 70;
+/** Sponsor decals on the car bodies; set true to show them again. */
+const SHOW_DECALS = false;
+
+/** Sponsor decals live in their own `decals` mesh; every place that clones a car model calls this (the models keep them). */
+export function hideCarDecals(root: THREE.Object3D): void {
+  if (SHOW_DECALS) return;
+  const decals = root.getObjectByName('decals');
+  if (decals) decals.visible = false;
+}
 
 export class CarVisual {
   readonly root: THREE.Group;
@@ -77,6 +86,8 @@ export class CarVisual {
       this.spin.push(0);
     }
     this.gunMount = this.root.getObjectByName('gun_mount') ?? null;
+
+    hideCarDecals(this.root);
 
     // Detail LOD: past DETAIL_DISTANCE_M the wheels and gun mount (7+ draw calls) are too small to see, so don't draw them.
     // The cull object stays at the root's origin with an identity transform, so reparenting keeps every pose unchanged.
