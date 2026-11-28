@@ -44,10 +44,10 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: 'Open-cockpit red roadster. Second-fastest car, quick to launch and light on its feet.',
     weapon: 'Deck turret · ±25°',
   },
-  sable_rs: {
-    role: 'RALLY · DRIFTER',
-    blurb: 'Rally hatch. Best drift and launch in the garage, light armor.',
-    weapon: 'Twin Pulse MG on the roof',
+  raijin_rx: {
+    role: 'AWD TUNER · GRIP',
+    blurb: 'Silver twin-turbo all-wheel-drive coupe. Very high grip and strong handling, built for fast circuits.',
+    weapon: 'Roof pop-up turret · ±25°',
   },
   bento_ev: {
     role: 'CITY EV · NIMBLE',

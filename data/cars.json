@@ -370,79 +370,74 @@
     "gunHeatMul": 1.0
   },
   {
-    "id": "sable_rs",
-    "name": "Sable RS",
-    "file": "models/cars/sable_rs.glb",
-    "paint": "#8B5CF6",
+    "id": "raijin_rx",
+    "name": "Raijin RX",
+    "file": "models/cars/raijin_rx.glb",
+    "paint": "#959CA6",
     "collider": {
-      "halfExtents": [0.925, 0.597, 2.149],
-      "center": [0, 0.717, 0.014]
+      "halfExtents": [0.9, 0.627, 2.412],
+      "center": [0, 0.747, 0.017]
     },
     "wheels": [
       {
         "name": "wheel_FL",
-        "x": 0.8,
-        "y": 0.297,
-        "z": 1.145,
-        "radius": 0.297,
+        "x": 0.775,
+        "y": 0.33,
+        "z": 1.38,
+        "radius": 0.33,
         "width": 0.27,
         "steer": true
       },
       {
         "name": "wheel_FR",
-        "x": -0.8,
-        "y": 0.297,
-        "z": 1.145,
-        "radius": 0.297,
+        "x": -0.775,
+        "y": 0.33,
+        "z": 1.38,
+        "radius": 0.33,
         "width": 0.27,
         "steer": true
       },
       {
         "name": "wheel_RL",
-        "x": 0.8,
-        "y": 0.297,
-        "z": -1.287,
-        "radius": 0.297,
+        "x": 0.775,
+        "y": 0.33,
+        "z": -1.285,
+        "radius": 0.33,
         "width": 0.27,
         "steer": false
       },
       {
         "name": "wheel_RR",
-        "x": -0.8,
-        "y": 0.297,
-        "z": -1.287,
-        "radius": 0.297,
+        "x": -0.775,
+        "y": 0.33,
+        "z": -1.285,
+        "radius": 0.33,
         "width": 0.27,
         "steer": false
       }
     ],
-    "gunMount": [0, 1.287, -0.608],
+    "gunMount": [0, 1.36, -0.7],
     "fpv": {
-      "mode": "cockpit",
-      "rig": "models/cars/cockpit_rig.glb",
-      "eye": [0.351, 1.015, -0.342],
-      "fovDeg": 64,
-      "tint": {
-        "paint": "#8B5CF6",
-        "accent": "#2EC5FF"
-      }
+      "mode": "helmet",
+      "eye": [0, 1.15, -0.4],
+      "fovDeg": 70
     },
-    "role": "AGILE · DRIFTER",
+    "role": "AWD TUNER · GRIP",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 200,
-    "accel": 6,
+    "topSpeedKmh": 310,
+    "accel": 9,
     "handling": 9,
     "hp": 115,
-    "massKg": 1050,
-    "grip": 1.05,
-    "drift": 1,
-    "nitroBoost": 0.4,
-    "nitroBarSec": 2,
-    "ramDamageMul": 0.8,
-    "realWorld": "WRC-style rally hatchback",
-    "gunDamageMul": 1.0,
-    "gunHeatMul": 1.0
+    "massKg": 1560,
+    "grip": 1.12,
+    "drift": 0.9,
+    "nitroBoost": 0.36,
+    "nitroBarSec": 2.4,
+    "ramDamageMul": 1.15,
+    "realWorld": "Late-90s twin-turbo AWD tuner coupe",
+    "gunDamageMul": 0.92,
+    "gunHeatMul": 1.08
   },
   {
     "id": "bento_ev",

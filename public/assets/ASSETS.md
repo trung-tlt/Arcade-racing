@@ -22,7 +22,7 @@ code only; it should not need to create or edit any art.
 | wisp_r.glb | car | ~12.8k | light hypercar, lime, rear wing, bigger rear wheels |
 | warden_px.glb | car | ~12.8k | police interceptor (fictional Harbor Patrol), push bar, light bar — alternate `Light_Siren_Red` / `Light_Siren_Blue` at ~2 Hz |
 | bastion_m8.glb | car | ~18.8k | military armored 4x4, olive + sand camo, slat armor, heavy twin cannon |
-| sable_rs.glb | car | ~12.9k | rally hatch, purple/white, bumper spotlights, roof wing |
+| raijin_rx.glb | car | ~91k | original late-90s twin-turbo AWD coupe: silver, projector headlamps, big intake + corner ducts, NACA bonnet duct, fender vents, tall wing, quad round tail lamps, gunmetal six-spoke wheels, orange calipers, roof turret |
 | hauler_ht.glb | car | ~13.9k | pickup with shielded bed turret (360° yaw) |
 | truongson_av8.glb | apc8x8 | ~26.9k | original 8x8 armored personnel carrier, olive, autocannon turret (360°), antenna. 8 wheels `wheel_1L…wheel_4R`; axles 1–2 steer |
 | mantis_650r.glb | bike | ~29k | rebuilt original 650-class sport bike: lofted fairing with twin LED eyes, tinted screen, gold USD fork, twin-spar frame, mono-shock, chain drive, carbon end can. 2 wheels `wheel_F`, `wheel_R`; twin fairing guns (±15°). Tucked armoured rider |

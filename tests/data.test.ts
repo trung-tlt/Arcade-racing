@@ -28,7 +28,7 @@ describe('vehicle garage', () => {
       'wisp_r',
       'warden_px',
       'velora_s',
-      'sable_rs',
+      'raijin_rx',
       'bento_ev',
       'truongson_av8',
       'mantis_650r',
