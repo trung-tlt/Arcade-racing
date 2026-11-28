@@ -28,7 +28,7 @@ const me = { name: 'VOLTKID', car: 'kestrel_gt' };
 describe('LobbyClient', () => {
   it('maps server reasons to hub errors', () => {
     expect(hubErrorOf('version')).toBe('version');
-    expect(hubErrorOf('data')).toBe('version');
+    expect(hubErrorOf('data')).toBe('data');
     expect(hubErrorOf('not_found')).toBe('notfound');
     expect(hubErrorOf('no_rooms')).toBe('empty');
     expect(hubErrorOf('full')).toBe('full');

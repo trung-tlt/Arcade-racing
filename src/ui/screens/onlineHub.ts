@@ -201,6 +201,7 @@ export class OnlineHubScreen implements Screen {
             { label: 'Try another code', key: 'J', hotkey: 'j', run: () => this.focusCode() },
           ];
         case 'version':
+        case 'data':
           return [
             { label: 'Reload', key: 'R', hotkey: 'r', run: d.onReload },
             { label: 'Back', key: 'Esc', hotkey: 'esc', run: () => this.setState({ kind: 'idle' }), back: true },
@@ -307,6 +308,8 @@ export class OnlineHubScreen implements Screen {
           title: str('err.version.title'),
           msg: str('err.version.msg', { roomVersion: s.roomV ?? '?', myVersion: s.myV ?? '?' }),
         };
+      case 'data':
+        return { title: str('err.data.title'), msg: str('err.data.msg') };
       case 'down':
         return { title: str('err.down.title'), msg: str('err.down.msg', { s: s.retryIn ?? 5 }) };
       case 'notfound':

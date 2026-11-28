@@ -124,6 +124,8 @@
     "err.full.msg": "Room {code} already has 6 racers. Ask the host for a new room, or jump into quick match.",
     "err.version.title": "Update needed",
     "err.version.msg": "This room runs {roomVersion} and you have {myVersion}. Reload the page to update — it takes a few seconds.",
+    "err.data.title": "Game data out of sync",
+    "err.data.msg": "This page and the race server have different cars or maps. Reload the page first; if this keeps showing, the server has not been updated yet, so try again in a few minutes. You can still race offline.",
     "err.down.title": "Can’t reach the race server",
     "err.down.msg": "Check your connection. We’ll try again in {s} s. You can still race offline.",
     "err.notfound.title": "No room with that code",

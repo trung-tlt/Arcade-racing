@@ -14,7 +14,7 @@ import {
 import { NetClient } from './NetClient';
 
 /** What the online hub shows in place of a pop-up (`err.*` strings in data/online_ui.json). */
-export type HubError = 'full' | 'started' | 'version' | 'down' | 'notfound' | 'empty';
+export type HubError = 'full' | 'started' | 'version' | 'data' | 'down' | 'notfound' | 'empty';
 
 export interface HubFailure {
   err: HubError;
@@ -66,8 +66,9 @@ const CONNECT_TIMEOUT_MS = 6000;
 export function hubErrorOf(reason: RejectReason): HubError {
   switch (reason) {
     case 'version':
-    case 'data':
       return 'version';
+    case 'data':
+      return 'data'; // same protocol, but the cars, maps or tuning differ from the server's
     case 'not_found':
       return 'notfound';
     case 'no_rooms':
