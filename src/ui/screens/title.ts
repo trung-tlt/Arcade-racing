@@ -1,4 +1,4 @@
-import { TRACKS } from '../../core/Data';
+import { CARS, TRACKS } from '../../core/Data';
 import { keyBar, labelWithKeys } from '../hotkeys';
 import { str } from './onlineCommon';
 import { enableMenuNav, focusFirst } from '../nav';
@@ -72,7 +72,7 @@ export class TitleScreen implements Screen {
       )}`;
     root.appendChild(this.el);
     this.best = this.el.querySelector('.best') as HTMLElement;
-    this.preview = deps.createPreview(this.el.querySelector('.stage') as HTMLElement, 'kestrel_gt');
+    this.preview = deps.createPreview(this.el.querySelector('.stage') as HTMLElement, CARS[0].id); // the first car of the garage
     const act: Record<string, () => void> = {
       race: deps.onRace,
       online: deps.onOnline,

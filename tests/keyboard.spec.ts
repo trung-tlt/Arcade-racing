@@ -46,16 +46,16 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await expect(page.locator('.mn-title .kc').first()).toBeVisible();
   await page.keyboard.press('r');
 
-  // Car select: 2 then → picks vehicle 3 (Wisp R); Enter selects
+  // Car select: 3 then → picks vehicle 4 (Wisp R); Enter selects
   await expect(page.getByText('Choose your ride')).toBeVisible();
   await expect(keybar(page)).toContainText('Pick');
   await expect(page.locator('.mn-cars .pick')).toHaveCount(11);
-  // 0 is the tenth vehicle (the Mira scooter) and - the eleventh (the Fulmine FX); 2 then goes back to the Rhino
+  // 0 is the tenth vehicle (the Mira scooter) and - the eleventh (the Fulmine FX); 3 then goes back to the Rhino
   await page.keyboard.press('0');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Mira 150');
   await page.keyboard.press('-');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Fulmine FX');
-  await page.keyboard.press('2');
+  await page.keyboard.press('3');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Rhino X4');
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Wisp R');
@@ -66,7 +66,7 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await page.keyboard.press('ArrowRight'); // the eleventh
   await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Fulmine FX');
   await page.keyboard.press('ArrowRight'); // wraps to the first vehicle
-  await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Kestrel GT');
+  await expect(page.locator('.mn-cars .pick[aria-pressed="true"]')).toContainText('Raijin RX');
   await expectRing(page);
   await page.keyboard.press('Enter');
 

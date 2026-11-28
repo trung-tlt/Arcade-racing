@@ -23,12 +23,12 @@ describe('data files', () => {
 describe('vehicle garage', () => {
   it('has the 11 vehicles with the expected types', () => {
     expect(CARS.map((c) => c.id)).toEqual([
+      'raijin_rx',
       'kestrel_gt',
       'rhino_x4',
       'wisp_r',
       'warden_px',
       'velora_s',
-      'raijin_rx',
       'bento_ev',
       'truongson_av8',
       'mantis_650r',

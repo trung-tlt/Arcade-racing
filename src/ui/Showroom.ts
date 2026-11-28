@@ -182,7 +182,7 @@ export class Showroom implements CarPreview {
     this.ring.scale.setScalar(r * 1.12);
 
     const t = Math.tan((FOV * Math.PI) / 360);
-    const fitW = (r * 1.2) / (t * this.aspect);
+    const fitW = (r * 1.4) / (t * this.aspect);
     const fitH = (this.height * 0.6 + r * 0.36) / t;
     const dist = Math.max(fitW, fitH) + r * 0.3;
     this.camera.position.set(0, this.height * 1.05 + r * 0.25, dist);

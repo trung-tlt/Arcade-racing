@@ -1,5 +1,75 @@
 [
   {
+    "id": "raijin_rx",
+    "name": "Raijin RX",
+    "file": "models/cars/raijin_rx.glb",
+    "paint": "#959CA6",
+    "collider": {
+      "halfExtents": [0.9, 0.627, 2.412],
+      "center": [0, 0.747, 0.017]
+    },
+    "wheels": [
+      {
+        "name": "wheel_FL",
+        "x": 0.775,
+        "y": 0.33,
+        "z": 1.38,
+        "radius": 0.33,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_FR",
+        "x": -0.775,
+        "y": 0.33,
+        "z": 1.38,
+        "radius": 0.33,
+        "width": 0.27,
+        "steer": true
+      },
+      {
+        "name": "wheel_RL",
+        "x": 0.775,
+        "y": 0.33,
+        "z": -1.285,
+        "radius": 0.33,
+        "width": 0.27,
+        "steer": false
+      },
+      {
+        "name": "wheel_RR",
+        "x": -0.775,
+        "y": 0.33,
+        "z": -1.285,
+        "radius": 0.33,
+        "width": 0.27,
+        "steer": false
+      }
+    ],
+    "gunMount": [0, 1.36, -0.7],
+    "fpv": {
+      "mode": "helmet",
+      "eye": [0, 1.15, -0.4],
+      "fovDeg": 70
+    },
+    "role": "AWD TUNER · GRIP",
+    "vehicleType": "car",
+    "turretYawDeg": 25,
+    "topSpeedKmh": 310,
+    "accel": 9,
+    "handling": 9,
+    "hp": 115,
+    "massKg": 1560,
+    "grip": 1.12,
+    "drift": 0.9,
+    "nitroBoost": 0.36,
+    "nitroBarSec": 2.4,
+    "ramDamageMul": 1.15,
+    "realWorld": "Late-90s twin-turbo AWD tuner coupe",
+    "gunDamageMul": 0.92,
+    "gunHeatMul": 1.08
+  },
+  {
     "id": "kestrel_gt",
     "name": "Kestrel GT",
     "file": "models/cars/kestrel_gt.glb",
@@ -368,76 +438,6 @@
     "realWorld": "open-cockpit speedster",
     "gunDamageMul": 0.95,
     "gunHeatMul": 1.0
-  },
-  {
-    "id": "raijin_rx",
-    "name": "Raijin RX",
-    "file": "models/cars/raijin_rx.glb",
-    "paint": "#959CA6",
-    "collider": {
-      "halfExtents": [0.9, 0.627, 2.412],
-      "center": [0, 0.747, 0.017]
-    },
-    "wheels": [
-      {
-        "name": "wheel_FL",
-        "x": 0.775,
-        "y": 0.33,
-        "z": 1.38,
-        "radius": 0.33,
-        "width": 0.27,
-        "steer": true
-      },
-      {
-        "name": "wheel_FR",
-        "x": -0.775,
-        "y": 0.33,
-        "z": 1.38,
-        "radius": 0.33,
-        "width": 0.27,
-        "steer": true
-      },
-      {
-        "name": "wheel_RL",
-        "x": 0.775,
-        "y": 0.33,
-        "z": -1.285,
-        "radius": 0.33,
-        "width": 0.27,
-        "steer": false
-      },
-      {
-        "name": "wheel_RR",
-        "x": -0.775,
-        "y": 0.33,
-        "z": -1.285,
-        "radius": 0.33,
-        "width": 0.27,
-        "steer": false
-      }
-    ],
-    "gunMount": [0, 1.36, -0.7],
-    "fpv": {
-      "mode": "helmet",
-      "eye": [0, 1.15, -0.4],
-      "fovDeg": 70
-    },
-    "role": "AWD TUNER · GRIP",
-    "vehicleType": "car",
-    "turretYawDeg": 25,
-    "topSpeedKmh": 310,
-    "accel": 9,
-    "handling": 9,
-    "hp": 115,
-    "massKg": 1560,
-    "grip": 1.12,
-    "drift": 0.9,
-    "nitroBoost": 0.36,
-    "nitroBarSec": 2.4,
-    "ramDamageMul": 1.15,
-    "realWorld": "Late-90s twin-turbo AWD tuner coupe",
-    "gunDamageMul": 0.92,
-    "gunHeatMul": 1.08
   },
   {
     "id": "bento_ev",
