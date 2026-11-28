@@ -23,16 +23,14 @@ test('menu sounds and music: unlock on first key, sounds follow the menus, music
   page.on('pageerror', (e) => errors.push(e.message));
 
   await page.goto('/');
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 40_000 });
-  expect((await state(page)).unlocked).toBe(false); // nothing before the first input
+  // The title comes up by itself once loaded; audio stays locked until the first input (a browser rule).
+  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible({ timeout: 40_000 });
+  expect((await state(page)).unlocked).toBe(false);
+  expect((await state(page)).musicWanted).toBe(true); // queued: it starts as soon as the first input unlocks audio
 
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible();
+  await page.keyboard.press('ArrowDown');
   await expect.poll(async () => (await state(page)).unlocked).toBe(true);
-  await expect.poll(async () => (await state(page)).log, { timeout: 15_000 }).toContain('title_enter');
-  // The sting plays first; the loop comes in after it (≈2 s), per the data file's `then`.
   await expect.poll(async () => (await state(page)).log, { timeout: 15_000 }).toContain('music_start');
-  expect((await state(page)).musicWanted).toBe(true);
 
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowUp');
@@ -94,9 +92,7 @@ test('the Settings screen has a Music slider and its keys play slider / toggle /
   });
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto('/');
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 40_000 });
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible({ timeout: 40_000 });
   await page.keyboard.press('s');
   await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
   const music = page.locator('.st-row', { hasText: 'Music' });

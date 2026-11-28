@@ -503,11 +503,6 @@ body.is-touch .mn-loading .logo h1 {
 body.is-touch .mn-loading .tip {
   display: none;
 }
-body.is-touch .mn-loading .anykey {
-  min-height: 52px;
-  padding: 10px 28px;
-  font-size: 18px;
-}
 
 /* title (26): menu panel left, hero car right */
 body.is-touch .mn-title .left {

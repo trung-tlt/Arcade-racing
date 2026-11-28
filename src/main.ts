@@ -483,14 +483,14 @@ async function boot(): Promise<void> {
     await startRace({ ...setup }, params.get('mode') === 'practice' ? 'practice' : 'race');
     return;
   }
-  loading.ready(() => {
-    loading.hide();
-    // Next task: the key that dismissed the prompt must not also press the Title's focused RACE button.
-    title.setTrackName(getTrack(setup.trackId).name);
-    uiAudio.unlock(); // the key that dismissed the prompt is the first input
-    uiAudio.play('title_enter'); // the sting, then (per its `then`) the menu music
-    setTimeout(() => show('title', title), 120);
-  });
+  // Loaded: straight to the title, no "press to start" step. Audio unlocks on the first key or tap (a browser rule), and
+  // the menu music is queued to start then; if the player already pressed something during loading, the sting plays now.
+  loading.setProgress(1, 'Ready');
+  loading.hide();
+  title.setTrackName(getTrack(setup.trackId).name);
+  show('title', title);
+  if (uiAudio.unlocked) uiAudio.play('title_enter');
+  else uiAudio.startMusic();
 }
 
 boot().catch((e: unknown) => {

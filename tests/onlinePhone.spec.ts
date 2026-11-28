@@ -46,9 +46,7 @@ async function openOnline(page: Page, named: boolean): Promise<void> {
   if (named)
     await page.addInitScript(() => localStorage.setItem('voltline.name', `P${Math.floor(Math.random() * 900)}`));
   await page.goto(`/?server=${SERVER}`);
-  await expect(page.getByText(/PRESS ENTER TO START|TAP TO START/i)).toBeVisible({ timeout: 30_000 });
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^ONLINE/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('button', { name: /^ONLINE/ })).toBeVisible({ timeout: 40_000 });
   await page.waitForTimeout(600);
   await page.getByRole('button', { name: /^ONLINE/ }).click();
 }

@@ -8,9 +8,7 @@ async function toRaceSetup(page: Page, url: string): Promise<string[]> {
   });
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(url);
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 30_000 });
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible({ timeout: 40_000 });
   await page.keyboard.press('Enter');
   await expect(page.getByText('Choose your ride')).toBeVisible();
   await page.keyboard.press('Enter');

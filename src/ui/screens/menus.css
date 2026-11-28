@@ -153,25 +153,6 @@
   font-size: 13px;
   color: var(--mn-dim);
 }
-.mn-loading .anykey {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 24px;
-  border: 1px solid var(--mn-line);
-  border-radius: 8px;
-  background: transparent;
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 18px;
-  letter-spacing: 3px;
-  font-weight: 700;
-  cursor: pointer;
-  animation: mn-pulse 1.4s ease-in-out infinite;
-}
-.mn-loading .anykey[hidden] {
-  display: none;
-}
 .mn-loading .tip {
   position: absolute;
   left: 40px;
@@ -182,16 +163,6 @@
   gap: 24px;
   font-size: 13px;
   color: var(--mn-dim);
-}
-@keyframes mn-pulse {
-  50% {
-    border-color: var(--mn-neon);
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .mn-loading .anykey {
-    animation: none;
-  }
 }
 
 /* ---------- Title ---------- */

@@ -24,11 +24,8 @@ function collectErrors(page: Page): string[] {
 test('a new player can go title → car select → setup → race → pause → quit', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 30_000 });
-  await shot(page, '1-loading');
-  await page.keyboard.press('Enter');
-
-  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible();
+  // No "press to start" step: the title comes up by itself once the game is loaded.
+  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible({ timeout: 40_000 });
   await page.waitForTimeout(800);
   await shot(page, '2-title');
   await page.getByRole('button', { name: /^RACE/ }).click();

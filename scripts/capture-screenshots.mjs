@@ -32,8 +32,8 @@ const shot = async (page, name) => {
 };
 
 async function unlock(page) {
-  await page.getByText('PRESS ENTER TO START').waitFor({ timeout: 60_000 });
-  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: /^RACE/ }).waitFor({ timeout: 60_000 });
+  await page.keyboard.press('Shift'); // the first input unlocks audio
   await page.waitForTimeout(1200);
 }
 

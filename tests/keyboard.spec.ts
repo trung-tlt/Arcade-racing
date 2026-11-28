@@ -30,15 +30,10 @@ test('the whole game can be played with the keyboard alone: loading → race →
   const errors = collectErrors(page);
   await page.goto('/');
 
-  // Loading: Enter / Space start
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 30_000 });
-  await expect(keybar(page)).toContainText('Start');
-  await expect(keybar(page)).toContainText('Gamepad · press A or Start');
-  await page.keyboard.press('Enter');
-
+  // Loading: no "press to start" step; the title follows by itself
   // Title: Enter/R race, G garage, S settings, C controls
   const race = page.getByRole('button', { name: /^RACE/ });
-  await expect(race).toBeVisible();
+  await expect(race).toBeVisible({ timeout: 40_000 });
   await expect(race).toBeFocused();
   await expectRing(page);
   await expect(keybar(page)).toContainText('Navigate');
@@ -120,9 +115,7 @@ test('the whole game can be played with the keyboard alone: loading → race →
 test('settings and controls work from the keyboard; keys never leak between screens', async ({ page }) => {
   const errors = collectErrors(page);
   await page.goto('/');
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 30_000 });
-  await page.keyboard.press('Space');
-  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible();
+  await expect(page.getByRole('button', { name: /^RACE/ })).toBeVisible({ timeout: 40_000 });
 
   // S opens Settings; the first row (Quality) is selected
   await page.keyboard.press('s');

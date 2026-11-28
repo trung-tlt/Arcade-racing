@@ -44,9 +44,7 @@ async function toHub(page: Page, server = SERVER, named = true): Promise<string[
   });
   page.on('pageerror', (e) => errors.push(e.message));
   await page.goto(`/?server=${server}`);
-  await expect(page.getByText('PRESS ENTER TO START')).toBeVisible({ timeout: 30_000 });
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('button', { name: /^ONLINE/ })).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByRole('button', { name: /^ONLINE/ })).toBeVisible({ timeout: 40_000 });
   await page.waitForTimeout(600);
   await page.getByRole('button', { name: /^ONLINE/ }).click();
   if (named) await expect(page.getByRole('heading', { name: 'Race online' })).toBeVisible();
