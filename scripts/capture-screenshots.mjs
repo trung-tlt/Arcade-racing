@@ -68,7 +68,6 @@ async function race(name, track, car, { viewport = { width: 1280, height: 720 },
 await race('race-cat-lai', 'cat_lai', 'kestrel_gt');
 await race('race-monte-carlo', 'monte_carlo', 'fulmine_fx', { wait: 26_000 });
 await race('race-ardennes', 'ardennes', 'fulmine_fx', { wait: 40_000 });
-await race('race-phone', 'cat_lai', 'kestrel_gt', { viewport: { width: 844, height: 390 }, touch: true });
 
 // Online lobby with two players.
 const server = spawn('node', ['dist-server/index.mjs'], { env: { ...process.env, PORT: '18199' }, stdio: 'ignore' });

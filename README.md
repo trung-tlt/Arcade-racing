@@ -36,16 +36,12 @@ gamepad or touch (phones, landscape): nothing to install.
 
 ## Screenshots
 
-|                                                                        |                                                                                     |
-| ---------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| ![Title screen](docs/screenshots/title.jpg)                            | ![Garage](docs/screenshots/car-select.jpg)                                          |
-| ![Cat Lai Port, daylight](docs/screenshots/race-cat-lai.jpg)           | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg)                       |
-| ![Suzuka Hills Circuit, golden hour](docs/screenshots/race-suzuka.jpg) | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg) |
-| ![Online hub](docs/screenshots/online-hub.jpg)                         | ![Online lobby](docs/screenshots/online-lobby.jpg)                                  |
-
-Phone, landscape, with the on-screen pads:
-
-![Phone landscape](docs/screenshots/race-phone.jpg)
+|                                                                                                    |                                                                                                                    |
+| -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| ![Title screen](docs/screenshots/title.jpg)                                                        | ![Garage](docs/screenshots/car-select.jpg)                                                                         |
+| ![Cat Lai Port, daylight](docs/screenshots/race-cat-lai.jpg)<br>**Cat Lai Port**                   | ![Monte-Carlo Harbour](docs/screenshots/race-monte-carlo.jpg)<br>**Monte-Carlo Harbour**                           |
+| ![Suzuka Hills Circuit, golden hour](docs/screenshots/race-suzuka.jpg)<br>**Suzuka Hills Circuit** | ![Ardennes Forest Circuit, the Eau Rouge climb](docs/screenshots/race-ardennes.jpg)<br>**Ardennes Forest Circuit** |
+| ![Online hub](docs/screenshots/online-hub.jpg)                                                     | ![Online lobby](docs/screenshots/online-lobby.jpg)                                                                 |
 
 ## Controls
 
