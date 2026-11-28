@@ -314,11 +314,12 @@
   min-width: 0;
   min-height: 280px;
   position: relative;
-  border-radius: 12px;
-  background: var(--mn-panel);
+  /* no panel, border or accent bar: the turntable stands straight on the page background */
+  background: transparent;
   overflow: hidden;
 }
 .mn-cars .stage .accent {
+  display: none;
   position: absolute;
   left: 0;
   right: 0;
@@ -549,6 +550,117 @@
 }
 .mn-setup .slot span {
   color: var(--mn-dim);
+}
+
+/* Race setup on a desktop or laptop: the picked map's render is the backdrop (as on the phone), the panels are compact
+   glass, and the whole screen fits a laptop window without scrolling. */
+body:not(.is-touch) .mn-setup .bgshot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.6;
+  pointer-events: none;
+  user-select: none;
+}
+body:not(.is-touch) .mn-setup::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(14, 17, 22, 0.8) 0%, rgba(14, 17, 22, 0.25) 35%, rgba(14, 17, 22, 0.9) 100%),
+    linear-gradient(90deg, rgba(14, 17, 22, 0.55), rgba(14, 17, 22, 0.1) 50%, rgba(14, 17, 22, 0.55));
+}
+body:not(.is-touch) .mn-setup .mn-page {
+  position: relative;
+  gap: clamp(8px, 1.6vh, 16px);
+  padding-top: clamp(14px, 3vh, 28px);
+  padding-bottom: 56px;
+}
+body:not(.is-touch) .mn-setup .mn-page h2 {
+  font-size: clamp(24px, 4vh, 32px);
+}
+body:not(.is-touch) .mn-setup .body {
+  gap: clamp(14px, 2vw, 24px);
+}
+body:not(.is-touch) .mn-setup .track-card {
+  flex: 0 0 clamp(300px, 30vw, 400px);
+  align-self: flex-start;
+  padding: 14px 16px;
+  gap: 8px;
+  background: rgba(22, 27, 35, 0.66);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+body:not(.is-touch) .mn-setup .track-card .head {
+  flex-wrap: wrap;
+  gap: 2px 10px;
+}
+body:not(.is-touch) .mn-setup .track-card .head b {
+  font-size: clamp(20px, 3.4vh, 26px);
+}
+/* the card's own picture is the backdrop now: only the lap outline stays in the card */
+body:not(.is-touch) .mn-setup .track-card .preview {
+  background: transparent;
+  display: flex;
+  justify-content: center;
+}
+body:not(.is-touch) .mn-setup .track-card .shot {
+  display: none;
+}
+body:not(.is-touch) .mn-setup .track-card .outline,
+body:not(.is-touch) .mn-setup .track-card .preview.no-shot .outline {
+  position: static;
+  width: auto;
+  height: clamp(90px, 22vh, 190px);
+  margin: 0;
+  padding: 4px;
+  background: rgba(14, 17, 22, 0.55);
+}
+body:not(.is-touch) .mn-setup .facts b {
+  font-size: clamp(17px, 2.8vh, 22px);
+}
+body:not(.is-touch) .mn-setup .opts {
+  gap: clamp(6px, 1.2vh, 12px);
+}
+body:not(.is-touch) .mn-setup .row {
+  padding: clamp(7px, 1.3vh, 12px) 14px;
+  background: rgba(22, 27, 35, 0.6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+body:not(.is-touch) .mn-setup .group {
+  gap: 6px;
+}
+body:not(.is-touch) .mn-setup .pill {
+  padding: clamp(6px, 1.1vh, 11px) 16px;
+  font-size: 16px;
+}
+body:not(.is-touch) .mn-setup [data-group='track'] .pill {
+  padding: 6px 8px;
+  font-size: 14px;
+}
+body:not(.is-touch) .mn-setup .note {
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+body:not(.is-touch) .mn-setup .grid {
+  gap: 6px;
+  font-size: 12px;
+}
+body:not(.is-touch) .mn-setup .slot {
+  padding: 6px 10px;
+  background: rgba(22, 27, 35, 0.66);
+}
+/* short windows (a laptop browser is often 650-750 px tall): drop the section list and the grid */
+@media (max-height: 780px) {
+  body:not(.is-touch) .mn-setup .track-card .sections,
+  body:not(.is-touch) .mn-setup .opts > .group:not(.row) {
+    display: none;
+  }
 }
 
 /* ---------- Controls ---------- */

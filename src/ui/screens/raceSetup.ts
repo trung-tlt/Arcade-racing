@@ -116,6 +116,7 @@ export class RaceSetupScreen implements Screen {
     this.el.hidden = true;
     this.el.setAttribute('aria-label', 'Race setup');
     this.el.innerHTML = `
+      <img class="bgshot" alt="" aria-hidden="true" draggable="false" />
       <div class="mn-page">
         <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:16px">
           <div><div class="mn-eyebrow">STEP 2 OF 2 · RACE SETUP</div><h2>Set up the race</h2></div>
@@ -318,6 +319,9 @@ export class RaceSetupScreen implements Screen {
       frame.classList.add('no-shot');
     };
     if (!shot.src.endsWith(previewUrl(t))) shot.src = previewUrl(t);
+    // Desktop: the same render fills the screen behind the panels (the card's own picture is hidden there).
+    const bg = this.el.querySelector('.bgshot') as HTMLImageElement;
+    if (!bg.src.endsWith(previewUrl(t))) bg.src = previewUrl(t);
 
     const o = buildOutline(t.spline.points);
     const asphalt = Math.max(6, Math.min(34, t.roadWidthM * o.scale * 1.8));
