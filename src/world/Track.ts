@@ -130,6 +130,9 @@ export class Track {
       roughness: wet?.roughness ?? 0.9,
       metalness: wet?.metalness ?? 0,
     });
+    // `road.tint` (track JSON): a colour multiplied into the road texture, to darken tarmac that blends into the ground.
+    const tint = (def.raw.road as { tint?: string } | undefined)?.tint;
+    if (tint) mat.color.set(tint);
     this.roadMaterials.push(mat);
     const mesh = new THREE.Mesh(geo, mat);
     mesh.receiveShadow = true;

@@ -104,3 +104,18 @@ describe('Suzuka audio files', () => {
     );
   });
 });
+
+describe('run-off tint beside the circuit', () => {
+  it('is full next to the road, gone far away, and tints the terrain colour towards green', async () => {
+    const { runoffShare, suzukaTerrainColor } = await import('../src/world/suzukaLayout');
+    expect(runoffShare(8)).toBe(1);
+    expect(runoffShare(60)).toBe(0);
+    expect(runoffShare(26)).toBeGreaterThan(0.3);
+    expect(runoffShare(26)).toBeLessThan(0.7);
+    const land = { forest: 0, paddy: 0, built: 1, water: 0 };
+    const plain = suzukaTerrainColor(land, 0.5, 0.5, [0, 0, 0], 0);
+    const near = suzukaTerrainColor(land, 0.5, 0.5, [0, 0, 0], 1);
+    expect(near[1]).toBeGreaterThan(near[0]); // green wins over the concrete grey
+    expect(near[1] - near[0]).toBeGreaterThan(plain[1] - plain[0]);
+  });
+});

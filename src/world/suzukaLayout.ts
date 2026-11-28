@@ -186,6 +186,14 @@ const FOREST = hex('#5A4529');
 const PADDY = hex('#C9B468');
 const BUILT = hex('#8F8B82');
 const WATER = hex('#4C7A8C');
+/** The mown run-off beside the circuit: a clean green that sets the asphalt apart from the ground next to it. */
+const RUNOFF = hex('#5E8236');
+
+/** Share (0..1) of the run-off tint at `roadD` metres from the centre line: full next to the road, gone by 34 m. */
+export function runoffShare(roadD: number): number {
+  const k = Math.min(1, Math.max(0, (roadD - 18) / 16));
+  return 1 - k * k * (3 - 2 * k);
+}
 
 /**
  * Terrain vertex colour (sRGB 0..1) multiplying the tiled grass texture: autumn grass with dry patches, leaf litter in
@@ -196,6 +204,7 @@ export function suzukaTerrainColor(
   noiseA: number,
   noiseB: number,
   out: [number, number, number] = [0, 0, 0],
+  runoff = 0,
 ): [number, number, number] {
   const dry = Math.max(0, noiseB - 0.55) * 0.9 + noiseA * 0.15;
   const cl = (v: number): number => Math.min(1, Math.max(0, v));
@@ -209,6 +218,7 @@ export function suzukaTerrainColor(
     v += (PADDY[c] - v) * p;
     v += (BUILT[c] - v) * b;
     v += (WATER[c] - v) * w;
+    v += (RUNOFF[c] - v) * cl(runoff);
     out[c] = v;
   }
   return out;

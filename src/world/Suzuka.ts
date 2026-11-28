@@ -27,6 +27,7 @@ import {
   ItemGrid,
   planPlacements,
   selectWindow,
+  runoffShare,
   suzukaTerrainColor,
   windowFor,
   type Item,
@@ -291,6 +292,7 @@ export class Suzuka {
     const c = new THREE.Color();
     const rgb: [number, number, number] = [0, 0, 0];
     const nrm: [number, number, number] = [0, 1, 0];
+    const probe: GroundSample = { y: 0, roadD: Infinity };
     const TILE_M = 10;
     for (const ch of gridChunks(g, 64)) {
       const w = ch.i1 - ch.i0 + 1;
@@ -320,6 +322,7 @@ export class Suzuka {
             na,
             nb,
             rgb,
+            runoffShare(this.ground.sample(x, z, probe).roadD),
           );
           c.setRGB(rgb[0], rgb[1], rgb[2], THREE.SRGBColorSpace);
           col.set([c.r, c.g, c.b], k * 3);

@@ -649,6 +649,7 @@
   ],
   "road": {
     "texture": "textures/spa_road.png",
+    "tint": "#454A51",
     "kerbs": {
       "texture": "textures/spa_kerb.png",
       "widthM": 1.5,
