@@ -1,0 +1,106 @@
+{
+  "id": "truongson_av8",
+  "name": "Truong Son AV8",
+  "file": "models/cars/truongson_av8.glb",
+  "paint": "#56653F",
+  "collider": {
+    "halfExtents": [1.25, 0.849, 3.479],
+    "center": [0, 0.969, 0]
+  },
+  "wheels": [
+    {
+      "name": "wheel_1L",
+      "x": 1.01,
+      "y": 0.593,
+      "z": 2.214,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": true
+    },
+    {
+      "name": "wheel_1R",
+      "x": -1.01,
+      "y": 0.593,
+      "z": 2.214,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": true
+    },
+    {
+      "name": "wheel_2L",
+      "x": 1.01,
+      "y": 0.593,
+      "z": 0.909,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": true
+    },
+    {
+      "name": "wheel_2R",
+      "x": -1.01,
+      "y": 0.593,
+      "z": 0.909,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": true
+    },
+    {
+      "name": "wheel_3L",
+      "x": 1.01,
+      "y": 0.593,
+      "z": -0.712,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": false
+    },
+    {
+      "name": "wheel_3R",
+      "x": -1.01,
+      "y": 0.593,
+      "z": -0.712,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": false
+    },
+    {
+      "name": "wheel_4L",
+      "x": 1.01,
+      "y": 0.593,
+      "z": -2.016,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": false
+    },
+    {
+      "name": "wheel_4R",
+      "x": -1.01,
+      "y": 0.593,
+      "z": -2.016,
+      "radius": 0.593,
+      "width": 0.5,
+      "steer": false
+    }
+  ],
+  "gunMount": [0, 1.937, -0.297],
+  "fpv": {
+    "mode": "helmet",
+    "eye": [0, 2.487, 0.003],
+    "fovDeg": 70
+  },
+  "role": "APC \u00b7 8x8 FORTRESS",
+  "vehicleType": "apc8x8",
+  "turretYawDeg": 360,
+  "topSpeedKmh": 100,
+  "accel": 1,
+  "handling": 3,
+  "hp": 215,
+  "massKg": 6000,
+  "grip": 1.2,
+  "drift": 0.3,
+  "nitroBoost": 0.25,
+  "nitroBarSec": 3,
+  "ramDamageMul": 3,
+  "realWorld": "8x8 armoured personnel carrier (BTR-class)",
+  "gunDamageMul": 1.3,
+  "gunHeatMul": 0.85
+}

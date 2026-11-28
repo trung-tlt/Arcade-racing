@@ -84,12 +84,11 @@ tests/           *.test.ts, smoke.spec.ts
 `chassis`, `wheel_*` (names and steer flags in cars.json; cars use `wheel_FL/FR/RL/RR`) (spin around local X, front wheels steer around Y), `gun_mount`
 (yaw around Y) › `gun` › `muzzle` (fire origin, +Z), `exhaust_L/R` (nitro flames).
 Take collider half-extents, wheel positions, radius and width from `data/cars.json`.
-11 vehicles: kestrel_gt, facet_xt (angular stainless EV pickup, ramDamageMul 2.2), wisp_r, warden_px (police), velora_s (speedster), raijin_rx (silver AWD tuner coupe, quad round tail lamps),
-bento_ev (city EV), truongson_av8 (8x8 APC, 8 wheels `wheel_1L…4R`), mantis_650r (sport bike + armoured `rider` in digital camo,
+11 vehicles: kestrel_gt, facet_xt (angular stainless EV pickup, ramDamageMul 2.2), wisp_r, rotora_gtp (orange/green endurance prototype), velora_s (speedster), raijin_rx (silver AWD tuner coupe, quad round tail lamps),
+bento_ev (city EV), aurum_lm (red GT1 endurance coupe), mantis_650r (sport bike + armoured `rider` in digital camo,
 wheels `wheel_F/R`), mira_150 (retro scooter + `rider`, `wheel_F/R`, vehicleType bike), fulmine_fx (open-wheel racer, `openWheel: true`, `downforce`). Car select keys 1–9, 0 and - (minus). Branch on `vehicleType` (car | apc8x8 | bike); see ASSETS.md "Physics notes" —
 the bike uses 4 virtual raycast wheels plus visual lean. Turret yaw limit = `turretYawDeg` in cars.json.
 Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (player colour),
-`Light_Siren_Red/Blue` (warden_px, alternate at ~2 Hz),
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
 **Hidden maps:** Cong Hoa, Hanoi (Xa lộ) and Pham Van Dong are hidden for now (`HIDDEN_TRACK_IDS` in `Data.ts`): `TRACKS` (menus, online lobby, server room validation) lists only the visible maps; `ALL_TRACKS` and `getTrack` still reach them, and `?track=<id>` opens them in dev. To show one again, remove its id from `HIDDEN_TRACK_IDS`.

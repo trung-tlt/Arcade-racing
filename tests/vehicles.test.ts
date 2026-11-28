@@ -1,5 +1,6 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { beforeAll, describe, expect, it } from 'vitest';
+import apc8x8 from './fixtures/apc8x8.json';
 import { CARS, HANDLING, type CarDef } from '../src/core/Data';
 import { CarPhysics, IDLE_CONTROLS, buildWheelLayout, type CarControls } from '../src/vehicle/CarPhysics';
 
@@ -111,7 +112,8 @@ describe.each(CARS.map((c) => [c.id, c] as const))('%s', (_id, def) => {
 });
 
 describe('apc8x8', () => {
-  const def = CARS.find((c) => c.vehicleType === 'apc8x8') as CarDef;
+  // No garage car is an APC any more; the fixture is the retired Truong Son AV8 so the 8-wheel code stays covered.
+  const def = apc8x8 as CarDef;
   it('has 8 wheels with the specified steer scales', () => {
     const l = buildWheelLayout(def, HANDLING);
     expect(l).toHaveLength(8);

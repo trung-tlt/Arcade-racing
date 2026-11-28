@@ -248,7 +248,7 @@ const PROFILES: Profile[] = [
   { name: '150 ms RTT + 1% stalls', link: { latencyMs: 75, jitterMs: 20, loss: 0.01, rtoMs: 250 } },
 ];
 
-const CARS6 = ['kestrel_gt', 'wisp_r', 'velora_s', 'raijin_rx', 'warden_px', 'fulmine_fx'];
+const CARS6 = ['kestrel_gt', 'wisp_r', 'velora_s', 'raijin_rx', 'rotora_gtp', 'fulmine_fx'];
 
 function race(
   link: LinkConfig,

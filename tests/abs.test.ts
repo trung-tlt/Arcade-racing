@@ -66,6 +66,8 @@ describe.each(CARS.map((c) => [c.id, c] as const))('ABS %s', (_id, def) => {
     run(25, { throttle: 1 });
     const v0 = car.forwardSpeed;
     run(1, {});
-    expect(v0 - car.forwardSpeed).toBeLessThan(HANDLING.engine.coastDecelMps2 + (def.openWheel ? 8 : 3)); // open-wheel cars add aero drag
+    expect(v0 - car.forwardSpeed).toBeLessThan(
+      HANDLING.engine.coastDecelMps2 + (def.openWheel || def.topSpeedKmh > 320 ? 8 : 3),
+    ); // open-wheel and 320+ km/h cars add aero drag
   });
 });

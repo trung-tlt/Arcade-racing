@@ -34,10 +34,11 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
   },
   // Copy for the second garage wave (design boards 20–21). Ids follow the .glb names in the design; the screen
   // only lists cars that exist in data/cars.json, so these stay unused until those models and stats are added.
-  warden_px: {
-    role: 'POLICE · RAMMER',
-    blurb: 'Harbor Patrol interceptor. Push bar, light bar, ram damage ×1.5.',
-    weapon: 'Twin Pulse MG behind the light bar',
+  rotora_gtp: {
+    role: 'PROTOTYPE · ENDURANCE',
+    blurb:
+      'Long, low endurance prototype in orange over green. Fastest car and best grip, but light and fragile in contact.',
+    weapon: 'Deck turret · ±25°',
   },
   velora_s: {
     role: 'SPEEDSTER · TOP SPEED',
@@ -54,10 +55,11 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: 'Compact boxy city EV. Best handling and drift of the cars, light hull.',
     weapon: 'Roof turret · ±25°',
   },
-  truongson_av8: {
-    role: 'APC · 8x8',
-    blurb: '8x8 armored carrier. 260 HP, ram ×3, slowest to turn.',
-    weapon: 'Autocannon turret · 360°',
+  aurum_lm: {
+    role: 'GT1 · ENDURANCE',
+    blurb:
+      'Low, wide mid-90s endurance coupe in red. Very fast with strong grip, and more solid in contact than the Rotora.',
+    weapon: 'Roof turret · ±25°',
   },
   mantis_650r: {
     role: 'SPORT BIKE',

@@ -21,7 +21,7 @@ const list = (s) => s.split(',').filter(Boolean);
 const profiles = arg('profile', '60ms') === 'all' ? Object.keys(PROFILES) : list(arg('profile', '60ms'));
 const tracks = list(arg('track', 'cong_hoa'));
 const players = Number(arg('players', 2));
-const CARS = ['kestrel_gt', 'wisp_r', 'velora_s', 'sable_rs', 'warden_px', 'fulmine_fx'];
+const CARS = ['kestrel_gt', 'wisp_r', 'velora_s', 'sable_rs', 'rotora_gtp', 'fulmine_fx'];
 const cars = list(arg('cars', CARS.join(',')));
 const seconds = Number(arg('seconds', 60));
 const render = arg('render', 'skip');
