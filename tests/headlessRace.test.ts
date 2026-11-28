@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { TRACKS } from '../src/core/Data';
+import { ALL_TRACKS } from '../src/core/Data';
 import { runHeadlessRace } from '../src/sim/HeadlessRace';
 
 const pct = (xs: number[], p: number): number => [...xs].sort((a, b) => a - b)[Math.floor(xs.length * p)];
 const f = (v: number | null | undefined): string => (v == null ? '-' : v.toFixed(1));
 
 describe('headless AI race (no three.js, no DOM)', () => {
-  for (const def of TRACKS) {
+  for (const def of ALL_TRACKS) {
     for (const holdFire of [true, false]) {
       it(`${def.id}${holdFire ? ' (fire held)' : ' (full combat)'}: six cars finish one lap`, async () => {
         const r = await runHeadlessRace({ trackId: def.id, laps: 1, holdFire });

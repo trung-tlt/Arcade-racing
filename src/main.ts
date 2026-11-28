@@ -1,6 +1,6 @@
 import { Assets } from './core/Assets';
 import { applyTrackRoster, rollRoster, type Rival } from './ai/Roster';
-import { AI, ARDENNES, CARS, CAT_LAI, MONTE_CARLO, SUZUKA, TRACKS, getTrack } from './core/Data';
+import { AI, ALL_TRACKS, ARDENNES, CARS, CAT_LAI, MONTE_CARLO, SUZUKA, TRACKS, getTrack } from './core/Data';
 import { Game, type GameConfig } from './core/Game';
 import { NetClient } from './net/NetClient';
 import { OnlineFlow } from './ui/onlineFlow';
@@ -84,7 +84,7 @@ async function boot(): Promise<void> {
   const quick = params.get('quick') === '1' || params.get('mode') === 'practice';
   const requestedCar = params.get('car');
   const requestedTrack = params.get('track');
-  const trackId = TRACKS.some((t) => t.id === requestedTrack) ? (requestedTrack as string) : DEFAULT_SETUP.trackId;
+  const trackId = ALL_TRACKS.some((t) => t.id === requestedTrack) ? (requestedTrack as string) : DEFAULT_SETUP.trackId;
   const carId = CARS.some((c) => c.id === requestedCar) ? (requestedCar as string) : DEFAULT_SETUP.carId;
 
   const loading = new LoadingScreen(screensRoot);

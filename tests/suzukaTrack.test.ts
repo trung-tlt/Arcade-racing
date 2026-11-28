@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { SUZUKA, TRACKS, getTrack, roadWidthAt } from '../src/core/Data';
+import { SUZUKA, ALL_TRACKS, getTrack, roadWidthAt } from '../src/core/Data';
 
 describe('Suzuka Hills Circuit track data (Map 7)', () => {
   it('is the 7th map: a day map with a low sun, 2 laps, 5.8 km, with elevation', () => {
-    expect(TRACKS[TRACKS.length - 1]).toBe(SUZUKA);
+    expect(ALL_TRACKS[ALL_TRACKS.length - 1]).toBe(SUZUKA);
     expect(getTrack('suzuka_hills')).toBe(SUZUKA);
     expect(SUZUKA.timeOfDay).toBe('day');
     expect(SUZUKA.laps).toBe(2);

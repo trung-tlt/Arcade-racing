@@ -21,38 +21,33 @@ async function toRaceSetup(page: Page, url: string): Promise<string[]> {
 const pills = (page: Page) => page.locator('[data-group="track"] .pill');
 const picked = (page: Page, group: string) => page.locator(`[data-group="${group}"] [aria-pressed="true"]`);
 
-test('race setup lists 7 maps; Pham Van Dong is a 2-lap storm map with its own copy', async ({ page }) => {
+test('race setup lists the 4 visible maps (Cong Hoa, Hanoi and Pham Van Dong are hidden)', async ({ page }) => {
   test.setTimeout(90_000);
   const errors = await toRaceSetup(page, '/');
-  await expect(pills(page)).toHaveCount(7);
-  await expect(pills(page).nth(3)).toContainText('Pham Van Dong Blvd');
+  await expect(pills(page)).toHaveCount(4);
+  await expect(pills(page)).toHaveText([
+    'Cat Lai Port',
+    'Monte-Carlo Harbour',
+    'Ardennes Forest Circuit',
+    'Suzuka Hills Circuit',
+  ]);
 
-  // The start screen is Cat Lai with 3 laps; T walks Cong Hoa → Hanoi → Pham Van Dong.
+  // The start screen is Cat Lai with 3 laps; T walks Monte-Carlo → Ardennes → Suzuka and wraps.
   await expect(picked(page, 'laps')).toHaveText('3 laps');
-  for (let i = 0; i < 3; i++) await page.keyboard.press('t');
-  await expect(picked(page, 'track')).toContainText('Pham Van Dong Blvd');
-  await expect(page.locator('.mn-setup .tname')).toHaveText('Pham Van Dong Boulevard');
-  await expect(page.locator('.mn-setup .tsub')).toContainText('Storm');
-  await expect(page.locator('.mn-setup .tlen')).toHaveText('4.8 km');
-  await expect(page.locator('.mn-setup .sections .sec')).toHaveCount(8);
-  await expect(picked(page, 'laps')).toHaveText('2 laps');
-  await expect(page.locator('[data-group="laps"] .pill')).toHaveText(['1 lap', '2 laps', '3 laps', '5 laps']);
-
-  // A lap count the player picked sticks when the map changes (and is still on offer there).
   await page.keyboard.press('l');
-  await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await expect(picked(page, 'laps')).toHaveText('5 laps');
   await page.keyboard.press('t'); // Monte-Carlo
   await expect(page.locator('.mn-setup .tname')).toHaveText('Monte-Carlo Harbour');
-  await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await expect(picked(page, 'laps')).toHaveText('5 laps');
   await page.keyboard.press('t'); // Ardennes
   await expect(page.locator('.mn-setup .tname')).toHaveText('Ardennes Forest Circuit');
-  await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await expect(picked(page, 'laps')).toHaveText('5 laps');
   await page.keyboard.press('t'); // Suzuka Hills
   await expect(page.locator('.mn-setup .tname')).toHaveText('Suzuka Hills Circuit');
-  await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await expect(picked(page, 'laps')).toHaveText('5 laps');
   await page.keyboard.press('t'); // wraps to Cat Lai
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
-  await expect(picked(page, 'laps')).toHaveText('3 laps');
+  await expect(picked(page, 'laps')).toHaveText('5 laps');
   await page.keyboard.press('ArrowLeft'); // clamps at the first map
   await expect(page.locator('[data-group="laps"] .pill')).toHaveText(['1 lap', '3 laps', '5 laps']);
 
@@ -62,27 +57,18 @@ test('race setup lists 7 maps; Pham Van Dong is a 2-lap storm map with its own c
 test.describe('on a phone', () => {
   test.use({ viewport: { width: 844, height: 390 }, hasTouch: true, isMobile: true });
 
-  test('the seven map buttons use short labels and all fit on one row', async ({ page }) => {
+  test('the four map buttons use short labels and all fit on one row', async ({ page }) => {
     test.setTimeout(90_000);
     const errors = await toRaceSetup(page, '/?touch=1');
-    await expect(pills(page)).toHaveCount(7);
+    await expect(pills(page)).toHaveCount(4);
     // The DOM keeps the full names; CSS paints the short label (`::after`) and hides the full text on phones.
-    await expect(pills(page).nth(3)).toHaveText('Pham Van Dong Blvd');
     const labels = await pills(page).evaluateAll((els) =>
       els.map((e) => ({
         short: getComputedStyle(e, '::after').content.replace(/"/g, ''),
         size: getComputedStyle(e).fontSize,
       })),
     );
-    expect(labels.map((l) => l.short)).toEqual([
-      'Cat Lai',
-      'Cong Hoa',
-      'Hanoi',
-      'P.V.Đồng',
-      'Monaco',
-      'Ardennes',
-      'Suzuka',
-    ]);
+    expect(labels.map((l) => l.short)).toEqual(['Cat Lai', 'Monaco', 'Ardennes', 'Suzuka']);
     expect(labels.every((l) => l.size === '0px')).toBe(true);
     const boxes = await pills(page).evaluateAll((els) =>
       els.map((e) => {

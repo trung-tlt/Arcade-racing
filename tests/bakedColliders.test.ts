@@ -1,6 +1,6 @@
 import RAPIER from '@dimforge/rapier3d-compat';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { HANDLING, RACE, TRACKS } from '../src/core/Data';
+import { HANDLING, RACE, ALL_TRACKS } from '../src/core/Data';
 import { loadBaked } from '../src/sim/bakedNode';
 import { buildTrackColliders, computeTrackShape } from '../src/sim/TrackColliders';
 import { relaxTightBends } from '../src/world/relaxBends';
@@ -11,7 +11,7 @@ beforeAll(async () => {
 });
 
 describe('baked colliders', () => {
-  for (const def of TRACKS) {
+  for (const def of ALL_TRACKS) {
     it(`${def.id}: the browser's track colliders equal the ones sim/ builds`, () => {
       const baked = loadBaked(def.id);
       expect(baked, 'run scripts/bake-colliders.mjs').not.toBeNull();

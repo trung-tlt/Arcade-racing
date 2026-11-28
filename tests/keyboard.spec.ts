@@ -77,21 +77,12 @@ test('the whole game can be played with the keyboard alone: loading → race →
   await expectRing(page);
   // T cycles the map (wraps): the left panel follows the selected map.
   await expect(page.locator('[data-group="track"] [aria-pressed="true"]')).toHaveText('Cat Lai Port');
-  await page.keyboard.press('t');
-  await expect(page.locator('[data-group="track"] [aria-pressed="true"]')).toHaveText('Cong Hoa Blvd');
-  await expect(page.locator('.mn-setup .tname')).toHaveText('Cong Hoa Boulevard');
-  await expect(page.locator('.mn-setup .tlen')).toHaveText('3.1 km');
-  await expect(page.locator('.mn-setup .sections .sec')).toHaveCount(5);
+  await page.keyboard.press('t'); // Cong Hoa, Hanoi and Pham Van Dong are hidden: the next map is Monte-Carlo
+  await expect(page.locator('[data-group="track"] [aria-pressed="true"]')).toHaveText('Monte-Carlo Harbour');
+  await expect(page.locator('[data-group="track"] .pill')).toHaveCount(4);
   await page.keyboard.press('ArrowLeft'); // the track row has focus: back to Cat Lai Port
   await expect(page.locator('.mn-setup .tname')).toHaveText('Cat Lai Port');
   await page.keyboard.press('t');
-  await page.keyboard.press('t');
-  await expect(page.locator('.mn-setup .tname')).toHaveText('Hanoi Highway');
-  await page.keyboard.press('t'); // → Pham Van Dong (a 2-lap storm map: laps follow the map)
-  await expect(page.locator('.mn-setup .tname')).toHaveText('Pham Van Dong Boulevard');
-  await expect(page.locator('[data-group="track"] .pill')).toHaveCount(7);
-  await expect(page.locator('[data-group="laps"] [aria-pressed="true"]')).toHaveText('2 laps');
-  await page.keyboard.press('t'); // → Monte-Carlo (3 laps)
   await expect(page.locator('.mn-setup .tname')).toHaveText('Monte-Carlo Harbour');
   await page.keyboard.press('t'); // → Ardennes
   await expect(page.locator('.mn-setup .tname')).toHaveText('Ardennes Forest Circuit');

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TRACKS } from '../src/core/Data';
+import { ALL_TRACKS } from '../src/core/Data';
 import { buildOutline } from '../src/ui/trackOutline';
 
 describe('buildOutline', () => {
@@ -46,7 +46,7 @@ describe('buildOutline', () => {
     expect(bx * seg.x + by * seg.y).toBeCloseTo(0, 3);
   });
   it('fits every real map inside the box', () => {
-    for (const t of TRACKS) {
+    for (const t of ALL_TRACKS) {
       const o = buildOutline(t.spline.points);
       for (const p of t.spline.points) {
         const q = o.project(p[0], p[2]);

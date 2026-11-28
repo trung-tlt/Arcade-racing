@@ -613,10 +613,15 @@ export const PHAM_VAN_DONG = loadTrack(phamVanDongJson);
 export const MONTE_CARLO = loadTrack(monteCarloJson);
 export const ARDENNES = loadTrack(ardennesJson);
 export const SUZUKA = loadTrack(suzukaJson);
-export const TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO, ARDENNES, SUZUKA];
+/** Every map that exists, hidden ones included (data, colliders, tests and `?track=` links still reach them). */
+export const ALL_TRACKS: readonly TrackDef[] = [CAT_LAI, CONG_HOA, XA_LO, PHAM_VAN_DONG, MONTE_CARLO, ARDENNES, SUZUKA];
+/** Maps taken off the menus and the online lobby for now: their code and data stay in place. */
+export const HIDDEN_TRACK_IDS: readonly string[] = [CONG_HOA.id, XA_LO.id, PHAM_VAN_DONG.id];
+/** The maps a player can pick (menus, online lobby): every map except the hidden ones. */
+export const TRACKS: readonly TrackDef[] = ALL_TRACKS.filter((t) => !HIDDEN_TRACK_IDS.includes(t.id));
 
 export function getTrack(id: string): TrackDef {
-  const t = TRACKS.find((x) => x.id === id);
+  const t = ALL_TRACKS.find((x) => x.id === id);
   if (!t) throw new Error(`Unknown track "${id}"`);
   return t;
 }

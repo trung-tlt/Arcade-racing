@@ -4,7 +4,16 @@ import baked from '../data/colliders/cat_lai.json';
 import raw from '../data/tracks/cat_lai.json';
 import osm from '../data/tracks/cat_lai_osm.json';
 import placements from '../data/tracks/cat_lai_placements.json';
-import { CAT_LAI, RACE, SUZUKA, TRACKS, getTrack, interpolateByT, roadWidthAt, sunDirection } from '../src/core/Data';
+import {
+  CAT_LAI,
+  RACE,
+  SUZUKA,
+  ALL_TRACKS,
+  getTrack,
+  interpolateByT,
+  roadWidthAt,
+  sunDirection,
+} from '../src/core/Data';
 import { CAT_LAI_MODELS, CAT_LAI_SHARED_MODELS, CAT_LAI_TEXTURES } from '../src/world/CatLai';
 import {
   BAY_GAP_M,
@@ -87,7 +96,7 @@ const item = (key: string, x: number, z: number, rotY = 0, group = 'street'): Pl
 describe('Cat Lai v2 track data', () => {
   it('is Map 1: a 3-lap, 3.6 km daylight lap with 9 checkpoints, first in the menu', () => {
     expect(CAT_LAI.id).toBe('cat_lai');
-    expect(TRACKS[0]).toBe(CAT_LAI);
+    expect(ALL_TRACKS[0]).toBe(CAT_LAI);
     expect(getTrack('cat_lai')).toBe(CAT_LAI);
     expect(CAT_LAI.laps).toBe(3);
     expect(CAT_LAI.timeOfDay).toBe('day');
@@ -155,7 +164,7 @@ describe('Cat Lai v2 track data', () => {
       [0.929, 1],
     ]);
     expect(
-      TRACKS.filter((t) => t !== CAT_LAI && t !== SUZUKA).every((t) => t.sidewalkT === null && t.widthByT === null),
+      ALL_TRACKS.filter((t) => t !== CAT_LAI && t !== SUZUKA).every((t) => t.sidewalkT === null && t.widthByT === null),
     ).toBe(true);
   });
 
@@ -165,7 +174,7 @@ describe('Cat Lai v2 track data', () => {
     expect(CAT_LAI.blockedLane).toBe('left');
     for (const g of CAT_LAI.startLine.grid) expect(Math.abs(g[0])).toBeLessThan(roadWidthAt(CAT_LAI, 0) / 2);
     expect(CAT_LAI.pickups).toHaveLength(7);
-    expect(TRACKS.filter((t) => t.id !== 'cat_lai').map((t) => t.blockedLane)).toContain('right');
+    expect(ALL_TRACKS.filter((t) => t.id !== 'cat_lai').map((t) => t.blockedLane)).toContain('right');
   });
 
   it('is not a night map any more: no shortcut, reefer lane or port gate fields remain', () => {

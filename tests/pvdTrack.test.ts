@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { CAT_LAI, CONG_HOA, PHAM_VAN_DONG as PVD, TRACKS, XA_LO, getTrack, roadWidthAt } from '../src/core/Data';
+import { CAT_LAI, CONG_HOA, PHAM_VAN_DONG as PVD, ALL_TRACKS, XA_LO, getTrack, roadWidthAt } from '../src/core/Data';
 import raw from '../data/tracks/pham_van_dong.json';
 
 const sections = raw.sections as { id: string; fromT: number; toT: number }[];
@@ -17,7 +17,7 @@ function assetPaths(v: unknown, out = new Set<string>()): Set<string> {
 
 describe('Pham Van Dong Boulevard track data', () => {
   it('is the 4th map, a storm, with 2 laps and elevation', () => {
-    expect(TRACKS.map((t) => t.id).slice(0, 4)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong']);
+    expect(ALL_TRACKS.map((t) => t.id).slice(0, 4)).toEqual(['cat_lai', 'cong_hoa', 'xa_lo_ha_noi', 'pham_van_dong']);
     expect(getTrack('pham_van_dong')).toBe(PVD);
     expect(PVD.timeOfDay).toBe('storm');
     expect(PVD.laps).toBe(2);

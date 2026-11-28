@@ -92,6 +92,8 @@ Emissive materials to drive at runtime: `Light_Tail` (brake), `Underglow` (playe
 `Light_Siren_Red/Blue` (warden_px, alternate at ~2 Hz),
 `Muzzle` (flash), and `lamp_1..5` on `start_gantry` (countdown).
 
+**Hidden maps:** Cong Hoa, Hanoi (Xa lộ) and Pham Van Dong are hidden for now (`HIDDEN_TRACK_IDS` in `Data.ts`): `TRACKS` (menus, online lobby, server room validation) lists only the visible maps; `ALL_TRACKS` and `getTrack` still reach them, and `?track=<id>` opens them in dev. To show one again, remove its id from `HIDDEN_TRACK_IDS`.
+
 ## Game rules (numbers live in data/)
 
 - Tracks: `cat_lai.json` (v2: daylight, the real Cát Lái container terminal, 3.6 km counter-clockwise; see "Cát Lái Port v2 (Map 1)" below), `cong_hoa.json` (day), `xa_lo_ha_noi.json` (dusk), `pham_van_dong.json` (monsoon storm), `monte_carlo.json` (Riviera daylight street circuit) and `ardennes.json` (Ardennes forest circuit, daylight).

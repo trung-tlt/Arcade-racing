@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import raw from '../data/tracks/ardennes.json';
 import placements from '../data/tracks/ardennes_placements.json';
 import terrainMeta from '../data/tracks/ardennes_terrain.json';
-import { ARDENNES, RACE, TRACKS, getTrack, roadWidthAt } from '../src/core/Data';
+import { ARDENNES, RACE, ALL_TRACKS, getTrack, roadWidthAt } from '../src/core/Data';
 import { ARDENNES_MODELS, ARDENNES_TEXTURES } from '../src/world/Ardennes';
 import {
   ExclusionGrid,
@@ -121,7 +121,7 @@ const ground = new GroundField(field, index);
 
 describe('Ardennes Forest Circuit track data', () => {
   it('is the 6th map: a clockwise daylight forest circuit, 15 m wide, 2 laps, with elevation', () => {
-    expect(TRACKS.map((t) => t.id)).toEqual([
+    expect(ALL_TRACKS.map((t) => t.id)).toEqual([
       'cat_lai',
       'cong_hoa',
       'xa_lo_ha_noi',
