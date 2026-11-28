@@ -22,10 +22,10 @@ const INFO: Record<string, { role: string; blurb: string; weapon: string }> = {
     blurb: 'Sleek grand-tourer. Forgiving drift, average everything.',
     weapon: 'Twin Pulse MG · 10 shots/s · 8° assist',
   },
-  rhino_x4: {
-    role: 'HEAVY · BRAWLER',
-    blurb: 'Armored muscle coupe. Wins every collision, ram damage ×2.',
-    weapon: 'Heavy twin cannon · hits harder, ram ×2',
+  facet_xt: {
+    role: 'ARMORED EV PICKUP · BRUISER',
+    blurb: 'Angular stainless-steel electric pickup. Wins every collision, ram damage ×2.2.',
+    weapon: 'Bed-mounted pop-up turret · ±25°',
   },
   wisp_r: {
     role: 'LIGHT · HYPER',

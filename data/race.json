@@ -3,12 +3,7 @@
     "steps": 3,
     "stepSec": 1,
     "goHoldSec": 1.2,
-    "lampsLit": [
-      2,
-      3,
-      4,
-      5
-    ],
+    "lampsLit": [2, 3, 4, 5],
     "lampOnIntensity": 4,
     "stopColor": "#FF3D6E",
     "goColor": "#C6FF3D"

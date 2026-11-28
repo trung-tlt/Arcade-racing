@@ -145,79 +145,74 @@
     "gunHeatMul": 1.05
   },
   {
-    "id": "rhino_x4",
-    "name": "Rhino X4",
-    "file": "models/cars/rhino_x4.glb",
-    "paint": "#2EC5FF",
+    "id": "facet_xt",
+    "name": "Facet XT",
+    "file": "models/cars/facet_xt.glb",
+    "paint": "#C9CDD2",
     "collider": {
-      "halfExtents": [1, 0.627, 2.41],
-      "center": [0, 0.747, 0.054]
+      "halfExtents": [1.015, 0.845, 3.038],
+      "center": [0, 0.965, -0.018]
     },
     "wheels": [
       {
         "name": "wheel_FL",
-        "x": 0.84,
-        "y": 0.34,
-        "z": 1.293,
-        "radius": 0.34,
-        "width": 0.34,
+        "x": 0.86,
+        "y": 0.451,
+        "z": 1.936,
+        "radius": 0.451,
+        "width": 0.33,
         "steer": true
       },
       {
         "name": "wheel_FR",
-        "x": -0.84,
-        "y": 0.34,
-        "z": 1.293,
-        "radius": 0.34,
-        "width": 0.34,
+        "x": -0.86,
+        "y": 0.451,
+        "z": 1.936,
+        "radius": 0.451,
+        "width": 0.33,
         "steer": true
       },
       {
         "name": "wheel_RL",
-        "x": 0.84,
-        "y": 0.34,
-        "z": -1.375,
-        "radius": 0.34,
-        "width": 0.34,
+        "x": 0.86,
+        "y": 0.451,
+        "z": -1.967,
+        "radius": 0.451,
+        "width": 0.33,
         "steer": false
       },
       {
         "name": "wheel_RR",
-        "x": -0.84,
-        "y": 0.34,
-        "z": -1.375,
-        "radius": 0.34,
-        "width": 0.34,
+        "x": -0.86,
+        "y": 0.451,
+        "z": -1.967,
+        "radius": 0.451,
+        "width": 0.33,
         "steer": false
       }
     ],
-    "gunMount": [0, 1.375, -0.231],
+    "gunMount": [0, 1.597, -0.984],
     "fpv": {
-      "mode": "cockpit",
-      "rig": "models/cars/cockpit_rig.glb",
-      "eye": [0.379, 1.108, 0.196],
-      "fovDeg": 64,
-      "tint": {
-        "paint": "#2EC5FF",
-        "accent": "#FFB37A"
-      }
+      "mode": "helmet",
+      "eye": [0, 1.537, 0.758],
+      "fovDeg": 70
     },
-    "role": null,
+    "role": "ARMORED EV PICKUP · BRUISER",
     "vehicleType": "car",
     "turretYawDeg": 25,
-    "topSpeedKmh": 180,
-    "accel": 3,
+    "topSpeedKmh": 255,
+    "accel": 9,
     "handling": 5,
-    "hp": 160,
-    "massKg": 2100,
-    "grip": 1.1,
+    "hp": 165,
+    "massKg": 3100,
+    "grip": 1,
     "drift": 0.6,
     "nitroBoost": 0.3,
-    "nitroBarSec": 2.5,
-    "ramDamageMul": 2,
-    "realWorld": "heavy off-road SUV",
-    "gunDamageMul": 1.1,
-    "gunHeatMul": 0.95
+    "nitroBarSec": 2,
+    "ramDamageMul": 2.2,
+    "realWorld": "Angular stainless-steel electric pickup",
+    "gunDamageMul": 1.0,
+    "gunHeatMul": 1.0
   },
   {
     "id": "wisp_r",

@@ -86,7 +86,7 @@ function lap(
 const RIVAL_CARS: [string, number][] = [
   ['kestrel_gt', 8],
   ['wisp_r', 8],
-  ['rhino_x4', 12],
+  ['facet_xt', 20],
 ];
 
 describe('Cong Hoa Boulevard is drivable by the AI rivals (no walls)', () => {

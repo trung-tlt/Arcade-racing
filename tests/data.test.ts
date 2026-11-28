@@ -25,7 +25,7 @@ describe('vehicle garage', () => {
     expect(CARS.map((c) => c.id)).toEqual([
       'raijin_rx',
       'kestrel_gt',
-      'rhino_x4',
+      'facet_xt',
       'wisp_r',
       'warden_px',
       'velora_s',

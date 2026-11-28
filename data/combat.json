@@ -1,9 +1,5 @@
 {
-  "muzzleOffset": [
-    0,
-    0.15,
-    1.6
-  ],
+  "muzzleOffset": [0, 0.15, 1.6],
   "aimTargetHeightM": 0.7,
   "pickupRadiusM": 2.6,
   "pickupHeightM": 1.2,

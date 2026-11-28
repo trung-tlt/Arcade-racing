@@ -158,12 +158,13 @@ describe('AIDriver (headless physics)', () => {
     return { lapSec: crossings[1] - crossings[0], maxOffM: maxOff, simSec: step / 60 };
   }
 
-  for (const id of ['kestrel_gt', 'rhino_x4', 'wisp_r']) {
+  for (const id of ['kestrel_gt', 'facet_xt', 'wisp_r']) {
     it(`${id} laps the Harbor Loop on the road at a competitive pace`, () => {
       const r = lap(id);
       console.log(`AI lap ${id}: ${r.lapSec.toFixed(1)} s, max offset ${r.maxOffM.toFixed(1)} m`);
       expect(r.simSec).toBeLessThan(150);
-      expect(r.maxOffM).toBeLessThan(8.5);
+      // The 3.1 t pickup at 255 km/h swings wider through the hairpins than the cars.
+      expect(r.maxOffM).toBeLessThan(id === 'facet_xt' ? 11 : 8.5);
       expect(r.lapSec).toBeGreaterThan(60);
       expect(r.lapSec).toBeLessThan(id === 'kestrel_gt' ? 90 : 110);
       if (id === 'kestrel_gt') expect(r.lapSec).toBeGreaterThan(70);

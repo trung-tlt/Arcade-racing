@@ -18,7 +18,7 @@ code only; it should not need to create or edit any art.
 | file | type | tris | notes |
 |---|---|---|---|
 | kestrel_gt.glb | car | ~12.9k | balanced starter, orange |
-| rhino_x4.glb | car | ~13.9k | heavy brawler, cyan, bull bar, treaded tires |
+| facet_xt.glb | car | ~60k | original angular stainless-steel EV pickup: flat-faceted body (flat shading on purpose), full-width front LED bar + red rear bar, giant single wiper, trapezoid arch flares, tambour bed cover, 35" AT tyres on faceted hex covers, brushed-steel material `Stainless_Brushed`, bed-mounted turret |
 | wisp_r.glb | car | ~12.8k | light hypercar, lime, rear wing, bigger rear wheels |
 | warden_px.glb | car | ~12.8k | police interceptor (fictional Harbor Patrol), push bar, light bar — alternate `Light_Siren_Red` / `Light_Siren_Blue` at ~2 Hz |
 | bastion_m8.glb | car | ~18.8k | military armored 4x4, olive + sand camo, slat armor, heavy twin cannon |
@@ -36,7 +36,6 @@ code only; it should not need to create or edit any art.
 - kestrel_gt — Emesoft: white stacked logo on both doors, ink mark on the hood.
 - mantis_650r — Emesoft: colour mark on both nose flanks, white stacked logo on the belly fairing and the tail, both sides.
 - mira_150 — Emesoft: white stacked logo on both rear side cowls, ink mark on the front of the legshield.
-- rhino_x4 — CaptureMann: patch (0.90 × 0.28 m) on the bolted door armour plate, both sides; on-light mark (0.42 m) on the bonnet.
 - fulmine_fx — Emesoft: colour mark on both sidepods, ink mark on the nose; CaptureMann patch on the engine cover; CraftMann patch on both rear-wing endplates.
 - wisp_r — CraftMann: patch (0.75 × 0.23 m) on the doors ahead of the side intake, both sides; on-light mark (0.50 m) on the bonnet.
 

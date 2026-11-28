@@ -85,7 +85,7 @@
     {
       "id": "razor",
       "name": "NHI",
-      "car": "rhino_x4",
+      "car": "velora_s",
       "laneOffsetM": -6,
       "skill": 1.0
     },
@@ -106,7 +106,7 @@
     {
       "id": "blitz",
       "name": "LAN",
-      "car": "rhino_x4",
+      "car": "raijin_rx",
       "laneOffsetM": -3,
       "skill": 0.95
     },
@@ -126,18 +126,7 @@
     "progressWindowSec": 4.5,
     "minProgressM": 8
   },
-  "rosterNames": [
-    "Nhi",
-    "Vy",
-    "Linh",
-    "Ngọc",
-    "Hân",
-    "Huy",
-    "Khang",
-    "Bảo",
-    "Minh",
-    "Phúc"
-  ],
+  "rosterNames": ["Nhi", "Vy", "Linh", "Ngọc", "Hân", "Huy", "Khang", "Bảo", "Minh", "Phúc"],
   "trackRosters": {
     "monte_carlo": {
       "car": "fulmine_fx",

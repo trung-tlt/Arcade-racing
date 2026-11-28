@@ -93,16 +93,8 @@
       "bpm": 112,
       "bars": 8,
       "volume": 0.35,
-      "playsOn": [
-        "MENU",
-        "CAR_SELECT",
-        "RACE_SETUP",
-        "RESULTS",
-        "PAUSE (ducked to 40%)"
-      ],
-      "stopsOn": [
-        "COUNTDOWN"
-      ]
+      "playsOn": ["MENU", "CAR_SELECT", "RACE_SETUP", "RESULTS", "PAUSE (ducked to 40%)"],
+      "stopsOn": ["COUNTDOWN"]
     }
   },
   "screenMap": {

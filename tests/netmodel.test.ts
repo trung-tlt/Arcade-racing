@@ -248,7 +248,7 @@ const PROFILES: Profile[] = [
   { name: '150 ms RTT + 1% stalls', link: { latencyMs: 75, jitterMs: 20, loss: 0.01, rtoMs: 250 } },
 ];
 
-const CARS6 = ['kestrel_gt', 'wisp_r', 'rhino_x4', 'raijin_rx', 'warden_px', 'fulmine_fx'];
+const CARS6 = ['kestrel_gt', 'wisp_r', 'velora_s', 'raijin_rx', 'warden_px', 'fulmine_fx'];
 
 function race(
   link: LinkConfig,
@@ -478,7 +478,7 @@ describe('combat over the network', () => {
       now: () => net.now,
       finishGraceSec: 300,
     });
-    const clients = ['kestrel_gt', 'wisp_r', 'rhino_x4'].map(
+    const clients = ['kestrel_gt', 'wisp_r', 'velora_s'].map(
       (carId, i) =>
         new SimClient({ net, room, trackId: 'monte_carlo', carId, name: `P${i + 1}`, up: link, down: link }),
     );
