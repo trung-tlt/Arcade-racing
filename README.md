@@ -16,7 +16,7 @@ gamepad or touch (phones, landscape): nothing to install.
 
 ### [▶ Play it now: racing.craftmann.app](https://racing.craftmann.app)
 
-![A rainy night on Pham Van Dong Boulevard](docs/screenshots/race-pham-van-dong.jpg)
+![The VOLTLINE garage lined up on the Suzuka Hills grid](docs/screenshots/garage-lineup.jpg)
 
 ## Features
 
